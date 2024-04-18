@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Registration</string>
+    <string name="sign_up"><a href="www.google.com">Sign up</a></string>
+</resources>
