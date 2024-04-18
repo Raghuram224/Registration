@@ -1,16 +1,22 @@
 package com.example.registration.view.signupScreen
 
 import android.annotation.SuppressLint
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.Icon
+import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -18,14 +24,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.registration.view.utils.CustomPassword
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("MutableCollectionMutableState")
 @Composable
 fun SignupScreen(modifier: Modifier = Modifier) {
@@ -38,6 +46,26 @@ fun SignupScreen(modifier: Modifier = Modifier) {
     var lastName by remember {
         mutableStateOf("")
     }
+    var age by remember {
+        mutableStateOf("")
+    }
+    var isDialogBoxOpen by remember {
+        mutableStateOf(false)
+    }
+    var address by remember {
+        mutableStateOf("")
+    }
+    var selectedDate by remember {
+        mutableStateOf("")
+    }
+    val datePickerState = rememberDatePickerState()
+
+    var password by remember {
+        mutableStateOf("")
+    }
+    var confirmPassword by remember {
+        mutableStateOf("")
+    }
 
     Column(
         modifier = Modifier
@@ -48,26 +76,91 @@ fun SignupScreen(modifier: Modifier = Modifier) {
     ) {
 
         UserProfile()
-        OutlinedTextField(
-            modifier = modifier
-                .padding(vertical = 8.dp, horizontal = 4.dp)
-                .fillMaxWidth(),
-            value = firstName,
-            label = { Text(text = "First name") },
-            onValueChange = { firstName = it }
+
+        CustomOutlinedInput(
+            text = firstName,
+            onTextChanged = { firstName = it },
+            label = "First name"
         )
-        OutlinedTextField(
-            modifier = modifier
-                .padding(vertical = 8.dp, horizontal = 4.dp)
-                .fillMaxWidth(),
-            value = lastName,
-            label = { Text(text = "Last name") },
-            onValueChange = { lastName = it }
+
+        CustomOutlinedInput(
+            text = lastName,
+            onTextChanged = { lastName = it },
+            label = "Last name"
         )
+
         SignupEmail()
         SignupPhone()
 
+        CustomOutlinedInput(
+            text = age,
+            onTextChanged = { age = it },
+            label = "Age",
+            keyBoardType = KeyboardType.Phone
+        )
+        DatePickerBar(
+            text = "Pick your date of birth",
+
+            onClick = { isDialogBoxOpen = !isDialogBoxOpen },
+            selectedDate = selectedDate
+        )
+
+        CustomOutlinedInput(
+            text = address,
+            onTextChanged = { address = it },
+            label = "Enter your address",
+            minLines = 3,
+            maxLines = 5
+        )
+
+        CustomOutlinedInput(
+            text = password,
+            onTextChanged ={password = it} ,
+            label = "Password"
+        )
+
+        CustomOutlinedInput(
+            text = confirmPassword,
+            onTextChanged ={confirmPassword = it} ,
+            label = "confirm password"
+        )
+
+        Button(
+            modifier = Modifier
+                .padding(horizontal = 4.dp, vertical = 8.dp)
+                .fillMaxWidth(),
+            onClick = { /*TODO*/ })
+        {
+            Text(
+                text = "Sign up",
+                style = TextStyle(
+                    color = Color.White,
+                    fontSize = 16.sp
+                )
+            )
+        }
+
+
+        if (isDialogBoxOpen) {
+            CustomDatePicker(
+                datePickerState = datePickerState,
+                onDismiss = { isDialogBoxOpen = !isDialogBoxOpen },
+                onClick = {selectedDate = it}
+            )
+
+        }
+
+
     }
+}
+
+
+@Preview(
+    showSystemUi = true
+)
+@Composable
+private fun PreviewSignUp() {
+    SignupScreen()
 }
 
 
@@ -106,38 +199,3 @@ fun SignupScreen(modifier: Modifier = Modifier) {
 //    }
 //
 //}
-
-@Composable
-fun CustomOutlinedInput(
-    itemNo: Int,
-    text: String,
-    onTextChanged: (String) -> Unit,
-    keyBoardType: KeyboardType,
-    label: String,
-) {
-    var temp by remember {
-        mutableStateOf(text)
-    }
-    OutlinedTextField(
-        modifier = Modifier
-            .padding(vertical = 8.dp, horizontal = 4.dp)
-            .fillMaxWidth()
-            .onFocusChanged {
-                if (it.isFocused.not()) {
-                    onTextChanged.invoke(temp)
-                }
-            },
-        value = temp, onValueChange = { temp = it },
-        label = { Text(text = "$label $itemNo") },
-        keyboardOptions = KeyboardOptions(keyboardType = keyBoardType)
-    )
-
-}
-
-@Preview(
-    showSystemUi = true
-)
-@Composable
-private fun PreviewSignUp() {
-    SignupScreen()
-}
