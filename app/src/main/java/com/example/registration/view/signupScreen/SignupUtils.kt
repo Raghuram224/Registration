@@ -1,6 +1,8 @@
 package com.example.registration.view.signupScreen
 
 import android.annotation.SuppressLint
+import android.net.Uri
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -11,6 +13,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -20,6 +23,7 @@ import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -35,6 +39,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -43,25 +48,41 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
+import coil.compose.AsyncImage
 import com.example.registration.R
 import java.text.SimpleDateFormat
 import java.util.Date
 
 @Composable
-fun UserProfile(modifier: Modifier = Modifier) {
+fun UserProfile(
+    modifier: Modifier = Modifier,
+    isProfileSelected: Boolean,
+    selectedImageUri: Uri?,
+    chooseProfileImage: () -> Unit,
+) {
     Column(
         modifier = modifier
             .fillMaxWidth(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Image(
-            modifier = Modifier,
-            painter = painterResource(id = R.drawable.profile_img),
-            contentDescription = "profile"
-        )
+        if (!isProfileSelected) {
+
+            Image(
+                modifier = Modifier
+                    .clickable {
+                        chooseProfileImage()
+                    },
+                painter = painterResource(id = R.drawable.profile_img),
+                contentDescription = "profile",
+            )
+        } else if (selectedImageUri!=null) {
+            AsyncImage(
+                model = selectedImageUri,
+                contentDescription = "profile",
+                contentScale = ContentScale.Crop,
+            )
+        }
         Text(
             modifier = Modifier
                 .padding(4.dp)
@@ -76,7 +97,13 @@ fun UserProfile(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun SignupEmail(modifier: Modifier = Modifier) {
+fun SignupEmail(
+    modifier: Modifier = Modifier,
+    isPrimaryEmailSelected: Boolean,
+    selectEmail: (idx: Int) -> Unit,
+    closeButtonClick: () -> Unit,
+    primaryEmailIndex: Int,
+) {
 
     val values = remember {
         mutableStateListOf("")
@@ -90,20 +117,59 @@ fun SignupEmail(modifier: Modifier = Modifier) {
             keyBoardType = KeyboardType.Email,
             label = "Email"
         )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            if (!isPrimaryEmailSelected) {
+                Button(
+                    onClick = {
+                        selectEmail(index)
+                    }
+                ) {
+                    Text(text = "Make this as primary E-mail")
+                }
+            }
+            if (isPrimaryEmailSelected && index == primaryEmailIndex) {
+                IconButton(
+                    modifier = Modifier
+                        .size(30.dp),
+                    onClick = { closeButtonClick() }
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.close_ic),
+                        contentDescription = "close"
+                    )
+                }
+            }
+
+
+        }
+
     }
 
-    Button(
+    IconButton(
         onClick = {
             values.add("")
+
         }
     ) {
-        Text(text = "Add another email")
+        Icon(painter = painterResource(id = R.drawable.add_ic), contentDescription = "add")
     }
+
 
 }
 
 @Composable
-fun SignupPhone(modifier: Modifier = Modifier) {
+fun SignupPhone(
+    modifier: Modifier = Modifier,
+    isPrimaryPhoneSelected: Boolean,
+    selectPhone: (idx: Int) -> Unit,
+    closeButtonClick: () -> Unit,
+    primaryPhoneIndex: Int,
+) {
     val valuesPhone = remember {
         mutableStateListOf("")
     }
@@ -116,15 +182,42 @@ fun SignupPhone(modifier: Modifier = Modifier) {
             keyBoardType = KeyboardType.Phone,
             label = "Phone number"
         )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            if (!isPrimaryPhoneSelected) {
+                Button(onClick = { selectPhone(index) }) {
+                    Text(text = "Make this as primary phone")
+                }
+            }
+
+            if (isPrimaryPhoneSelected && index == primaryPhoneIndex) {
+                IconButton(
+                    modifier = Modifier
+                        .size(30.dp),
+                    onClick = { closeButtonClick() }
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.close_ic),
+                        contentDescription = "close"
+                    )
+                }
+            }
+        }
     }
 
-    Button(
+    IconButton(
         onClick = {
             valuesPhone.add("")
+
         }
     ) {
-        Text(text = "Add another Phone")
+        Icon(painter = painterResource(id = R.drawable.add_ic), contentDescription = "add")
     }
+
 
 }
 
@@ -171,12 +264,10 @@ fun DatePickerBar(
 ) {
     Column(
         modifier = modifier
-            .clickable {
-                onClick()
-            }
-            .border(1.dp, Color.Black.copy(alpha = 0.5f))
-            .padding(horizontal = 8.dp, vertical = 8.dp)
-            .clip(RoundedCornerShape(15.dp))
+            .padding(horizontal = 4.dp, vertical = 8.dp)
+            .clip(RoundedCornerShape(5.dp))
+            .border(1.dp, Color.Black.copy(alpha = 0.6f))
+
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -184,6 +275,7 @@ fun DatePickerBar(
         ) {
             Text(
                 modifier = Modifier
+                    .padding(4.dp)
                     .fillMaxWidth()
                     .weight(1f),
                 text = text,
@@ -194,6 +286,10 @@ fun DatePickerBar(
             )
             Icon(
                 modifier = Modifier
+                    .clickable {
+                        onClick()
+                        Log.i("date click", "click")
+                    }
                     .padding(horizontal = 4.dp, vertical = 8.dp),
                 imageVector = Icons.Filled.DateRange,
                 contentDescription = "Date",
@@ -211,7 +307,7 @@ fun DatePickerBar(
             ),
 
 
-        )
+            )
     }
 }
 
@@ -231,51 +327,52 @@ fun CustomDatePicker(
 
         ) {
 
-        Dialog(
-            onDismissRequest = { onDismiss() },
-            properties = DialogProperties(
-                dismissOnClickOutside = true,
-                dismissOnBackPress = true
-            )
+//        Dialog(
+//            onDismissRequest = { onDismiss() },
+//            properties = DialogProperties(
+//                dismissOnClickOutside = true,
+//                dismissOnBackPress = true
+//            )
+//
+//        ) {
+        Column(
+            modifier = Modifier
+                .background(Color.White),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
 
-        ) {
-            Column(
+            ) {
+            DatePicker(
+                state = datePickerState,
                 modifier = Modifier
-                    .background(Color.White),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally,
-
-                ) {
-                DatePicker(
-                    state = datePickerState,
-                    modifier = Modifier
 
 
-                )
-                Row(
-                    modifier = Modifier
-                        .padding(4.dp)
-                        .fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    TextButton(onClick = { onDismiss() }) {
-                        Text(text = "Cancel")
-                    }
-                    TextButton(
-                        onClick = {
-                            onClick(
-                                convertMillisToDate(selectedDateInMillis))
+            )
+            Row(
+                modifier = Modifier
+                    .padding(4.dp)
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.End
+            ) {
+                TextButton(onClick = { onDismiss() }) {
+                    Text(text = "Cancel")
+                }
+                TextButton(
+                    onClick = {
+                        onClick(
+                            convertMillisToDate(selectedDateInMillis)
+                        )
 //                            Log.i("date",selectedDate.toString())
-                            onDismiss()
+                        onDismiss()
 
-                        }
-                    ) {
-                        Text(text = "Confirm")
                     }
+                ) {
+                    Text(text = "Confirm")
                 }
             }
         }
+//        }
 
     }
 
@@ -286,7 +383,7 @@ fun CustomDatePicker(
 fun convertMillisToDate(mill: Long?): String {
     val format = SimpleDateFormat("dd/MM/yyyy")
 
-    return  if (mill!=null) format.format(Date( mill)) else ""
+    return if (mill != null) format.format(Date(mill)) else ""
 }
 
 
@@ -299,5 +396,17 @@ private fun PriviewUtils() {
 //        datePickerState, onDismiss = {},
 //        onClick = {}
 //    )
-    DatePickerBar(onClick = {}, text = "Pick your date of birth", selectedDate = "03/11/2002")
+//    DatePickerBar(onClick = {}, text = "Pick your date of birth", selectedDate = "03/11/2002")
+//    SignupPhone(
+//      selectPhone = {},
+//        isPrimaryPhoneSelected =false,
+//        closeButtonClick = {},
+//        primaryPhoneIndex = 0
+//
+//    )
+
+//    UserProfile (
+//        chooseProfileImage = {},
+//        selectedImageUri =
+//    )
 }

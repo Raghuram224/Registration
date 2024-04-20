@@ -102,5 +102,8 @@ dependencies {
     implementation ("androidx.compose.runtime:runtime-livedata:1.6.6")
     implementation ("androidx.compose.runtime:runtime:1.6.6")
 
+    //coil
+    implementation("io.coil-kt:coil-compose:2.6.0")
+
 
 }

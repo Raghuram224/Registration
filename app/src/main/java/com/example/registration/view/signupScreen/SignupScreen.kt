@@ -1,22 +1,27 @@
 package com.example.registration.view.signupScreen
 
 import android.annotation.SuppressLint
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContract
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Icon
 import androidx.compose.material.Text
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -25,12 +30,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.registration.view.utils.CustomPassword
+import com.example.registration.R
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -66,7 +72,33 @@ fun SignupScreen(modifier: Modifier = Modifier) {
     var confirmPassword by remember {
         mutableStateOf("")
     }
+    var isPrimaryEmailSelected by remember {
+        mutableStateOf(false)
+    }
+    var primaryEmailIndex by remember {
+        mutableStateOf(0)
+    }
+    var isPrimaryPhoneSelected by remember {
+        mutableStateOf(false)
+    }
+    var primaryPhoneIndex by remember {
+        mutableStateOf(0)
+    }
 
+    val bottomSheetState = rememberModalBottomSheetState()
+    var isSheetOpen by remember {
+        mutableStateOf(false)
+    }
+    var selectedImageUri by remember {
+        mutableStateOf<Uri?>(null)
+    }
+    val photoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia(),
+        onResult = {uri: Uri? -> selectedImageUri =uri }
+    )
+    var isProfileSelected by remember {
+        mutableStateOf(false)
+    }
     Column(
         modifier = Modifier
             .padding(horizontal = 16.dp)
@@ -75,7 +107,13 @@ fun SignupScreen(modifier: Modifier = Modifier) {
         horizontalAlignment = Alignment.Start
     ) {
 
-        UserProfile()
+        UserProfile(
+            chooseProfileImage = {
+                isSheetOpen = true
+            },
+            selectedImageUri = selectedImageUri,
+            isProfileSelected = isProfileSelected
+        )
 
         CustomOutlinedInput(
             text = firstName,
@@ -89,8 +127,31 @@ fun SignupScreen(modifier: Modifier = Modifier) {
             label = "Last name"
         )
 
-        SignupEmail()
-        SignupPhone()
+        SignupEmail(
+            selectEmail = {
+                primaryEmailIndex = it
+                isPrimaryEmailSelected = true
+            },
+            isPrimaryEmailSelected = isPrimaryEmailSelected,
+            closeButtonClick = {
+                primaryEmailIndex = 0
+                isPrimaryEmailSelected = false
+            },
+            primaryEmailIndex = primaryEmailIndex
+        )
+        SignupPhone(
+            selectPhone = {
+                primaryPhoneIndex = it
+                isPrimaryPhoneSelected = true
+            },
+            isPrimaryPhoneSelected = isPrimaryPhoneSelected,
+            closeButtonClick = {
+                primaryPhoneIndex = 0
+                isPrimaryPhoneSelected = false
+            },
+            primaryPhoneIndex = primaryPhoneIndex
+
+        )
 
         CustomOutlinedInput(
             text = age,
@@ -100,7 +161,6 @@ fun SignupScreen(modifier: Modifier = Modifier) {
         )
         DatePickerBar(
             text = "Pick your date of birth",
-
             onClick = { isDialogBoxOpen = !isDialogBoxOpen },
             selectedDate = selectedDate
         )
@@ -115,13 +175,13 @@ fun SignupScreen(modifier: Modifier = Modifier) {
 
         CustomOutlinedInput(
             text = password,
-            onTextChanged ={password = it} ,
+            onTextChanged = { password = it },
             label = "Password"
         )
 
         CustomOutlinedInput(
             text = confirmPassword,
-            onTextChanged ={confirmPassword = it} ,
+            onTextChanged = { confirmPassword = it },
             label = "confirm password"
         )
 
@@ -145,9 +205,48 @@ fun SignupScreen(modifier: Modifier = Modifier) {
             CustomDatePicker(
                 datePickerState = datePickerState,
                 onDismiss = { isDialogBoxOpen = !isDialogBoxOpen },
-                onClick = {selectedDate = it}
+                onClick = { selectedDate = it }
             )
 
+        }
+        if (isSheetOpen) {
+            ModalBottomSheet(
+                onDismissRequest = {
+                    isSheetOpen = false
+                },
+                sheetState = bottomSheetState
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Start,
+                    verticalAlignment = Alignment.CenterVertically,
+
+                    ) {
+                    Image(
+                        modifier = Modifier
+
+                            .padding(8.dp)
+                            .size(50.dp),
+                        painter = painterResource(id = R.drawable.camera_ic),
+                        contentDescription = "Camera",
+                    )
+                    Image(
+                        modifier = Modifier
+                            .clickable {
+                                isProfileSelected=true
+                                photoPickerLauncher.launch(
+                                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                )
+                            }
+                            .padding(8.dp)
+                            .size(50.dp),
+                        painter = painterResource(id = R.drawable.gallery_ic),
+                        contentDescription = "Gallery",
+                    )
+
+                }
+            }
         }
 
 
