@@ -1,18 +1,28 @@
 package com.example.registration
 
-fun main(){
-    val reg = "[a-zA-Z]+\\d\\S"
+import android.annotation.SuppressLint
+import java.util.Calendar;
+import android.os.Build
+import androidx.annotation.RequiresApi
+import java.text.SimpleDateFormat
+import java.util.Date
 
-    val input = "raghuram2gamil.com"
-
-//    val regex = Regex("^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,}\$")
-    val regex = Regex("(?=.*[A-Za-z])(?=.*)\\S+@\\S+\\.\\S+")
-
-
-
-    if (regex.matches(input)){
-        println("true")
-    }else{
-        println("False")
-    }
-}
+//fun yearsToMillis(years: Long): Long {
+//    val days = years * 365
+//    val hours = days * 24
+//    val minutes = hours * 60
+//    val seconds = minutes * 60
+//    val milliseconds = seconds * 1000
+//    return milliseconds
+//}
+//
+//@SuppressLint("SimpleDateFormat")
+//fun convertMillisToDate(mill: Long?): String {
+//    val format = SimpleDateFormat("dd/MM/yyyy")
+//
+//    return if (mill != null) format.format(Date(mill)) else ""
+//}
+//fun main() {
+//    println( yearsToMillis(4))
+//    println(convertMillisToDate(Date().time.minus(126144000000)))
+//}

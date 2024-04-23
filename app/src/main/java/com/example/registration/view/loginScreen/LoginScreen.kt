@@ -11,11 +11,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.NavController
 
 @Composable
 fun LoginScreen(
     modifier: Modifier = Modifier
-        .background(Color.White)
+        .background(Color.White),
+    navController: NavController
 ) {
     val configuration = LocalConfiguration.current
 
@@ -71,5 +73,5 @@ fun checkEmailAndPassword(email: String, password: String): Boolean {
 )
 @Composable
 private fun PreviewHomeLandScapeScreen() {
-    LoginScreen()
+//    LoginScreen()
 }
