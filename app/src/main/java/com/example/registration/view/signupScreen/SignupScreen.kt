@@ -27,22 +27,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.BottomSheetValue
-import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Camera
 import androidx.compose.material.icons.filled.Photo
-import androidx.compose.material.rememberBottomSheetScaffoldState
-import androidx.compose.material.rememberBottomSheetState
-import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.SheetState
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -64,7 +58,6 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -78,7 +71,7 @@ import java.util.Date
 
 
 @RequiresApi(Build.VERSION_CODES.O)
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("MutableCollectionMutableState")
 @Composable
 fun SignupScreen(
@@ -116,20 +109,20 @@ fun SignupScreen(
     val datePickerState = rememberDatePickerState()
 
     var isPrimaryEmailSelected by remember {
-        mutableStateOf(false)
+        mutableStateOf(true)
     }
     var primaryEmailIndex by remember {
         mutableStateOf(0)
     }
     var isPrimaryPhoneSelected by remember {
-        mutableStateOf(false)
+        mutableStateOf(true)
     }
     var primaryPhoneIndex by remember {
         mutableStateOf(0)
     }
 
     // camera essentials
-    val bottomSheetState = rememberModalBottomSheetState()
+
     var isProfileSheetOpen by remember {
         mutableStateOf(false)
     }
@@ -186,7 +179,7 @@ fun SignupScreen(
     val phoneListColor = remember {
         mutableStateListOf(false)
     }
-    var addressColor by remember {
+    val addressColor by remember {
         mutableStateOf(false)
     }
     var passwordColor by remember {
@@ -208,9 +201,7 @@ fun SignupScreen(
     var isAgeFocused by remember {
         mutableStateOf(false)
     }
-    val scaffoldSheetState = androidx.compose.material3.rememberBottomSheetScaffoldState(
-        bottomSheetState = rememberModalBottomSheetState()
-    )
+
 
 
 
@@ -265,6 +256,7 @@ fun SignupScreen(
                 selectedImageType = 1
             },
             removeProfile = {
+                isProfileSelected =false
                 selectedImageType = 0
             }
 
@@ -312,7 +304,14 @@ fun SignupScreen(
             },
             primaryEmailIndex = primaryEmailIndex,
             emailList = emailList,
-            isFieldError = emailListColor
+            isFieldError = emailListColor,
+            removeField = {
+                if (emailList.size>1 &&  it!=primaryEmailIndex){
+                    emailList.removeAt(it)
+                    emailListColor.removeAt(it)
+                }
+
+            }
         )
         Text(
             modifier = Modifier
@@ -337,7 +336,14 @@ fun SignupScreen(
             },
             primaryPhoneIndex = primaryPhoneIndex,
             phoneList = phoneList,
-            isFieldError = phoneListColor
+            isFieldError = phoneListColor,
+            removeField = {
+                if (phoneList.size>1 &&  it!=primaryPhoneIndex){
+                    phoneList.removeAt(it)
+                    phoneListColor.removeAt(it)
+                }
+
+            }
 
         )
 //        Log.i("Test",(age.toInt()+5).toString())
@@ -408,13 +414,8 @@ fun SignupScreen(
                 .fillMaxWidth(),
             onClick = {
 
-                emailList.forEachIndexed { idx, item ->
-                    emailListColor[idx] = emailList[idx].isEmpty()
-                }
-
-                phoneList.forEachIndexed { idx, item ->
-                    phoneListColor[idx] = phoneList[idx].isEmpty()
-                }
+                emailListColor[primaryEmailIndex]=emailList[primaryEmailIndex].isEmpty()
+                phoneListColor[primaryPhoneIndex]= phoneList[primaryPhoneIndex].isEmpty()
 
                 fNameColor = firstName.isEmpty()
                 lNameColor = lastName.isEmpty()
@@ -423,11 +424,10 @@ fun SignupScreen(
 
                 if (
                     signupViewModel.checkFieldsValue(
-                        emailList = emailList,
-                        phoneList = phoneList,
+                        primaryEmail = emailList[primaryEmailIndex],
+                        primaryPhone = phoneList[primaryPhoneIndex],
                         age = age,
                         dob = dateOfBirth,
-                        address = address,
                         firstName = firstName,
                         lastName = lastName
                     )
@@ -501,74 +501,6 @@ fun SignupScreen(
 
         }
 
-//        if (isProfileSheetOpen) {
-//            ModalBottomSheet(
-//                onDismissRequest = {
-//                    isProfileSheetOpen = false
-//                },
-//                sheetState = bottomSheetState
-//            ) {
-//                Row(
-//                    modifier = Modifier
-//                        .fillMaxWidth(),
-//                    horizontalArrangement = Arrangement.Start,
-//                    verticalAlignment = Alignment.CenterVertically,
-//
-//                    ) {
-//                    Image(
-//                        modifier = Modifier
-//                            .clickable {
-//                                if (!hasRequiredPermission(mContext = context, PERMISSIONS = PERMISSIONS)) {
-//                                    ActivityCompat.requestPermissions(
-//                                        activity,
-//                                        PERMISSIONS,
-//                                        0
-//                                    )
-//                                }
-//
-//                                if (hasRequiredPermission(
-//                                        mContext = context,
-//                                        PERMISSIONS = PERMISSIONS
-//                                    )
-//                                ) {
-//                                    isCameraSheetOpen = true
-//                                    selectedImageType = 2
-//                                } else {
-//                                    Toast
-//                                        .makeText(
-//                                            context,
-//                                            "need camera permission",
-//                                            Toast.LENGTH_SHORT
-//                                        )
-//                                        .show()
-//                                }
-//
-////                                Log.i("Camera out",isCameraOpen.toString())
-//                            }
-//
-//                            .padding(MaterialTheme.dimens.signupDimension.padding08)
-//                            .size(50.dp),
-//                        painter = painterResource(id = R.drawable.camera_ic),
-//                        contentDescription = "Camera",
-//                    )
-//                    Image(
-//                        modifier = Modifier
-//                            .clickable {
-//                                isProfileSelected = true
-//                                photoPickerLauncher.launch(
-//                                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-//                                )
-//                                selectedImageType = 1
-//                            }
-//                            .padding(MaterialTheme.dimens.signupDimension.padding08)
-//                            .size(50.dp),
-//                        painter = painterResource(id = R.drawable.gallery_ic),
-//                        contentDescription = "Gallery",
-//                    )
-//
-//                }
-//            }
-//        }
 
         if (isCameraSheetOpen) {
 

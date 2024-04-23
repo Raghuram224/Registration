@@ -95,19 +95,18 @@ class SignupViewModel @Inject constructor() : ViewModel() {
     }
 
     fun checkFieldsValue(
-        emailList: List<String>,
-        phoneList: List<String>,
+        primaryEmail: String,
+        primaryPhone: String,
         age: String,
         dob: String,
         firstName: String,
         lastName: String,
-        address: String
     ): Boolean {
 
 
-        return emailList.isNotEmpty() && phoneList.isNotEmpty() &&
+        return primaryEmail.isNotEmpty() && primaryPhone.isNotEmpty() &&
                 firstName.isNotEmpty() && lastName.isNotEmpty() && age.isNotEmpty()
-                && dob.isNotEmpty() && address.isNotEmpty()
+                && dob.isNotEmpty()
 
     }
 

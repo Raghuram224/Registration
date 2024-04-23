@@ -159,6 +159,7 @@ fun UserProfile(
                             .clip(RoundedCornerShape(50.dp))
                             .size(MaterialTheme.dimens.signupDimension.profileSize)
                             .clickable {
+                                isDropDownExpanded =true
                                 chooseProfileImage()
                             },
                         bitmap = selectedCameraImage.asImageBitmap(),
@@ -255,7 +256,8 @@ fun SignupEmail(
     closeButtonClick: () -> Unit,
     primaryEmailIndex: Int,
     emailList: SnapshotStateList<String>,
-    isFieldError: SnapshotStateList<Boolean>
+    isFieldError: SnapshotStateList<Boolean>,
+    removeField:(idx:Int)->Unit,
 
 ) {
 
@@ -308,6 +310,20 @@ fun SignupEmail(
                     )
                 }
             }
+            if (isPrimaryEmailSelected && index!=primaryEmailIndex){
+                IconButton(
+                    modifier = Modifier
+                        .weight(0.1f)
+                        .size(30.dp),
+                    onClick = { removeField(index) }
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.minus_ic),
+                        contentDescription = "remove field"
+                    )
+                }
+            }
+
         }
 
     }
@@ -334,6 +350,7 @@ fun SignupPhone(
     primaryPhoneIndex: Int,
     phoneList: SnapshotStateList<String>,
     isFieldError: SnapshotStateList<Boolean>,
+    removeField: (idx: Int) -> Unit,
 ) {
 
     phoneList.forEachIndexed { index, key ->
@@ -378,6 +395,19 @@ fun SignupPhone(
                     Icon(
                         painter = painterResource(id = R.drawable.close_ic),
                         contentDescription = "close"
+                    )
+                }
+            }
+            if (isPrimaryPhoneSelected && index!=primaryPhoneIndex){
+                IconButton(
+                    modifier = Modifier
+                        .weight(0.1f)
+                        .size(30.dp),
+                    onClick = { removeField(index) }
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.minus_ic),
+                        contentDescription = "remove field"
                     )
                 }
             }
