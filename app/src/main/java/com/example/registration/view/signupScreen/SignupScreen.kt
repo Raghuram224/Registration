@@ -60,14 +60,12 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.example.registration.ui.theme.dimens
 import com.example.registration.view.utils.CameraPreview
 import com.example.registration.view.utils.PhotoBottomSheetContent
 import com.example.registration.viewModels.SignupViewModel
 import com.example.registration.viewModels.TextFieldType
-import com.example.registration.viewModels.TextFieldTypeTest
 import java.util.Date
 
 
@@ -83,16 +81,10 @@ fun SignupScreen(
     val activity = LocalContext.current as Activity
     val scrollState = rememberScrollState()
 
-    val firstName by signupViewModel.firstName.collectAsStateWithLifecycle()
-    val lastName by signupViewModel.lastName.collectAsStateWithLifecycle()
+    val signupDataTest = signupViewModel.signupData.collectAsState() //Test
 
-    val age by signupViewModel.age.collectAsStateWithLifecycle()
 
-    val address by signupViewModel.address.collectAsStateWithLifecycle()
-
-    val dateOfBirth by signupViewModel.dob.collectAsStateWithLifecycle()
-
-    var emailList = signupViewModel.emailList
+    val emailList = signupViewModel.emailList
     val phoneList = signupViewModel.phoneList
 
     var password by remember {
@@ -174,7 +166,7 @@ fun SignupScreen(
     var lNameColor by remember {
         mutableStateOf(false)
     }
-    var emailListColor = remember {
+    val emailListColor = remember {
         mutableStateListOf(false)
     }
     val phoneListColor = remember {
@@ -203,7 +195,7 @@ fun SignupScreen(
         mutableStateOf(false)
     }
 
-    val signupDataTest = signupViewModel.signupData.collectAsState()
+
 
 
 
@@ -276,10 +268,10 @@ fun SignupScreen(
             )
         )
         CustomOutlinedInput(
-            text = firstName,
+            text = signupDataTest.value.firstName,
             onTextChanged = {
-                signupViewModel.updateText(it, TextFieldType.FirstName)
-                signupViewModel.updateSignupDataTest(it, TextFieldTypeTest.FirstName)
+
+                signupViewModel.updateSignupData(it, TextFieldType.FirstName)
 
             },
             label = "First name",
@@ -287,10 +279,10 @@ fun SignupScreen(
         )
 
         CustomOutlinedInput(
-            text = lastName,
+            text = signupDataTest.value.lastName,
             onTextChanged = {
-                signupViewModel.updateText(it, TextFieldType.LastName)
-                signupViewModel.updateSignupDataTest(it, TextFieldTypeTest.LastName)
+
+                signupViewModel.updateSignupData(it, TextFieldType.LastName)
             },
             label = "Last name",
             isError = lNameColor
@@ -387,13 +379,15 @@ fun SignupScreen(
         LaunchedEffect(key1 = keyBoardState) {
             if (keyBoardState == Keyboard.Closed && isAgeFocused) {
                 focusManager.clearFocus()
-                signupViewModel.updateText(
-                    text = if (age != null) convertMillisToDate(Date().time.minus(yearsToMillis(age.toLong()))) else "0",
+
+                signupViewModel.updateSignupData(
+                    text = if (signupDataTest.value.age != null) convertMillisToDate(
+                        Date().time.minus(
+                            yearsToMillis(signupDataTest.value.age.toLong())
+                        )
+                    ) else "0",
                     TextFieldType.DOB,
                 )
-                signupViewModel.updateSignupDataTest(
-                    text = if (age != null) convertMillisToDate(Date().time.minus(yearsToMillis(age.toLong()))) else "0",
-                    TextFieldTypeTest.DOB,)
             }
         }
         Text(
@@ -411,10 +405,10 @@ fun SignupScreen(
         CustomOutlinedInput(
             modifier = Modifier
                 .focusRequester(focusRequester = focusRequester),
-            text = age,
+            text = signupDataTest.value.age,
             onTextChanged = {
-                signupViewModel.updateText(it, TextFieldType.Age)
-                signupViewModel.updateSignupDataTest(it, TextFieldTypeTest.Age)
+
+                signupViewModel.updateSignupData(it, TextFieldType.Age)
             },
             label = "Age",
             keyBoardType = KeyboardType.Phone,
@@ -427,7 +421,7 @@ fun SignupScreen(
         DatePickerBar(
             text = "Pick your date of birth",
             onClick = { isDatePickerSheetOpen = true },
-            selectedDate = dateOfBirth
+            selectedDate = signupDataTest.value.dob
         )
 
         Text(
@@ -443,11 +437,11 @@ fun SignupScreen(
         )
 
         CustomOutlinedInput(
-            text = address,
+            text = signupDataTest.value.address,
             onTextChanged = {
-                signupViewModel.updateText(text = it, TextFieldType.Address)
-                signupViewModel.updateSignupDataTest(text = it, TextFieldTypeTest.Address)
-                            },
+
+                signupViewModel.updateSignupData(text = it, TextFieldType.Address)
+            },
             label = "Enter your address",
             minLines = 3,
             maxLines = 5,
@@ -496,8 +490,8 @@ fun SignupScreen(
                 emailListColor[primaryEmailIndex] = emailList[primaryEmailIndex].isEmpty()
                 phoneListColor[primaryPhoneIndex] = phoneList[primaryPhoneIndex].isEmpty()
 
-                fNameColor = firstName.isEmpty()
-                lNameColor = lastName.isEmpty()
+                fNameColor = signupDataTest.value.firstName.isEmpty()
+                lNameColor = signupDataTest.value.lastName.isEmpty()
                 passwordColor = password.isEmpty()
                 confirmPasswordColor = confirmPassword.isEmpty()
 
@@ -505,10 +499,10 @@ fun SignupScreen(
                     signupViewModel.checkFieldsValue(
                         primaryEmail = emailList[primaryEmailIndex],
                         primaryPhone = phoneList[primaryPhoneIndex],
-                        age = age,
-                        dob = dateOfBirth,
-                        firstName = firstName,
-                        lastName = lastName
+                        age = signupDataTest.value.age,
+                        dob = signupDataTest.value.dob,
+                        firstName = signupDataTest.value.firstName,
+                        lastName = signupDataTest.value.lastName
                     )
                 ) {
                     if (signupViewModel.checkPassword(
@@ -516,24 +510,17 @@ fun SignupScreen(
                             confirmPassword = confirmPassword
                         )
                     ) {
+                        val otherEmails = signupViewModel.convertListToString(list = emailList, idx = primaryEmailIndex)
+                        val otherPhones=signupViewModel.convertListToString(list = phoneList, idx = primaryPhoneIndex)
 
-                        signupViewModel.signupDetails = SignupDetails(
-                            firstName = firstName,
-                            lastName = lastName,
-                            primaryEmail = emailList[primaryEmailIndex],
-                            primaryPhone = phoneList[primaryPhoneIndex],
-                            age = age,
-                            dob = dateOfBirth,
-                            address = address,
-                            otherEmails = signupViewModel.convertListToString(
-                                list = emailList.toList(),
-                                idx = primaryEmailIndex
-                            ),
-                            otherPhones = signupViewModel.convertListToString(
-                                list = phoneList.toList(),
-                                idx = primaryPhoneIndex
-                            )
-                        )
+                        signupViewModel.updateSignupData(text = otherEmails,TextFieldType.OtherEmails)
+                        signupViewModel.updateSignupData(text = otherPhones,TextFieldType.OtherPhones)
+                        signupViewModel.updateSignupData(text = emailList[primaryEmailIndex],TextFieldType.PrimaryEmail)
+                        signupViewModel.updateSignupData(text = phoneList[primaryPhoneIndex],TextFieldType.PrimaryPhone)
+
+                        signupViewModel.publicSignupDetails = signupViewModel.getSignupDetails()
+
+
 
                         navController.navigate("DataScreen")
 
@@ -559,7 +546,6 @@ fun SignupScreen(
             )
         }
 
-        Text(text = signupDataTest.toString()) //Test
 
 
         if (isDatePickerSheetOpen) {
@@ -579,12 +565,12 @@ fun SignupScreen(
                         datePickerState = datePickerState,
                         onDismiss = { isDatePickerSheetOpen = false },
                         onClick = {
-                            signupViewModel.updateText(it, TextFieldType.DOB)
-                            signupViewModel.updateSignupDataTest(it, TextFieldTypeTest.DOB)
+
+                            signupViewModel.updateSignupData(it, TextFieldType.DOB)
                         },
                         updateAge = {
-                            signupViewModel.updateText(it, TextFieldType.Age)
-                            signupViewModel.updateSignupDataTest(it, TextFieldTypeTest.Age)
+
+                            signupViewModel.updateSignupData(it, TextFieldType.Age)
                         }
                     )
                 }

@@ -69,6 +69,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.registration.R
 import com.example.registration.ui.theme.dimens
+import com.example.registration.viewModels.SignupViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 
@@ -248,11 +249,12 @@ fun SignupEmail(
     selectEmail: (idx: Int) -> Unit,
     closeButtonClick: () -> Unit,
     primaryEmailIndex: Int,
-    emailList: SnapshotStateList<String>,
+    emailList: MutableList<String>,
     isFieldError: SnapshotStateList<Boolean>,
     removeField:(idx:Int)->Unit,
 
-) {
+
+    ) {
 
 
     emailList.forEachIndexed { index, key ->
@@ -339,7 +341,7 @@ fun SignupPhone(
     selectPhone: (idx: Int) -> Unit,
     closeButtonClick: () -> Unit,
     primaryPhoneIndex: Int,
-    phoneList: SnapshotStateList<String>,
+    phoneList: MutableList<String>,
     isFieldError: SnapshotStateList<Boolean>,
     removeField: (idx: Int) -> Unit,
 ) {
@@ -710,6 +712,7 @@ data class SignupDetails(
     val primaryPhone: String,
     val otherEmails: String,
     val otherPhones: String,
+
 )
 
 enum class Keyboard {
