@@ -7,6 +7,7 @@ import com.example.registration.view.signupScreen.SignupDetails
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 
 enum class TextFieldType {
@@ -18,7 +19,19 @@ enum class TextFieldType {
 
 
 }
+enum class TextFieldTypeTest {
+    FirstName,
+    LastName,
+    Age,
+    Address,
+    DOB,
+    PrimaryEmail,
+    PrimaryPhone,
+    OtherEmails,
+    OtherPhones,
 
+
+}
 
 
 @HiltViewModel
@@ -31,12 +44,26 @@ class SignupViewModel @Inject constructor() : ViewModel() {
     private val _address = MutableStateFlow("")
     private val _dob = MutableStateFlow("")
     private val _lastName = MutableStateFlow("")
+    private val _signupData = MutableStateFlow(
+        SignupDetails(
+            dob = "",
+            age = "",
+            lastName = "",
+            firstName = "",
+            otherEmails = "",
+            address = "",
+            primaryPhone = "",
+            primaryEmail = "",
+            otherPhones = ""
+        )
+    )
 
     val firstName = _firstName.asStateFlow()
     val lastName = _lastName.asStateFlow()
     val age = _age.asStateFlow()
     val address = _address.asStateFlow()
     val dob = _dob.asStateFlow()
+    val signupData = _signupData.asStateFlow()
 
 
     val emailList = mutableStateListOf("")
@@ -94,6 +121,64 @@ class SignupViewModel @Inject constructor() : ViewModel() {
         }
     }
 
+
+    fun updateSignupDataTest(text: String, type: TextFieldTypeTest) {
+        when (type) {
+            TextFieldTypeTest.FirstName -> {
+               _signupData.update {
+                   it.copy(firstName = text)
+               }
+            }
+
+            TextFieldTypeTest.LastName -> {
+                _signupData.update {
+                    it.copy(lastName = text)
+                }
+            }
+
+            TextFieldTypeTest.Age -> {
+                _signupData.update {
+                    it.copy(age = text)
+                }
+            }
+
+            TextFieldTypeTest.Address -> {
+                _signupData.update {
+                    it.copy(address = text)
+                }
+            }
+
+            TextFieldTypeTest.DOB -> {
+                _signupData.update {
+                    it.copy(dob = text)
+                }
+            }
+
+            TextFieldTypeTest.PrimaryEmail -> {
+                _signupData.update {
+                    it.copy(primaryEmail = text)
+                }
+            }
+            TextFieldTypeTest.PrimaryPhone -> {
+                _signupData.update {
+                    it.copy(primaryPhone = text)
+                }
+            }
+            TextFieldTypeTest.OtherEmails ->{
+                _signupData.update {
+                    it.copy(otherEmails = text)
+                }
+            }
+            TextFieldTypeTest.OtherPhones -> {
+                _signupData.update {
+                    it.copy(otherPhones = text)
+                }
+            }
+        }
+    }
+
+
+
     fun checkFieldsValue(
         primaryEmail: String,
         primaryPhone: String,
@@ -113,7 +198,6 @@ class SignupViewModel @Inject constructor() : ViewModel() {
     fun checkPassword(password: String, confirmPassword: String): Boolean {
         return password.isNotEmpty() && confirmPassword.isNotEmpty() && password == confirmPassword
     }
-
 
 
 }

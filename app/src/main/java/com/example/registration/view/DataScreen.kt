@@ -1,6 +1,5 @@
 package com.example.registration.view
 
-import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,7 +20,7 @@ fun DataScreen (
             Text(text = "dob: ${signupViewModel.signupDetails.dob}")
             Text(text = "address: ${signupViewModel.signupDetails.address}")
             Text(text = "other emails: ${signupViewModel.signupDetails.otherEmails}")
-            Text(text = "other phones: ${signupViewModel.signupDetails.otherPhone}")
+            Text(text = "other phones: ${signupViewModel.signupDetails.otherPhones}")
 
             Text(text = "email: ${signupViewModel.signupDetails.primaryEmail}")
             Text(text = "phone: ${signupViewModel.signupDetails.primaryPhone}")

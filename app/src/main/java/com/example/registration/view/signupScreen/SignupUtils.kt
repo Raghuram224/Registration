@@ -5,7 +5,6 @@ import android.graphics.Bitmap
 import android.graphics.Rect
 import android.net.Uri
 import android.os.Build
-import android.provider.CalendarContract.Colors
 import android.util.Log
 import android.view.ViewTreeObserver
 import androidx.annotation.RequiresApi
@@ -27,12 +26,10 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.TextField
 import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Camera
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Photo
-import androidx.compose.material3.Button
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.DropdownMenuItem
@@ -42,7 +39,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.State
@@ -59,7 +55,6 @@ import androidx.compose.ui.focus.FocusState
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
@@ -70,11 +65,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.registration.R
-import com.example.registration.ui.theme.White
 import com.example.registration.ui.theme.dimens
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -261,9 +254,6 @@ fun SignupEmail(
 
 ) {
 
-//    val emailList = remember {
-//        mutableStateListOf("")
-//    }
 
     emailList.forEachIndexed { index, key ->
         Row(
@@ -279,7 +269,7 @@ fun SignupEmail(
                 onTextChanged = { emailList[index] = it },
                 keyBoardType = KeyboardType.Email,
                 label = "Email",
-                isError = isFieldError[index],
+                isError = if(isFieldError.isEmpty()) isFieldError.add(false) else isFieldError[index] ,
                 modifier = Modifier
                     .weight(0.9f)
                     .fillMaxWidth()
@@ -332,6 +322,7 @@ fun SignupEmail(
         onClick = {
             emailList.add("")
             isFieldError.add(false)
+
 
         }
     ) {
@@ -428,6 +419,7 @@ fun SignupPhone(
 
 @Composable
 fun CustomOutlinedInput(
+    modifier: Modifier = Modifier,
     itemNo: String = "",
     text: String,
     onTextChanged: (String) -> Unit,
@@ -435,7 +427,6 @@ fun CustomOutlinedInput(
     label: String,
     minLines: Int = 1,
     maxLines: Int = 1,
-    modifier: Modifier = Modifier,
     focusChanged: (FocusState) -> Unit = {},
     isError: Boolean = false,
     visualTransformation: VisualTransformation = VisualTransformation.None
@@ -471,6 +462,7 @@ fun CustomOutlinedInput(
 
 @Composable
 fun CustomTextField(
+    modifier: Modifier = Modifier,
     itemNo: String = "",
     text: String,
     onTextChanged: (String) -> Unit,
@@ -478,7 +470,6 @@ fun CustomTextField(
     label: String,
     minLines: Int = 1,
     maxLines: Int = 1,
-    modifier: Modifier = Modifier,
     isError: Boolean = false,
 
 
@@ -517,13 +508,13 @@ fun CustomTextField(
 
 @Composable
 fun CustomOutlinedPasswordInput(
+    modifier: Modifier = Modifier,
     itemNo: String = "",
     text: String,
     onTextChanged: (String) -> Unit,
     label: String,
     minLines: Int = 1,
     maxLines: Int = 1,
-    modifier: Modifier = Modifier,
     isError: Boolean = false,
 
     ) {
@@ -652,9 +643,8 @@ fun CustomDatePicker(
         DatePicker(
             state = datePickerState,
             modifier = Modifier
-
-
         )
+
         Row(
             modifier = Modifier
                 .padding(MaterialTheme.dimens.signupDimension.padding04)
@@ -668,19 +658,12 @@ fun CustomDatePicker(
             TextButton(
                 onClick = {
 
-//                    Log.i("timer current", .toString())
-
-
                     if (selectedDateInMillis != null) {
                         updateAge(milliToYears(Date().time.minus(selectedDateInMillis)))
                     }
-
-
                     onClick(
                         convertMillisToDate(selectedDateInMillis)
                     )
-
-//                            Log.i("date",selectedDate.toString())
                     onDismiss()
 
                 }
@@ -689,7 +672,7 @@ fun CustomDatePicker(
             }
         }
     }
-//        }
+
 
 
 }
@@ -717,13 +700,6 @@ fun milliToYears(milliseconds: Long): String {
 }
 
 
-//fun yearsToMilliseconds(years: Int): Long {
-//    val days= 365/years
-//    val hours
-//    return years.toLong() * millisecondsInYear
-//}
-
-
 data class SignupDetails(
     val firstName: String,
     val lastName: String,
@@ -733,7 +709,7 @@ data class SignupDetails(
     val primaryEmail: String,
     val primaryPhone: String,
     val otherEmails: String,
-    val otherPhone: String,
+    val otherPhones: String,
 )
 
 enum class Keyboard {
@@ -766,23 +742,3 @@ fun keyboardAsState(): State<Keyboard> {
 }
 
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Preview(showSystemUi = true)
-@Composable
-private fun PriviewUtils() {
-    val datePickerState = rememberDatePickerState()
-//    CustomDatePicker(
-//        datePickerState, onDismiss = {},
-//        onClick = {}
-//    )
-//    DatePickerBar(onClick = {}, text = "Pick your date of birth", selectedDate = "03/11/2002")
-//    SignupPhone(
-//      selectPhone = {},
-//        isPrimaryPhoneSelected =false,
-//        closeButtonClick = {},
-//        primaryPhoneIndex = 0
-//
-//    )
-
-
-}

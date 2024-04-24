@@ -20,7 +20,6 @@ import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
 import androidx.camera.view.LifecycleCameraController
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -49,7 +48,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -69,6 +67,7 @@ import com.example.registration.view.utils.CameraPreview
 import com.example.registration.view.utils.PhotoBottomSheetContent
 import com.example.registration.viewModels.SignupViewModel
 import com.example.registration.viewModels.TextFieldType
+import com.example.registration.viewModels.TextFieldTypeTest
 import java.util.Date
 
 
@@ -198,12 +197,13 @@ fun SignupScreen(
     val focusManager = LocalFocusManager.current
 
     val keyBoardState by keyboardAsState()
-    Log.i("keyboard", keyBoardState.name.toString())
+    Log.i("keyboard", keyBoardState.name)
 
     var isAgeFocused by remember {
         mutableStateOf(false)
     }
 
+    val signupDataTest = signupViewModel.signupData.collectAsState()
 
 
 
@@ -264,10 +264,23 @@ fun SignupScreen(
 
         )
 
+        Text(
+            modifier = Modifier
+                .padding(
+                    vertical = MaterialTheme.dimens.signupDimension.itemVerticalPadding08,
+                    horizontal = MaterialTheme.dimens.signupDimension.itemHorizontalPadding04
+                ),
+            text = "User name",
+            style = TextStyle(
+                fontSize = MaterialTheme.dimens.signupDimension.headingFont20
+            )
+        )
         CustomOutlinedInput(
             text = firstName,
             onTextChanged = {
                 signupViewModel.updateText(it, TextFieldType.FirstName)
+                signupViewModel.updateSignupDataTest(it, TextFieldTypeTest.FirstName)
+
             },
             label = "First name",
             isError = fNameColor
@@ -277,6 +290,7 @@ fun SignupScreen(
             text = lastName,
             onTextChanged = {
                 signupViewModel.updateText(it, TextFieldType.LastName)
+                signupViewModel.updateSignupDataTest(it, TextFieldTypeTest.LastName)
             },
             label = "Last name",
             isError = lNameColor
@@ -323,8 +337,9 @@ fun SignupScreen(
 
                 }
 
-            }
-        )
+            },
+
+            )
         Text(
             modifier = Modifier
                 .padding(
@@ -376,13 +391,31 @@ fun SignupScreen(
                     text = if (age != null) convertMillisToDate(Date().time.minus(yearsToMillis(age.toLong()))) else "0",
                     TextFieldType.DOB,
                 )
+                signupViewModel.updateSignupDataTest(
+                    text = if (age != null) convertMillisToDate(Date().time.minus(yearsToMillis(age.toLong()))) else "0",
+                    TextFieldTypeTest.DOB,)
             }
         }
+        Text(
+            modifier = Modifier
+                .padding(
+                    vertical = MaterialTheme.dimens.signupDimension.itemVerticalPadding08,
+                    horizontal = MaterialTheme.dimens.signupDimension.itemHorizontalPadding04
+                ),
+            text = "Age",
+            style = TextStyle(
+                fontSize = MaterialTheme.dimens.signupDimension.headingFont20
+            )
+        )
+
         CustomOutlinedInput(
             modifier = Modifier
                 .focusRequester(focusRequester = focusRequester),
             text = age,
-            onTextChanged = { signupViewModel.updateText(it, TextFieldType.Age) },
+            onTextChanged = {
+                signupViewModel.updateText(it, TextFieldType.Age)
+                signupViewModel.updateSignupDataTest(it, TextFieldTypeTest.Age)
+            },
             label = "Age",
             keyBoardType = KeyboardType.Phone,
             focusChanged = { state ->
@@ -397,14 +430,40 @@ fun SignupScreen(
             selectedDate = dateOfBirth
         )
 
+        Text(
+            modifier = Modifier
+                .padding(
+                    vertical = MaterialTheme.dimens.signupDimension.itemVerticalPadding08,
+                    horizontal = MaterialTheme.dimens.signupDimension.itemHorizontalPadding04
+                ),
+            text = "Address",
+            style = TextStyle(
+                fontSize = MaterialTheme.dimens.signupDimension.headingFont20
+            )
+        )
 
         CustomOutlinedInput(
             text = address,
-            onTextChanged = { signupViewModel.updateText(text = it, TextFieldType.Address) },
+            onTextChanged = {
+                signupViewModel.updateText(text = it, TextFieldType.Address)
+                signupViewModel.updateSignupDataTest(text = it, TextFieldTypeTest.Address)
+                            },
             label = "Enter your address",
             minLines = 3,
             maxLines = 5,
             isError = addressColor
+        )
+
+        Text(
+            modifier = Modifier
+                .padding(
+                    vertical = MaterialTheme.dimens.signupDimension.itemVerticalPadding08,
+                    horizontal = MaterialTheme.dimens.signupDimension.itemHorizontalPadding04
+                ),
+            text = "Password",
+            style = TextStyle(
+                fontSize = MaterialTheme.dimens.signupDimension.headingFont20
+            )
         )
 
         CustomOutlinedPasswordInput(
@@ -470,7 +529,7 @@ fun SignupScreen(
                                 list = emailList.toList(),
                                 idx = primaryEmailIndex
                             ),
-                            otherPhone = signupViewModel.convertListToString(
+                            otherPhones = signupViewModel.convertListToString(
                                 list = phoneList.toList(),
                                 idx = primaryPhoneIndex
                             )
@@ -500,6 +559,8 @@ fun SignupScreen(
             )
         }
 
+        Text(text = signupDataTest.toString()) //Test
+
 
         if (isDatePickerSheetOpen) {
             ModalBottomSheet(
@@ -508,9 +569,9 @@ fun SignupScreen(
                 onDismissRequest = { isDatePickerSheetOpen = false },
                 sheetState = datePickerSheetState,
 
-            ) {
+                ) {
                 Column(
-                    modifier=Modifier
+                    modifier = Modifier
                         .fillMaxSize()
                 ) {
 
@@ -519,9 +580,11 @@ fun SignupScreen(
                         onDismiss = { isDatePickerSheetOpen = false },
                         onClick = {
                             signupViewModel.updateText(it, TextFieldType.DOB)
+                            signupViewModel.updateSignupDataTest(it, TextFieldTypeTest.DOB)
                         },
                         updateAge = {
                             signupViewModel.updateText(it, TextFieldType.Age)
+                            signupViewModel.updateSignupDataTest(it, TextFieldTypeTest.Age)
                         }
                     )
                 }
