@@ -19,12 +19,15 @@ import androidx.camera.core.ImageCapture.OnImageCapturedCallback
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
 import androidx.camera.view.LifecycleCameraController
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Icon
@@ -53,12 +56,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import com.example.registration.ui.theme.dimens
@@ -67,6 +72,7 @@ import com.example.registration.view.utils.PhotoBottomSheetContent
 import com.example.registration.viewModels.SignupViewModel
 import com.example.registration.viewModels.TextFieldType
 import java.util.Date
+import com.example.registration.R
 
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -80,12 +86,101 @@ fun SignupScreen(
 ) {
     val activity = LocalContext.current as Activity
     val scrollState = rememberScrollState()
+    val context = LocalContext.current
 
+    //sheet
+    var isDatePickerSheetOpen by remember {
+        mutableStateOf(false)
+    }
+    var isProfileSheetOpen by remember {
+        mutableStateOf(false)
+    }
+    var isCameraSheetOpen by rememberSaveable {
+        mutableStateOf(false)
+    }
+    var isShowImagesSheetOpen by rememberSaveable {
+        mutableStateOf(false)
+    }
+    var isPhotoTaken by remember {
+        mutableStateOf(false)
+    }
+
+    //state
+    val datePickerSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val datePickerState = rememberDatePickerState()
+    val cameraSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+//    val takenPicturesSheetState = rememberModalBottomSheetState()
+    val showTakenPhotoSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    // camera essentials
+    var selectedImageUri by remember {
+        mutableStateOf<Uri?>(null)
+    }
+    val photoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia(),
+        onResult = { uri: Uri? -> selectedImageUri = uri }
+    )
+    var isProfileSelected by remember {
+        mutableStateOf(false)
+    }
+
+    val cameraController = remember {
+        LifecycleCameraController(context).apply {
+            setEnabledUseCases(
+                androidx.camera.view.CameraController.IMAGE_CAPTURE
+            )
+
+        }
+    }
+
+    var selectedImageType by remember {
+        mutableStateOf(0)
+    }
+
+    // UI state
     val signupDataTest = signupViewModel.signupData.collectAsState() //Test
+    val capturedImage by signupViewModel.capturedImage.collectAsState()
 
+    //focus requester
+    val focusRequester = remember {
+        FocusRequester()
+    }
+    val focusManager = LocalFocusManager.current
 
-    val emailList = signupViewModel.emailList
-    val phoneList = signupViewModel.phoneList
+    val keyBoardState by keyboardAsState()
+
+    //permission
+    val PERMISSIONS = arrayOf(
+        Manifest.permission.CAMERA
+    )
+    //Fields color
+    var fNameColor by remember {
+        mutableStateOf(false)
+    }
+    var lNameColor by remember {
+        mutableStateOf(false)
+    }
+
+    val addressColor by remember {
+        mutableStateOf(false)
+    }
+    var passwordColor by remember {
+        mutableStateOf(false)
+    }
+    var confirmPasswordColor by remember {
+        mutableStateOf(false)
+    }
+
+    var isAgeFocused by remember {
+        mutableStateOf(false)
+    }
+
+    val emailListColor = remember {
+        mutableStateListOf(false)
+    }
+    val phoneListColor = remember {
+        mutableStateListOf(false)
+    }
 
     var password by remember {
         mutableStateOf("")
@@ -93,13 +188,6 @@ fun SignupScreen(
     var confirmPassword by remember {
         mutableStateOf("")
     }
-
-    var isDatePickerSheetOpen by remember {
-        mutableStateOf(false)
-    }
-    val datePickerSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-
-    val datePickerState = rememberDatePickerState()
 
     var isPrimaryEmailSelected by remember {
         mutableStateOf(true)
@@ -114,89 +202,28 @@ fun SignupScreen(
         mutableStateOf(0)
     }
 
-    // camera essentials
+    val cameraContract =
+        rememberLauncherForActivityResult(contract = ActivityResultContracts.RequestPermission()) {
+            if (it) {
+                isCameraSheetOpen = true
 
-    var isProfileSheetOpen by remember {
-        mutableStateOf(false)
-    }
-    var selectedImageUri by remember {
-        mutableStateOf<Uri?>(null)
-    }
-    val photoPickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.PickVisualMedia(),
-        onResult = { uri: Uri? -> selectedImageUri = uri }
-    )
-    var isProfileSelected by remember {
-        mutableStateOf(false)
-    }
-
-    var isCameraSheetOpen by rememberSaveable {
-        mutableStateOf(false)
-    }
-    var isShowImagesSheetOpen by rememberSaveable {
-        mutableStateOf(false)
-    }
-    val cameraSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val takenPicturesSheetState = rememberModalBottomSheetState()
-    val context = LocalContext.current
-
-    val cameraController = remember {
-        LifecycleCameraController(context).apply {
-            setEnabledUseCases(
-                androidx.camera.view.CameraController.IMAGE_CAPTURE
-            )
-
+            } else {
+//                if (!hasRequiredPermission(mContext = context, PERMISSIONS = PERMISSIONS)) {
+//                    ActivityCompat.requestPermissions(
+//                        activity,
+//                        PERMISSIONS,
+//                        0
+//                    )
+//                } else {
+                Toast.makeText(context, "camera permission denied", Toast.LENGTH_SHORT).show()
+//                }
+            }
         }
-    }
-    var selectedImageType by remember {
-        mutableStateOf(0)
-    }
-
-    val bitmaps by signupViewModel.bitmaps.collectAsState()
-    val selectedCameraImage by signupViewModel.selectedCameraImage.collectAsState()
 
 
-    val PERMISSIONS = arrayOf(
-        Manifest.permission.CAMERA
-    )
-    //Fields color
-    var fNameColor by remember {
-        mutableStateOf(false)
-    }
-    var lNameColor by remember {
-        mutableStateOf(false)
-    }
-    val emailListColor = remember {
-        mutableStateListOf(false)
-    }
-    val phoneListColor = remember {
-        mutableStateListOf(false)
-    }
-    val addressColor by remember {
-        mutableStateOf(false)
-    }
-    var passwordColor by remember {
-        mutableStateOf(false)
-    }
-    var confirmPasswordColor by remember {
-        mutableStateOf(false)
-    }
-
-
-    val focusRequester = remember {
-        FocusRequester()
-    }
-    val focusManager = LocalFocusManager.current
-
-    val keyBoardState by keyboardAsState()
-    Log.i("keyboard", keyBoardState.name)
-
-    var isAgeFocused by remember {
-        mutableStateOf(false)
-    }
-
-
-
+    //list
+    val emailList = signupViewModel.emailList
+    val phoneList = signupViewModel.phoneList
 
 
     Column(
@@ -214,16 +241,13 @@ fun SignupScreen(
             },
             selectedImageUri = selectedImageUri,
             selectedImageType = selectedImageType,
-            selectedCameraImage = selectedCameraImage,
+            selectedCameraImage = capturedImage,
             isProfileSelected = isProfileSelected,
             openCamera = {
-                if (!hasRequiredPermission(mContext = context, PERMISSIONS = PERMISSIONS)) {
-                    ActivityCompat.requestPermissions(
-                        activity,
-                        PERMISSIONS,
-                        0
-                    )
-                }
+
+                cameraContract.launch(
+                    Manifest.permission.CAMERA
+                )
 
                 if (hasRequiredPermission(
                         mContext = context,
@@ -232,15 +256,8 @@ fun SignupScreen(
                 ) {
                     isCameraSheetOpen = true
 
-                } else {
-                    Toast
-                        .makeText(
-                            context,
-                            "need camera permission",
-                            Toast.LENGTH_SHORT
-                        )
-                        .show()
                 }
+
             },
             openGallery = {
                 isProfileSelected = true
@@ -366,14 +383,12 @@ fun SignupScreen(
 
                         phoneList.removeAt(it)
                         phoneListColor.removeAt(it)
-
                     }
 
                 }
             }
 
         )
-//        Log.i("Test",(age.toInt()+5).toString())
 
 
         LaunchedEffect(key1 = keyBoardState) {
@@ -390,6 +405,7 @@ fun SignupScreen(
                 )
             }
         }
+
         Text(
             modifier = Modifier
                 .padding(
@@ -510,13 +526,31 @@ fun SignupScreen(
                             confirmPassword = confirmPassword
                         )
                     ) {
-                        val otherEmails = signupViewModel.convertListToString(list = emailList, idx = primaryEmailIndex)
-                        val otherPhones=signupViewModel.convertListToString(list = phoneList, idx = primaryPhoneIndex)
+                        val otherEmails = signupViewModel.convertListToString(
+                            list = emailList,
+                            idx = primaryEmailIndex
+                        )
+                        val otherPhones = signupViewModel.convertListToString(
+                            list = phoneList,
+                            idx = primaryPhoneIndex
+                        )
 
-                        signupViewModel.updateSignupData(text = otherEmails,TextFieldType.OtherEmails)
-                        signupViewModel.updateSignupData(text = otherPhones,TextFieldType.OtherPhones)
-                        signupViewModel.updateSignupData(text = emailList[primaryEmailIndex],TextFieldType.PrimaryEmail)
-                        signupViewModel.updateSignupData(text = phoneList[primaryPhoneIndex],TextFieldType.PrimaryPhone)
+                        signupViewModel.updateSignupData(
+                            text = otherEmails,
+                            TextFieldType.OtherEmails
+                        )
+                        signupViewModel.updateSignupData(
+                            text = otherPhones,
+                            TextFieldType.OtherPhones
+                        )
+                        signupViewModel.updateSignupData(
+                            text = emailList[primaryEmailIndex],
+                            TextFieldType.PrimaryEmail
+                        )
+                        signupViewModel.updateSignupData(
+                            text = phoneList[primaryPhoneIndex],
+                            TextFieldType.PrimaryPhone
+                        )
 
                         signupViewModel.publicSignupDetails = signupViewModel.getSignupDetails()
 
@@ -616,9 +650,15 @@ fun SignupScreen(
                                 takePhoto(
                                     controller = cameraController,
                                     mContext = context,
-//                                    onPhotoTaken = { signupViewModel.takePhoto(bitmap =it) }
-                                    onPhotoTaken = signupViewModel::takePhoto
+                                    onPhotoTaken = {
+//                                        onPhotoTaken = signupViewModel::takePhoto
+                                        signupViewModel.updateCapturedImage(bitmap = it)
+
+                                    }
+
                                 )
+//
+                                    isPhotoTaken = true
                             },
                         ) {
                             Icon(
@@ -626,42 +666,73 @@ fun SignupScreen(
                                 contentDescription = "take picture"
                             )
                         }
-                        IconButton(
-                            onClick = {
-                                isShowImagesSheetOpen = true
-                            },
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Photo,
-                                contentDescription = "Gallery"
-                            )
-                        }
+
                     }
 
                 }
 
+
             }
         }
     }
-    Log.i("bitmap", selectedCameraImage.toString())
+    Log.i("bitmap", capturedImage.toString())
 
-    if (isShowImagesSheetOpen) {
+
+    if (isPhotoTaken) {
         ModalBottomSheet(
-            onDismissRequest = { isShowImagesSheetOpen = false },
-            sheetState = takenPicturesSheetState
+            onDismissRequest = {
+                isPhotoTaken = false
+            },
+            sheetState = showTakenPhotoSheetState
         ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+            ) {
+                if (capturedImage !=null) {
+                    Image(
+                        modifier = Modifier
+                            .weight(0.9f)
+                            .fillMaxSize()
+                            .size(MaterialTheme.dimens.signupDimension.profileSize),
+                        bitmap = capturedImage!!.asImageBitmap(),
+                        contentDescription = "profile",
+                        contentScale = ContentScale.FillBounds
+                    )
+                    Row(
+                        modifier = Modifier
+                            .padding(MaterialTheme.dimens.signupDimension.itemHorizontalPadding08)
+                            .weight(0.1f)
+                            .fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
 
-            PhotoBottomSheetContent(
-                bitmaps = bitmaps,
-                onClick = {
-                    selectedImageType = 2
-                    signupViewModel.selectCameraImage(bitmap = it)
-                    isShowImagesSheetOpen = false
-                    isCameraSheetOpen = false
-                    isProfileSheetOpen = false
-                    isProfileSelected = true
+                        IconButton(onClick = { isPhotoTaken =false }) {
+                            Image(
+                                painter = painterResource(id = R.drawable.close_ic),
+                                contentDescription = "close"
+                            )
+                        }
+
+                        IconButton(onClick = {
+
+                            isPhotoTaken = false
+                            isProfileSelected =true
+                            isCameraSheetOpen=false
+                            selectedImageType =2
+                        }) {
+                            Image(
+                                painter = painterResource(id = R.drawable.tick_ic),
+                                contentDescription = "close"
+                            )
+                        }
+
+                    }
                 }
-            )
+            }
+
+
         }
     }
 

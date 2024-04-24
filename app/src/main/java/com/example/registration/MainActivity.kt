@@ -1,15 +1,11 @@
 package com.example.registration
 
-import android.Manifest
-import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.remember
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -40,16 +36,20 @@ class MainActivity : ComponentActivity() {
 
                     navController.createGraph(startDestination = "SignupScreen") {
                         composable(route = "LoginScreen") {
-                            LoginScreen(navController =navController)
+                            LoginScreen(navController = navController)
                         }
                         composable(route = "SignupScreen") {
+
+
                             SignupScreen(
                                 signupViewModel = signupViewModel,
-                                navController =navController
+                                navController = navController
                             )
                         }
-                        composable(route = "DataScreen"){
-                            DataScreen(signupViewModel = signupViewModel)
+                        composable(route = "DataScreen") {
+                            DataScreen(
+                                signupViewModel =signupViewModel
+                            )
                         }
 
 
@@ -60,6 +60,8 @@ class MainActivity : ComponentActivity() {
                 NavHost(navController = navController, graph = navGraph)
             }
         }
+
+
     }
 
 //    private fun hasRequiredPermission(): Boolean {

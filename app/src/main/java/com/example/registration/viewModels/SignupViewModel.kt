@@ -8,6 +8,8 @@ import com.example.registration.view.signupScreen.SignupDetails
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 
@@ -30,8 +32,6 @@ enum class TextFieldType {
 @HiltViewModel
 class SignupViewModel @Inject constructor() : ViewModel() {
 
-    private var _bitmaps = MutableStateFlow<List<Bitmap>>(emptyList())
-    private var _selectedCameraImage = MutableStateFlow<Bitmap?>(null)
     private val _signupData = MutableStateFlow(
         SignupDetails(
             dob = "",
@@ -46,25 +46,18 @@ class SignupViewModel @Inject constructor() : ViewModel() {
 
         )
     )
+    private val _capturedImage= MutableStateFlow<Bitmap?>(null)
 
 
     val signupData = _signupData.asStateFlow()
     val emailList = mutableStateListOf("")
     val phoneList = mutableStateListOf("")
+    val capturedImage = _capturedImage.asStateFlow()
 
     lateinit var publicSignupDetails: SignupDetails
 
-    val bitmaps = _bitmaps.asStateFlow()
-    val selectedCameraImage = _selectedCameraImage.asStateFlow()
 
 
-    fun takePhoto(bitmap: Bitmap) {
-        _bitmaps.value += bitmap
-    }
-
-    fun selectCameraImage(bitmap: Bitmap) {
-        _selectedCameraImage.value = bitmap
-    }
 
     fun convertListToString(list: List<String>, idx: Int): String {
         var str = ""
@@ -136,9 +129,6 @@ class SignupViewModel @Inject constructor() : ViewModel() {
     }
 
 
-
-
-
     fun checkFieldsValue(
         primaryEmail: String,
         primaryPhone: String,
@@ -162,6 +152,16 @@ class SignupViewModel @Inject constructor() : ViewModel() {
     fun getSignupDetails():SignupDetails{
         return _signupData.value
     }
+
+    fun updateCapturedImage(bitmap: Bitmap){
+        _capturedImage.value =bitmap
+    }
+
+
+
+
+
+
 
 
 }

@@ -69,7 +69,6 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.registration.R
 import com.example.registration.ui.theme.dimens
-import com.example.registration.viewModels.SignupViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 
@@ -83,7 +82,7 @@ fun UserProfile(
     selectedCameraImage: Bitmap?,
     chooseProfileImage: () -> Unit,
     isProfileSelected: Boolean,
-    openCamera: () -> Unit,
+    openCamera:() -> Unit,
     openGallery: () -> Unit,
     removeProfile: () -> Unit,
 
