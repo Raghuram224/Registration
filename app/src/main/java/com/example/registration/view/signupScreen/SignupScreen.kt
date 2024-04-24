@@ -20,6 +20,7 @@ import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
 import androidx.camera.view.LifecycleCameraController
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -48,6 +49,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -91,7 +93,7 @@ fun SignupScreen(
 
     val dateOfBirth by signupViewModel.dob.collectAsStateWithLifecycle()
 
-    val emailList = signupViewModel.emailList
+    var emailList = signupViewModel.emailList
     val phoneList = signupViewModel.phoneList
 
     var password by remember {
@@ -104,7 +106,7 @@ fun SignupScreen(
     var isDatePickerSheetOpen by remember {
         mutableStateOf(false)
     }
-    val datePickerSheetState = rememberModalBottomSheetState()
+    val datePickerSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     val datePickerState = rememberDatePickerState()
 
@@ -143,7 +145,7 @@ fun SignupScreen(
     var isShowImagesSheetOpen by rememberSaveable {
         mutableStateOf(false)
     }
-    val cameraSheetState = rememberModalBottomSheetState()
+    val cameraSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val takenPicturesSheetState = rememberModalBottomSheetState()
     val context = LocalContext.current
 
@@ -173,7 +175,7 @@ fun SignupScreen(
     var lNameColor by remember {
         mutableStateOf(false)
     }
-    val emailListColor = remember {
+    var emailListColor = remember {
         mutableStateListOf(false)
     }
     val phoneListColor = remember {
@@ -256,7 +258,7 @@ fun SignupScreen(
                 selectedImageType = 1
             },
             removeProfile = {
-                isProfileSelected =false
+                isProfileSelected = false
                 selectedImageType = 0
             }
 
@@ -306,9 +308,19 @@ fun SignupScreen(
             emailList = emailList,
             isFieldError = emailListColor,
             removeField = {
-                if (emailList.size>1 &&  it!=primaryEmailIndex){
-                    emailList.removeAt(it)
-                    emailListColor.removeAt(it)
+                if (emailList.size > 1 && it != primaryEmailIndex) {
+
+                    if (primaryEmailIndex == 1) {
+                        emailList.removeAt(0)
+                        emailListColor.removeAt(0)
+                        primaryEmailIndex = 0
+                    } else {
+
+                        emailList.removeAt(it)
+                        emailListColor.removeAt(it)
+
+                    }
+
                 }
 
             }
@@ -338,11 +350,19 @@ fun SignupScreen(
             phoneList = phoneList,
             isFieldError = phoneListColor,
             removeField = {
-                if (phoneList.size>1 &&  it!=primaryPhoneIndex){
-                    phoneList.removeAt(it)
-                    phoneListColor.removeAt(it)
-                }
+                if (phoneList.size > 1 && it != primaryPhoneIndex) {
+                    if (primaryPhoneIndex == 1) {
+                        phoneList.removeAt(0)
+                        phoneListColor.removeAt(0)
+                        primaryPhoneIndex = 0
+                    } else {
 
+                        phoneList.removeAt(it)
+                        phoneListColor.removeAt(it)
+
+                    }
+
+                }
             }
 
         )
@@ -414,8 +434,8 @@ fun SignupScreen(
                 .fillMaxWidth(),
             onClick = {
 
-                emailListColor[primaryEmailIndex]=emailList[primaryEmailIndex].isEmpty()
-                phoneListColor[primaryPhoneIndex]= phoneList[primaryPhoneIndex].isEmpty()
+                emailListColor[primaryEmailIndex] = emailList[primaryEmailIndex].isEmpty()
+                phoneListColor[primaryPhoneIndex] = phoneList[primaryPhoneIndex].isEmpty()
 
                 fNameColor = firstName.isEmpty()
                 lNameColor = lastName.isEmpty()
@@ -483,20 +503,30 @@ fun SignupScreen(
 
         if (isDatePickerSheetOpen) {
             ModalBottomSheet(
+                modifier = Modifier
+                    .fillMaxSize(1f),
                 onDismissRequest = { isDatePickerSheetOpen = false },
-                sheetState = datePickerSheetState
-            ) {
+                sheetState = datePickerSheetState,
 
-                CustomDatePicker(
-                    datePickerState = datePickerState,
-                    onDismiss = { isDatePickerSheetOpen = false },
-                    onClick = {
-                        signupViewModel.updateText(it, TextFieldType.DOB)
-                    },
-                    updateAge = {
-                        signupViewModel.updateText(it, TextFieldType.Age)
-                    }
-                )
+            ) {
+                Column(
+                    modifier=Modifier
+                        .fillMaxSize()
+                ) {
+
+                    CustomDatePicker(
+                        datePickerState = datePickerState,
+                        onDismiss = { isDatePickerSheetOpen = false },
+                        onClick = {
+                            signupViewModel.updateText(it, TextFieldType.DOB)
+                        },
+                        updateAge = {
+                            signupViewModel.updateText(it, TextFieldType.Age)
+                        }
+                    )
+                }
+
+
             }
 
         }
@@ -506,10 +536,13 @@ fun SignupScreen(
 
 
             ModalBottomSheet(
-                onDismissRequest = {isCameraSheetOpen =false},
-                sheetState = cameraSheetState
+                onDismissRequest = { isCameraSheetOpen = false },
+                sheetState = cameraSheetState,
+                modifier = Modifier
+                    .fillMaxSize()
 
             ) {
+
                 Column(
                     modifier = Modifier
                         .fillMaxSize(),
@@ -585,7 +618,6 @@ fun SignupScreen(
 
 
 }
-
 
 
 private fun takePhoto(
