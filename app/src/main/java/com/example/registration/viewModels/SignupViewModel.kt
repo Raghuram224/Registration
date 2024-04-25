@@ -35,7 +35,7 @@ class SignupViewModel @Inject constructor() : ViewModel() {
     private val _signupData = MutableStateFlow(
         SignupDetails(
             dob = "",
-            age = "0",
+            age = "",
             lastName = "",
             firstName = "",
             otherEmails = "",
@@ -132,21 +132,22 @@ class SignupViewModel @Inject constructor() : ViewModel() {
     fun checkFieldsValue(
         primaryEmail: String,
         primaryPhone: String,
-        age: String,
-        dob: String,
+
         firstName: String,
         lastName: String,
+        password: String,
+        confirmPassword: String
     ): Boolean {
 
 
         return primaryEmail.isNotEmpty() && primaryPhone.isNotEmpty() &&
-                firstName.isNotEmpty() && lastName.isNotEmpty() && age.isNotEmpty()
-                && dob.isNotEmpty()
+                firstName.isNotEmpty() && lastName.isNotEmpty()
+                && password.isNotEmpty() && confirmPassword.isNotEmpty()
 
     }
 
     fun checkPassword(password: String, confirmPassword: String): Boolean {
-        return password.isNotEmpty() && confirmPassword.isNotEmpty() && password == confirmPassword
+        return  password == confirmPassword
     }
 
     fun getSignupDetails():SignupDetails{

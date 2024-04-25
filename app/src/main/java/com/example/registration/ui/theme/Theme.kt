@@ -14,6 +14,8 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
 
 private val DarkColorScheme = darkColorScheme(
@@ -73,3 +75,6 @@ fun RegistrationTheme(
         )
     }
 }
+
+@Composable
+fun TextStyle.titleStyle() = this.copy(fontSize = 20.sp)

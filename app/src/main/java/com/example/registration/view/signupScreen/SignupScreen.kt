@@ -20,7 +20,7 @@ import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
 import androidx.camera.view.LifecycleCameraController
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -35,8 +35,9 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Camera
-import androidx.compose.material.icons.filled.Photo
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalBottomSheet
@@ -66,13 +67,16 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
+import com.example.registration.R
+import com.example.registration.constants.InputsRegex
+import com.example.registration.ui.theme.Blue
+import com.example.registration.ui.theme.LightGray
+import com.example.registration.ui.theme.White
 import com.example.registration.ui.theme.dimens
 import com.example.registration.view.utils.CameraPreview
-import com.example.registration.view.utils.PhotoBottomSheetContent
 import com.example.registration.viewModels.SignupViewModel
 import com.example.registration.viewModels.TextFieldType
 import java.util.Date
-import com.example.registration.R
 
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -228,6 +232,7 @@ fun SignupScreen(
 
     Column(
         modifier = Modifier
+            .background(LightGray)
             .verticalScroll(scrollState)
             .padding(horizontal = MaterialTheme.dimens.signupDimension.pageHorizontalPadding16),
         verticalArrangement = Arrangement.Center,
@@ -273,226 +278,308 @@ fun SignupScreen(
 
         )
 
-        Text(
+        Card(
             modifier = Modifier
                 .padding(
-                    vertical = MaterialTheme.dimens.signupDimension.itemVerticalPadding08,
-                    horizontal = MaterialTheme.dimens.signupDimension.itemHorizontalPadding04
+                    vertical = MaterialTheme.dimens.signupDimension.padding08,
+                    horizontal = MaterialTheme.dimens.signupDimension.padding04
                 ),
-            text = "User name",
-            style = TextStyle(
-                fontSize = MaterialTheme.dimens.signupDimension.headingFont20
+            colors = CardDefaults.cardColors(
+                containerColor = White
             )
-        )
-        CustomOutlinedInput(
-            text = signupDataTest.value.firstName,
-            onTextChanged = {
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(
+                        horizontal = MaterialTheme.dimens.signupDimension.padding08,
+                        vertical = MaterialTheme.dimens.signupDimension.padding08
+                    )
+            ) {
 
-                signupViewModel.updateSignupData(it, TextFieldType.FirstName)
+                CustomOutlinedInput(
+                    text = signupDataTest.value.firstName,
+                    onTextChanged = {
 
-            },
-            label = "First name",
-            isError = fNameColor
-        )
+                        signupViewModel.updateSignupData(it, TextFieldType.FirstName)
 
-        CustomOutlinedInput(
-            text = signupDataTest.value.lastName,
-            onTextChanged = {
+                    },
+                    label = "First name",
+                    isError = fNameColor,
+                    regex = InputsRegex.NAME_REGEX
+                )
 
-                signupViewModel.updateSignupData(it, TextFieldType.LastName)
-            },
-            label = "Last name",
-            isError = lNameColor
 
-        )
-        Text(
+                CustomOutlinedInput(
+                    text = signupDataTest.value.lastName,
+                    onTextChanged = {
+
+                        signupViewModel.updateSignupData(it, TextFieldType.LastName)
+                    },
+                    label = "Last name",
+                    isError = lNameColor,
+                    regex = InputsRegex.NAME_REGEX
+
+                )
+            }
+        }
+        Card(
             modifier = Modifier
                 .padding(
-                    vertical = MaterialTheme.dimens.signupDimension.itemVerticalPadding08,
-                    horizontal = MaterialTheme.dimens.signupDimension.itemHorizontalPadding04
+                    vertical = MaterialTheme.dimens.signupDimension.padding08,
+                    horizontal = MaterialTheme.dimens.signupDimension.padding04
                 ),
-            text = "Email",
-            style = TextStyle(
-                fontSize = MaterialTheme.dimens.signupDimension.headingFont20
+            colors = CardDefaults.cardColors(
+                containerColor = White
             )
-        )
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(
+                        horizontal = MaterialTheme.dimens.signupDimension.padding08,
+                        vertical = MaterialTheme.dimens.signupDimension.padding08
+                    )
+            ) {
 
-        SignupEmail(
-            selectEmail = {
-                primaryEmailIndex = it
-                isPrimaryEmailSelected = true
-            },
-            isPrimaryEmailSelected = isPrimaryEmailSelected,
-            closeButtonClick = {
-                primaryEmailIndex = 0
-                isPrimaryEmailSelected = false
-            },
-            primaryEmailIndex = primaryEmailIndex,
-            emailList = emailList,
-            isFieldError = emailListColor,
-            removeField = {
-                if (emailList.size > 1 && it != primaryEmailIndex) {
 
-                    if (primaryEmailIndex == 1) {
-                        emailList.removeAt(0)
-                        emailListColor.removeAt(0)
+                SignupEmail(
+                    selectEmail = {
+                        primaryEmailIndex = it
+                        isPrimaryEmailSelected = true
+                    },
+                    isPrimaryEmailSelected = isPrimaryEmailSelected,
+                    closeButtonClick = {
                         primaryEmailIndex = 0
-                    } else {
+                        isPrimaryEmailSelected = false
+                    },
+                    primaryEmailIndex = primaryEmailIndex,
+                    emailList = emailList,
+                    isFieldError = emailListColor,
+                    removeField = {
+                        if (emailList.size > 1 && it != primaryEmailIndex) {
 
-                        emailList.removeAt(it)
-                        emailListColor.removeAt(it)
+                            if (primaryEmailIndex == 1) {
+                                emailList.removeAt(0)
+                                emailListColor.removeAt(0)
+                                primaryEmailIndex = 0
+                            } else {
 
-                    }
+                                emailList.removeAt(it)
+                                emailListColor.removeAt(it)
 
-                }
+                            }
 
-            },
+                        }
 
-            )
-        Text(
-            modifier = Modifier
-                .padding(
-                    vertical = MaterialTheme.dimens.signupDimension.itemVerticalPadding08,
-                    horizontal = MaterialTheme.dimens.signupDimension.itemHorizontalPadding04
-                ),
-            text = "Phone",
-            style = TextStyle(
-                fontSize = MaterialTheme.dimens.signupDimension.headingFont20
-            )
-        )
-        SignupPhone(
-            selectPhone = {
-                primaryPhoneIndex = it
-                isPrimaryPhoneSelected = true
-            },
-            isPrimaryPhoneSelected = isPrimaryPhoneSelected,
-            closeButtonClick = {
-                primaryPhoneIndex = 0
-                isPrimaryPhoneSelected = false
-            },
-            primaryPhoneIndex = primaryPhoneIndex,
-            phoneList = phoneList,
-            isFieldError = phoneListColor,
-            removeField = {
-                if (phoneList.size > 1 && it != primaryPhoneIndex) {
-                    if (primaryPhoneIndex == 1) {
-                        phoneList.removeAt(0)
-                        phoneListColor.removeAt(0)
-                        primaryPhoneIndex = 0
-                    } else {
+                    },
+                    regex = InputsRegex.EMAIL_REGEX
 
-                        phoneList.removeAt(it)
-                        phoneListColor.removeAt(it)
-                    }
-
-                }
+                )
             }
 
-        )
+
+        }
+
+        Card(
+            modifier = Modifier
+                .padding(
+                    vertical = MaterialTheme.dimens.signupDimension.padding08,
+                    horizontal = MaterialTheme.dimens.signupDimension.padding04
+                ),
+            colors = CardDefaults.cardColors(
+                containerColor = White
+            )
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(
+                        horizontal = MaterialTheme.dimens.signupDimension.padding08,
+                        vertical = MaterialTheme.dimens.signupDimension.padding08
+                    )
+            ) {
+
+                SignupPhone(
+                    selectPhone = {
+                        primaryPhoneIndex = it
+                        isPrimaryPhoneSelected = true
+                    },
+                    isPrimaryPhoneSelected = isPrimaryPhoneSelected,
+                    closeButtonClick = {
+                        primaryPhoneIndex = 0
+                        isPrimaryPhoneSelected = false
+                    },
+                    primaryPhoneIndex = primaryPhoneIndex,
+                    phoneList = phoneList,
+                    isFieldError = phoneListColor,
+                    removeField = {
+                        if (phoneList.size > 1 && it != primaryPhoneIndex) {
+                            if (primaryPhoneIndex == 1) {
+                                phoneList.removeAt(0)
+                                phoneListColor.removeAt(0)
+                                primaryPhoneIndex = 0
+                            } else {
+
+                                phoneList.removeAt(it)
+                                phoneListColor.removeAt(it)
+                            }
+
+                        }
+                    },
+                    regex = InputsRegex.PHONE_NUMBER_REGEX,
+
+
+                    )
+            }
+
+
+        }
+
 
 
         LaunchedEffect(key1 = keyBoardState) {
             if (keyBoardState == Keyboard.Closed && isAgeFocused) {
                 focusManager.clearFocus()
 
-                signupViewModel.updateSignupData(
-                    text = if (signupDataTest.value.age != null) convertMillisToDate(
-                        Date().time.minus(
-                            yearsToMillis(signupDataTest.value.age.toLong())
-                        )
-                    ) else "0",
-                    TextFieldType.DOB,
-                )
+                if (signupDataTest.value.age != null && signupDataTest.value.age.isNotEmpty()) {
+                    signupViewModel.updateSignupData(
+                        text = convertMillisToDate(
+                            Date().time.minus(
+                                yearsToMillis(signupDataTest.value.age.toLong())
+                            )
+                        ),
+                        TextFieldType.DOB,
+                    )
+                } else {
+                    signupViewModel.updateSignupData("0", TextFieldType.Age)
+                }
+
             }
         }
 
-        Text(
+        Card(
             modifier = Modifier
                 .padding(
-                    vertical = MaterialTheme.dimens.signupDimension.itemVerticalPadding08,
-                    horizontal = MaterialTheme.dimens.signupDimension.itemHorizontalPadding04
+                    vertical = MaterialTheme.dimens.signupDimension.padding08,
+                    horizontal = MaterialTheme.dimens.signupDimension.padding04
                 ),
-            text = "Age",
-            style = TextStyle(
-                fontSize = MaterialTheme.dimens.signupDimension.headingFont20
+            colors = CardDefaults.cardColors(
+                containerColor = White
             )
-        )
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(
+                        horizontal = MaterialTheme.dimens.signupDimension.padding08,
+                        vertical = MaterialTheme.dimens.signupDimension.padding08
+                    )
+            ) {
 
-        CustomOutlinedInput(
-            modifier = Modifier
-                .focusRequester(focusRequester = focusRequester),
-            text = signupDataTest.value.age,
-            onTextChanged = {
 
-                signupViewModel.updateSignupData(it, TextFieldType.Age)
-            },
-            label = "Age",
-            keyBoardType = KeyboardType.Phone,
-            focusChanged = { state ->
-                isAgeFocused = state.isFocused
-            },
+                CustomOutlinedInput(
+                    modifier = Modifier
+                        .focusRequester(focusRequester = focusRequester),
+                    text = if (signupDataTest.value.age != null) signupDataTest.value.age else "0",
+                    onTextChanged = {
 
-            )
+                        signupViewModel.updateSignupData(it, TextFieldType.Age)
+                    },
+                    label = "Age",
+                    keyBoardType = KeyboardType.Phone,
+                    focusChanged = { state ->
+                        isAgeFocused = state.isFocused
+                    },
+                    regex = InputsRegex.AGE_REGEX
 
-        DatePickerBar(
-            text = "Pick your date of birth",
-            onClick = { isDatePickerSheetOpen = true },
-            selectedDate = signupDataTest.value.dob
-        )
+                )
 
-        Text(
-            modifier = Modifier
-                .padding(
-                    vertical = MaterialTheme.dimens.signupDimension.itemVerticalPadding08,
-                    horizontal = MaterialTheme.dimens.signupDimension.itemHorizontalPadding04
-                ),
-            text = "Address",
-            style = TextStyle(
-                fontSize = MaterialTheme.dimens.signupDimension.headingFont20
-            )
-        )
+                DatePickerBar(
+                    text = "Pick your date of birth",
+                    onClick = { isDatePickerSheetOpen = true },
+                    selectedDate = signupDataTest.value.dob
+                )
+            }
 
-        CustomOutlinedInput(
-            text = signupDataTest.value.address,
-            onTextChanged = {
 
-                signupViewModel.updateSignupData(text = it, TextFieldType.Address)
-            },
-            label = "Enter your address",
-            minLines = 3,
-            maxLines = 5,
-            isError = addressColor
-        )
+        }
 
-        Text(
+
+        Card(
             modifier = Modifier
                 .padding(
-                    vertical = MaterialTheme.dimens.signupDimension.itemVerticalPadding08,
-                    horizontal = MaterialTheme.dimens.signupDimension.itemHorizontalPadding04
+                    vertical = MaterialTheme.dimens.signupDimension.padding08,
+                    horizontal = MaterialTheme.dimens.signupDimension.padding04
                 ),
-            text = "Password",
-            style = TextStyle(
-                fontSize = MaterialTheme.dimens.signupDimension.headingFont20
+            colors = CardDefaults.cardColors(
+                containerColor = White
             )
-        )
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(
+                        horizontal = MaterialTheme.dimens.signupDimension.padding08,
+                        vertical = MaterialTheme.dimens.signupDimension.padding08
+                    )
+            ) {
 
-        CustomOutlinedPasswordInput(
-            text = password,
-            onTextChanged = { password = it },
-            label = "Password",
-            isError = passwordColor,
+                CustomOutlinedInput(
+                    text = signupDataTest.value.address,
+                    onTextChanged = {
+
+                        signupViewModel.updateSignupData(text = it, TextFieldType.Address)
+                    },
+                    label = "Enter your address",
+                    minLines = 3,
+                    maxLines = 5,
+                    isError = addressColor,
+                    regex = InputsRegex.ALLOW_ANY_REGEX
+                )
+            }
+
+        }
 
 
+        Card(
+            modifier = Modifier
+                .padding(
+                    vertical = MaterialTheme.dimens.signupDimension.padding08,
+                    horizontal = MaterialTheme.dimens.signupDimension.padding04
+                ),
+            colors = CardDefaults.cardColors(
+                containerColor = White
             )
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(
+                        horizontal = MaterialTheme.dimens.signupDimension.padding08,
+                        vertical = MaterialTheme.dimens.signupDimension.padding08
+                    )
+            ) {
 
-        CustomOutlinedPasswordInput(
-            text = confirmPassword,
-            onTextChanged = { confirmPassword = it },
-            label = "confirm password",
-            isError = confirmPasswordColor,
+
+                CustomOutlinedPasswordInput(
+                    text = password,
+                    onTextChanged = { password = it },
+                    label = "Password",
+                    isError = passwordColor,
+                    regex = InputsRegex.PASSWORD_REGEX
 
 
-            )
+                )
+
+                CustomOutlinedPasswordInput(
+                    text = confirmPassword,
+                    onTextChanged = { confirmPassword = it },
+                    label = "confirm password",
+                    isError = confirmPasswordColor,
+                    regex = InputsRegex.PASSWORD_REGEX
+
+
+                )
+            }
+
+
+        }
+
 
         Button(
             modifier = Modifier
@@ -501,6 +588,9 @@ fun SignupScreen(
                     horizontal = MaterialTheme.dimens.signupDimension.itemHorizontalPadding04
                 )
                 .fillMaxWidth(),
+            colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                containerColor = Blue
+            ),
             onClick = {
 
                 emailListColor[primaryEmailIndex] = emailList[primaryEmailIndex].isEmpty()
@@ -515,11 +605,12 @@ fun SignupScreen(
                     signupViewModel.checkFieldsValue(
                         primaryEmail = emailList[primaryEmailIndex],
                         primaryPhone = phoneList[primaryPhoneIndex],
-                        age = signupDataTest.value.age,
-                        dob = signupDataTest.value.dob,
                         firstName = signupDataTest.value.firstName,
-                        lastName = signupDataTest.value.lastName
+                        lastName = signupDataTest.value.lastName,
+                        password = password,
+                        confirmPassword = confirmPassword
                     )
+
                 ) {
                     if (signupViewModel.checkPassword(
                             password = password,
@@ -658,7 +749,7 @@ fun SignupScreen(
 
                                 )
 //
-                                    isPhotoTaken = true
+                                isPhotoTaken = true
                             },
                         ) {
                             Icon(
@@ -689,7 +780,7 @@ fun SignupScreen(
                 modifier = Modifier
                     .fillMaxSize()
             ) {
-                if (capturedImage !=null) {
+                if (capturedImage != null) {
                     Image(
                         modifier = Modifier
                             .weight(0.9f)
@@ -708,9 +799,9 @@ fun SignupScreen(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
 
-                        IconButton(onClick = { isPhotoTaken =false }) {
+                        IconButton(onClick = { isPhotoTaken = false }) {
                             Image(
-                                painter = painterResource(id = R.drawable.close_ic),
+                                painter = painterResource(id = R.drawable.close_camera_ic),
                                 contentDescription = "close"
                             )
                         }
@@ -718,9 +809,9 @@ fun SignupScreen(
                         IconButton(onClick = {
 
                             isPhotoTaken = false
-                            isProfileSelected =true
-                            isCameraSheetOpen=false
-                            selectedImageType =2
+                            isProfileSelected = true
+                            isCameraSheetOpen = false
+                            selectedImageType = 2
                         }) {
                             Image(
                                 painter = painterResource(id = R.drawable.tick_ic),

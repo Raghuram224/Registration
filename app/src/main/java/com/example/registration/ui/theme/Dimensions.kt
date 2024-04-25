@@ -17,6 +17,7 @@ data class SignupDimensions(
     val itemVerticalPadding08: Dp = 8.dp,
     val padding04:Dp=4.dp,
     val padding08:Dp=8.dp,
+    val padding16:Dp=8.dp,
     val profileSize: Dp = 100.dp,
     val normalFont16: TextUnit = 16.sp,
     val headingFont20: TextUnit = 20.sp

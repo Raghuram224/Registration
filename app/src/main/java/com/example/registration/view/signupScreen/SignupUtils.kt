@@ -10,12 +10,14 @@ import android.view.ViewTreeObserver
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -27,7 +29,6 @@ import androidx.compose.material.TextField
 import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Camera
-import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Photo
 import androidx.compose.material3.DatePicker
@@ -36,7 +37,6 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -54,6 +54,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusState
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalView
@@ -64,10 +65,11 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.registration.R
+import com.example.registration.ui.theme.Blue
+import com.example.registration.ui.theme.White
 import com.example.registration.ui.theme.dimens
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -82,7 +84,7 @@ fun UserProfile(
     selectedCameraImage: Bitmap?,
     chooseProfileImage: () -> Unit,
     isProfileSelected: Boolean,
-    openCamera:() -> Unit,
+    openCamera: () -> Unit,
     openGallery: () -> Unit,
     removeProfile: () -> Unit,
 
@@ -92,25 +94,40 @@ fun UserProfile(
     }
 
     Column(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxWidth(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Spacer(
+            modifier = Modifier
+                .height(20.dp)
+                .fillMaxWidth()
+        )
         when (selectedImageType) {
             0 -> {
-                Image(
+                Box(
                     modifier = Modifier
-                        .padding(vertical = MaterialTheme.dimens.signupDimension.itemVerticalPadding08)
+                        .size(100.dp)
                         .clip(RoundedCornerShape(50))
-                        .size(MaterialTheme.dimens.signupDimension.profileSize)
-                        .clickable {
-                            isDropDownExpanded = true
-                            chooseProfileImage()
-                        },
-                    painter = painterResource(id = R.drawable.profile_img),
-                    contentDescription = "profile",
-                )
+                        .background(White)
+                ) {
+                    Image(
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .fillMaxWidth()
+                            .size(50.dp)
+                            .padding(vertical = MaterialTheme.dimens.signupDimension.itemVerticalPadding08)
+                            .size(MaterialTheme.dimens.signupDimension.profileSize)
+                            .clickable {
+                                isDropDownExpanded = true
+                                chooseProfileImage()
+                            },
+                        painter = painterResource(id = R.drawable.add_ic),
+                        contentDescription = "profile",
+                    )
+                }
+
             }
 
             1 -> {
@@ -129,18 +146,27 @@ fun UserProfile(
                         contentScale = ContentScale.Crop,
                     )
                 } else {
-                    Image(
+                    Box(
                         modifier = Modifier
-                            .padding(vertical = 8.dp)
+                            .size(100.dp)
                             .clip(RoundedCornerShape(50))
-                            .size(MaterialTheme.dimens.signupDimension.profileSize)
-                            .clickable {
-                                isDropDownExpanded = true
-                                chooseProfileImage()
-                            },
-                        painter = painterResource(id = R.drawable.profile_img),
-                        contentDescription = "profile",
-                    )
+                            .background(White)
+                    ) {
+                        Image(
+                            modifier = Modifier
+                                .align(Alignment.Center)
+                                .fillMaxWidth()
+                                .size(50.dp)
+                                .padding(vertical = MaterialTheme.dimens.signupDimension.itemVerticalPadding08)
+                                .size(MaterialTheme.dimens.signupDimension.profileSize)
+                                .clickable {
+                                    isDropDownExpanded = true
+                                    chooseProfileImage()
+                                },
+                            painter = painterResource(id = R.drawable.add_ic),
+                            contentDescription = "profile",
+                        )
+                    }
                 }
             }
 
@@ -149,10 +175,10 @@ fun UserProfile(
                     Image(
                         modifier = Modifier
                             .padding(vertical = MaterialTheme.dimens.signupDimension.itemVerticalPadding08)
-                            .clip(RoundedCornerShape(50.dp))
                             .size(MaterialTheme.dimens.signupDimension.profileSize)
+                            .clip(RoundedCornerShape(50))
                             .clickable {
-                                isDropDownExpanded =true
+                                isDropDownExpanded = true
                                 chooseProfileImage()
                             },
                         bitmap = selectedCameraImage.asImageBitmap(),
@@ -163,6 +189,8 @@ fun UserProfile(
             }
 
         }
+
+
 
 
         ExposedDropdownMenuBox(
@@ -226,18 +254,20 @@ fun UserProfile(
         }
 
 
-
-        Text(
-            modifier = Modifier
-                .padding(MaterialTheme.dimens.signupDimension.padding04)
-                .fillMaxWidth(),
-            text = "Profile",
-            style = TextStyle(
-                fontSize = MaterialTheme.dimens.signupDimension.normalFont16,
-                textAlign = TextAlign.Center
-            )
-        )
+//
+//        Text(
+//            modifier = Modifier
+//                .padding(MaterialTheme.dimens.signupDimension.padding04)
+//                .fillMaxWidth(),
+//            text = "Profile",
+//            style = TextStyle(
+//                fontSize = MaterialTheme.dimens.signupDimension.normalFont16,
+//                textAlign = TextAlign.Center
+//            )
+//        )
     }
+
+
 }
 
 
@@ -250,7 +280,8 @@ fun SignupEmail(
     primaryEmailIndex: Int,
     emailList: MutableList<String>,
     isFieldError: SnapshotStateList<Boolean>,
-    removeField:(idx:Int)->Unit,
+    removeField: (idx: Int) -> Unit,
+    regex: String,
 
 
     ) {
@@ -265,15 +296,16 @@ fun SignupEmail(
 
             ) {
             CustomTextField(
+                modifier = Modifier
+                    .weight(0.9f)
+                    .fillMaxWidth(),
                 itemNo = (index + 1).toString(),
                 text = emailList[index],
                 onTextChanged = { emailList[index] = it },
                 keyBoardType = KeyboardType.Email,
                 label = "Email",
-                isError = if(isFieldError.isEmpty()) isFieldError.add(false) else isFieldError[index] ,
-                modifier = Modifier
-                    .weight(0.9f)
-                    .fillMaxWidth()
+                isError = if (isFieldError.isEmpty()) isFieldError.add(false) else isFieldError[index],
+                regex = regex
             )
 
             if (!isPrimaryEmailSelected) {
@@ -281,7 +313,7 @@ fun SignupEmail(
                     Image(
                         modifier = Modifier
                             .weight(0.1f)
-                            .size(50.dp),
+                            .size(20.dp),
                         painter = painterResource(id = R.drawable.primary_ic),
                         contentDescription = "primary email",
                     )
@@ -289,19 +321,20 @@ fun SignupEmail(
 
             }
             if (isPrimaryEmailSelected && index == primaryEmailIndex) {
-                IconButton(
+
+                Image(
                     modifier = Modifier
                         .weight(0.1f)
-                        .size(30.dp),
-                    onClick = { closeButtonClick() }
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.close_ic),
-                        contentDescription = "non primary"
-                    )
-                }
+                        .size(20.dp)
+                        .clickable {
+                            closeButtonClick()
+                        },
+                    painter = painterResource(id = R.drawable.close_ic),
+                    contentDescription = "non primary"
+                )
+
             }
-            if (isPrimaryEmailSelected && index!=primaryEmailIndex){
+            if (isPrimaryEmailSelected && index != primaryEmailIndex) {
                 IconButton(
                     modifier = Modifier
                         .weight(0.1f)
@@ -318,16 +351,23 @@ fun SignupEmail(
         }
 
     }
-
-    IconButton(
-        onClick = {
-            emailList.add("")
-            isFieldError.add(false)
-
-
-        }
+    Row(
+        modifier = Modifier
+            .clickable {
+                emailList.add("")
+                isFieldError.add(false)
+            }
+            .padding(MaterialTheme.dimens.signupDimension.padding08),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center
     ) {
-        Icon(painter = painterResource(id = R.drawable.add_ic), contentDescription = "add")
+        Image(
+            modifier = Modifier
+                .size(30.dp),
+            painter = painterResource(id = R.drawable.add_ic),
+            contentDescription = ""
+        )
+        Text(text = "Add an email")
     }
 
 
@@ -343,6 +383,7 @@ fun SignupPhone(
     phoneList: MutableList<String>,
     isFieldError: SnapshotStateList<Boolean>,
     removeField: (idx: Int) -> Unit,
+    regex: String,
 ) {
 
     phoneList.forEachIndexed { index, key ->
@@ -362,35 +403,39 @@ fun SignupPhone(
                 keyBoardType = KeyboardType.Phone,
                 label = "Phone number",
                 isError = isFieldError[index],
+                regex = regex
 
-                )
+            )
             if (!isPrimaryPhoneSelected) {
                 IconButton(onClick = { selectPhone(index) }) {
                     Image(
                         modifier = Modifier
                             .weight(0.1f)
-                            .size(50.dp),
+                            .size(20.dp),
                         painter = painterResource(id = R.drawable.primary_ic),
                         contentDescription = "primary email",
+                        colorFilter = ColorFilter.tint(Blue)
                     )
                 }
 
             }
 
             if (isPrimaryPhoneSelected && index == primaryPhoneIndex) {
-                IconButton(
+
+                Image(
                     modifier = Modifier
                         .weight(0.1f)
-                        .size(30.dp),
-                    onClick = { closeButtonClick() }
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.close_ic),
-                        contentDescription = "close"
-                    )
-                }
+                        .size(20.dp)
+                        .clickable {
+                            closeButtonClick()
+                        },
+                    painter = painterResource(id = R.drawable.close_ic),
+                    contentDescription = "close",
+                    colorFilter = ColorFilter.tint(Blue)
+                )
+
             }
-            if (isPrimaryPhoneSelected && index!=primaryPhoneIndex){
+            if (isPrimaryPhoneSelected && index != primaryPhoneIndex) {
                 IconButton(
                     modifier = Modifier
                         .weight(0.1f)
@@ -406,15 +451,26 @@ fun SignupPhone(
         }
 
     }
-    IconButton(
-        onClick = {
-            phoneList.add("")
-            isFieldError.add(false)
 
-        }
+    Row(
+        modifier = Modifier
+            .clickable {
+                phoneList.add("")
+                isFieldError.add(false)
+            }
+            .padding(MaterialTheme.dimens.signupDimension.padding08),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center
     ) {
-        Icon(painter = painterResource(id = R.drawable.add_ic), contentDescription = "add")
+        Image(
+            modifier = Modifier
+                .size(30.dp),
+            painter = painterResource(id = R.drawable.add_ic),
+            contentDescription = ""
+        )
+        Text(text = "Add an phone")
     }
+
 }
 
 
@@ -430,15 +486,16 @@ fun CustomOutlinedInput(
     maxLines: Int = 1,
     focusChanged: (FocusState) -> Unit = {},
     isError: Boolean = false,
-    visualTransformation: VisualTransformation = VisualTransformation.None
+    visualTransformation: VisualTransformation = VisualTransformation.None,
+    regex: String
 
 ) {
 
-    OutlinedTextField(
+    TextField(
         modifier = modifier
             .padding(
                 vertical = MaterialTheme.dimens.signupDimension.itemVerticalPadding08,
-                horizontal = MaterialTheme.dimens.signupDimension.itemHorizontalPadding04
+                horizontal = MaterialTheme.dimens.signupDimension.padding16
             )
             .fillMaxWidth()
 
@@ -447,16 +504,34 @@ fun CustomOutlinedInput(
             },
         value = text,
         onValueChange = {
-            onTextChanged.invoke(it)
+            if (it.matches(regex = Regex(regex))) {
+
+                onTextChanged.invoke(it)
+            }
         },
-        label = { Text(text = "$label $itemNo") },
+        placeholder = {
+            Text(
+                text = "$label $itemNo",
+                color = Color.Black.copy(alpha = 0.3f)
+            )
+        },
         keyboardOptions = KeyboardOptions(keyboardType = keyBoardType, imeAction = ImeAction.Done),
         minLines = minLines,
         maxLines = maxLines,
         isError = isError,
         visualTransformation = visualTransformation,
+        colors = TextFieldDefaults.textFieldColors(
+            textColor = Blue,
+            disabledTextColor = Color.Transparent,
+            backgroundColor = Color.Transparent,
+            focusedIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Transparent,
+            disabledIndicatorColor = Color.Transparent,
+            cursorColor = Blue
 
         )
+
+    )
 
 
 }
@@ -472,6 +547,7 @@ fun CustomTextField(
     minLines: Int = 1,
     maxLines: Int = 1,
     isError: Boolean = false,
+    regex: String,
 
 
     ) {
@@ -485,24 +561,35 @@ fun CustomTextField(
             .fillMaxWidth(),
         value = text,
         onValueChange = {
-            onTextChanged.invoke(it)
+            if (it.matches(regex = Regex(regex))) {
+
+                onTextChanged.invoke(it)
+            }
+
         },
         textStyle = TextStyle(
             fontSize = MaterialTheme.dimens.signupDimension.normalFont16
         ),
-        placeholder = { Text(text = "$label $itemNo") },
+        placeholder = {
+            Text(
+                text = "$label $itemNo",
+                color = Color.Black.copy(alpha = 0.3f)
+            )
+        },
         keyboardOptions = KeyboardOptions(keyboardType = keyBoardType),
         minLines = minLines,
         maxLines = maxLines,
         singleLine = true,
         isError = isError,
         colors = TextFieldDefaults.textFieldColors(
-            textColor = Color.Black,
+            textColor = Blue,
             disabledTextColor = Color.Transparent,
             backgroundColor = Color.Transparent,
-            focusedIndicatorColor = Color.Black,
-            unfocusedIndicatorColor = Color.Black,
-            disabledIndicatorColor = Color.Transparent
+            focusedIndicatorColor = Blue,
+            unfocusedIndicatorColor = Color.Transparent,
+            disabledIndicatorColor = Color.Transparent,
+            cursorColor = Blue
+
         )
     )
 }
@@ -517,13 +604,14 @@ fun CustomOutlinedPasswordInput(
     minLines: Int = 1,
     maxLines: Int = 1,
     isError: Boolean = false,
+    regex: String,
 
     ) {
     var passwordVisible by rememberSaveable {
         mutableStateOf(false)
     }
 
-    OutlinedTextField(
+    TextField(
         modifier = modifier
             .padding(
                 vertical = MaterialTheme.dimens.signupDimension.itemVerticalPadding08,
@@ -533,9 +621,17 @@ fun CustomOutlinedPasswordInput(
 
         value = text,
         onValueChange = {
-            onTextChanged.invoke(it)
+            if (it.matches(regex = Regex(regex))) {
+
+                onTextChanged.invoke(it)
+            }
         },
-        label = { Text(text = "$label $itemNo") },
+        label = {
+            Text(
+                text = "$label $itemNo",
+                color = Color.Black.copy(alpha = 0.3f)
+            )
+        },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
         minLines = minLines,
         maxLines = maxLines,
@@ -545,11 +641,28 @@ fun CustomOutlinedPasswordInput(
             val image = if (passwordVisible)
                 R.drawable.eye_close_ic
             else R.drawable.eye_open_ic
+            Image(
+                modifier = Modifier
+                    .size(20.dp)
+                    .clickable {
+                        passwordVisible = !passwordVisible
+                    },
+                painter = painterResource(id = image),
+                contentDescription = "password",
+                colorFilter = ColorFilter.tint(Blue),
+            )
 
-            IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                Icon(painter = painterResource(id = image), contentDescription = "password")
-            }
-        }
+        },
+        colors = TextFieldDefaults.textFieldColors(
+            textColor = Blue,
+            disabledTextColor = Color.Transparent,
+            backgroundColor = Color.Transparent,
+            focusedIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Transparent,
+            disabledIndicatorColor = Color.Transparent,
+            cursorColor = Blue
+
+        )
 
     )
 
@@ -570,10 +683,14 @@ fun DatePickerBar(
                 horizontal = MaterialTheme.dimens.signupDimension.itemHorizontalPadding04
             )
             .clip(RoundedCornerShape(5.dp))
-            .border(1.dp, Color.Black.copy(alpha = 0.6f))
+
 
     ) {
         Row(
+            modifier = Modifier
+                .clickable {
+                    onClick()
+                },
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
@@ -584,23 +701,19 @@ fun DatePickerBar(
                     .weight(1f),
                 text = text,
                 style = TextStyle(
+                    color = Color.Black.copy(alpha = 0.3f),
                     fontSize = MaterialTheme.dimens.signupDimension.normalFont16,
-                    fontWeight = FontWeight.SemiBold
-                )
+
+                    )
             )
-            Icon(
+
+            Image(
                 modifier = Modifier
-                    .clickable {
-                        onClick()
-                        Log.i("date click", "click")
-                    }
-                    .padding(
-                        vertical = MaterialTheme.dimens.signupDimension.itemVerticalPadding08,
-                        horizontal = MaterialTheme.dimens.signupDimension.itemHorizontalPadding04
-                    ),
-                imageVector = Icons.Filled.DateRange,
-                contentDescription = "Date",
+                    .size(20.dp),
+                painter = painterResource(id = R.drawable.calendar_ic),
+                contentDescription = "Calendar"
             )
+
 
         }
 
@@ -612,6 +725,7 @@ fun DatePickerBar(
                 ),
             text = selectedDate,
             style = TextStyle(
+                color = Blue,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = MaterialTheme.dimens.signupDimension.normalFont16
             ),
@@ -675,7 +789,6 @@ fun CustomDatePicker(
     }
 
 
-
 }
 
 @SuppressLint("SimpleDateFormat")
@@ -686,15 +799,10 @@ fun convertMillisToDate(mill: Long?): String {
 }
 
 fun milliToYears(milliseconds: Long): String {
-    Log.i("Day1", milliseconds.toString())
     val totalSeconds = milliseconds / 1000
-    Log.i("Day2", totalSeconds.toString())
     val minutes = totalSeconds / 60
-    Log.i("Day3", minutes.toString())
     val hour = minutes / 60
-    Log.i("Day4", hour.toString())
     val day = hour / 24
-    Log.i("Day5", day.toString())
     val year = (day / 365)
 
     return year.toString()
@@ -712,7 +820,7 @@ data class SignupDetails(
     val otherEmails: String,
     val otherPhones: String,
 
-)
+    )
 
 enum class Keyboard {
     Opened,
