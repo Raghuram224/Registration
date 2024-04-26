@@ -19,17 +19,26 @@ import androidx.camera.core.ImageCapture.OnImageCapturedCallback
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
 import androidx.camera.view.LifecycleCameraController
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.Divider
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
@@ -50,6 +59,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -61,10 +71,12 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import com.example.registration.R
@@ -76,11 +88,12 @@ import com.example.registration.ui.theme.dimens
 import com.example.registration.view.utils.CameraPreview
 import com.example.registration.viewModels.SignupViewModel
 import com.example.registration.viewModels.TextFieldType
+import kotlinx.coroutines.launch
 import java.util.Date
 
 
 @RequiresApi(Build.VERSION_CODES.O)
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @SuppressLint("MutableCollectionMutableState")
 @Composable
 fun SignupScreen(
@@ -102,9 +115,7 @@ fun SignupScreen(
     var isCameraSheetOpen by rememberSaveable {
         mutableStateOf(false)
     }
-    var isShowImagesSheetOpen by rememberSaveable {
-        mutableStateOf(false)
-    }
+
     var isPhotoTaken by remember {
         mutableStateOf(false)
     }
@@ -117,16 +128,22 @@ fun SignupScreen(
     val showTakenPhotoSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     // camera essentials
-    var selectedImageUri by remember {
-        mutableStateOf<Uri?>(null)
-    }
-    val photoPickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.PickVisualMedia(),
-        onResult = { uri: Uri? -> selectedImageUri = uri }
-    )
+
+    val selectedImageType by signupViewModel.selectedImageType.collectAsState()
+
     var isProfileSelected by remember {
         mutableStateOf(false)
     }
+    val photoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia(),
+        onResult = { uri: Uri? ->
+            if (uri != null) {
+                signupViewModel.updateSelectedImagType(idx = 1)
+                signupViewModel.updateSelectedImage(uri = uri)
+                isProfileSelected = true
+            }
+        }
+    )
 
     val cameraController = remember {
         LifecycleCameraController(context).apply {
@@ -136,19 +153,14 @@ fun SignupScreen(
 
         }
     }
+    val selectedImage by signupViewModel.selectedImage.collectAsState()
 
-    var selectedImageType by remember {
-        mutableStateOf(0)
-    }
 
     // UI state
     val signupDataTest = signupViewModel.signupData.collectAsState() //Test
     val capturedImage by signupViewModel.capturedImage.collectAsState()
 
-    //focus requester
-    val focusRequester = remember {
-        FocusRequester()
-    }
+
     val focusManager = LocalFocusManager.current
 
     val keyBoardState by keyboardAsState()
@@ -179,13 +191,6 @@ fun SignupScreen(
         mutableStateOf(false)
     }
 
-    val emailListColor = remember {
-        mutableStateListOf(false)
-    }
-    val phoneListColor = remember {
-        mutableStateListOf(false)
-    }
-
     var password by remember {
         mutableStateOf("")
     }
@@ -205,6 +210,7 @@ fun SignupScreen(
     var primaryPhoneIndex by remember {
         mutableStateOf(0)
     }
+
 
     val cameraContract =
         rememberLauncherForActivityResult(contract = ActivityResultContracts.RequestPermission()) {
@@ -229,6 +235,52 @@ fun SignupScreen(
     val emailList = signupViewModel.emailList
     val phoneList = signupViewModel.phoneList
 
+    val coroutineScope = rememberCoroutineScope()
+    val keyboardController= LocalSoftwareKeyboardController.current
+
+    // bring intoView View Requester
+    val namesBringIntoView = remember {
+        BringIntoViewRequester()
+    }
+    val emailBringIntoView = remember {
+
+        BringIntoViewRequester()
+    }
+    val phoneBringIntoView = remember {
+        BringIntoViewRequester()
+    }
+    val passwordBringIntoView = remember {
+        BringIntoViewRequester()
+    }
+    val confirmPasswordBringIntoView = remember {
+
+        BringIntoViewRequester()
+    }
+
+
+    //focus requesters
+    val fNameFocusRequester = remember {
+        FocusRequester()
+    }
+    val lNameFocusRequester = remember {
+        FocusRequester()
+    }
+    val ageFocusRequester = remember {
+        FocusRequester()
+    }
+    val emailFocusRequester = remember {
+        FocusRequester()
+    }
+    val phoneFocusRequester = remember {
+        FocusRequester()
+    }
+    val passwordFocusRequester = remember {
+        FocusRequester()
+    }
+    val confirmPasswordFocusRequester = remember {
+        FocusRequester()
+    }
+
 
     Column(
         modifier = Modifier
@@ -244,7 +296,7 @@ fun SignupScreen(
                 isProfileSheetOpen = true
 
             },
-            selectedImageUri = selectedImageUri,
+            selectedImageUri = selectedImage,
             selectedImageType = selectedImageType,
             selectedCameraImage = capturedImage,
             isProfileSelected = isProfileSelected,
@@ -265,18 +317,20 @@ fun SignupScreen(
 
             },
             openGallery = {
-                isProfileSelected = true
+
                 photoPickerLauncher.launch(
                     PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
                 )
-                selectedImageType = 1
+
             },
             removeProfile = {
                 isProfileSelected = false
-                selectedImageType = 0
+                signupViewModel.updateSelectedImagType(idx = 0)
+
             }
 
         )
+
 
         Card(
             modifier = Modifier
@@ -297,6 +351,9 @@ fun SignupScreen(
             ) {
 
                 CustomOutlinedInput(
+                    modifier = Modifier
+                        .bringIntoViewRequester(namesBringIntoView)
+                        .focusRequester(focusRequester = fNameFocusRequester),
                     text = signupDataTest.value.firstName,
                     onTextChanged = {
 
@@ -305,11 +362,13 @@ fun SignupScreen(
                     },
                     label = "First name",
                     isError = fNameColor,
-                    regex = InputsRegex.NAME_REGEX
+                    regex = InputsRegex.NAME_REGEX,
                 )
 
 
                 CustomOutlinedInput(
+                    modifier = Modifier
+                        .focusRequester(focusRequester = lNameFocusRequester),
                     text = signupDataTest.value.lastName,
                     onTextChanged = {
 
@@ -342,6 +401,8 @@ fun SignupScreen(
 
 
                 SignupEmail(
+                    modifier = Modifier
+                        .bringIntoViewRequester(emailBringIntoView),
                     selectEmail = {
                         primaryEmailIndex = it
                         isPrimaryEmailSelected = true
@@ -353,25 +414,28 @@ fun SignupScreen(
                     },
                     primaryEmailIndex = primaryEmailIndex,
                     emailList = emailList,
-                    isFieldError = emailListColor,
+                    isFieldError = signupViewModel.emailListColor,
                     removeField = {
                         if (emailList.size > 1 && it != primaryEmailIndex) {
 
                             if (primaryEmailIndex == 1) {
                                 emailList.removeAt(0)
-                                emailListColor.removeAt(0)
+                                signupViewModel.emailListColor.removeAt(0)
                                 primaryEmailIndex = 0
                             } else {
 
                                 emailList.removeAt(it)
-                                emailListColor.removeAt(it)
+                                signupViewModel.emailListColor.removeAt(it)
 
                             }
 
                         }
 
                     },
-                    regex = InputsRegex.EMAIL_REGEX
+                    regex = InputsRegex.EMAIL_REGEX,
+                    emailFocusRequester = emailFocusRequester,
+
+
 
                 )
             }
@@ -398,6 +462,9 @@ fun SignupScreen(
             ) {
 
                 SignupPhone(
+                    modifier = Modifier
+                        .bringIntoViewRequester(phoneBringIntoView)
+                        .focusRequester(focusRequester = phoneFocusRequester),
                     selectPhone = {
                         primaryPhoneIndex = it
                         isPrimaryPhoneSelected = true
@@ -409,22 +476,23 @@ fun SignupScreen(
                     },
                     primaryPhoneIndex = primaryPhoneIndex,
                     phoneList = phoneList,
-                    isFieldError = phoneListColor,
+                    isFieldError = signupViewModel.phoneListColor,
                     removeField = {
                         if (phoneList.size > 1 && it != primaryPhoneIndex) {
                             if (primaryPhoneIndex == 1) {
                                 phoneList.removeAt(0)
-                                phoneListColor.removeAt(0)
+                                signupViewModel.phoneListColor.removeAt(0)
                                 primaryPhoneIndex = 0
                             } else {
 
                                 phoneList.removeAt(it)
-                                phoneListColor.removeAt(it)
+                                signupViewModel.phoneListColor.removeAt(it)
                             }
 
                         }
                     },
                     regex = InputsRegex.PHONE_NUMBER_REGEX,
+                    phoneFocusRequester = phoneFocusRequester
 
 
                     )
@@ -465,18 +533,23 @@ fun SignupScreen(
                 containerColor = White
             )
         ) {
-            Column(
+            Row(
                 modifier = Modifier
+                    .fillMaxWidth()
+                    .height(IntrinsicSize.Min)
                     .padding(
                         horizontal = MaterialTheme.dimens.signupDimension.padding08,
                         vertical = MaterialTheme.dimens.signupDimension.padding08
-                    )
+                    ),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
             ) {
 
 
                 CustomOutlinedInput(
                     modifier = Modifier
-                        .focusRequester(focusRequester = focusRequester),
+                        .weight(0.4f)
+                        .focusRequester(focusRequester = ageFocusRequester),
                     text = if (signupDataTest.value.age != null) signupDataTest.value.age else "0",
                     onTextChanged = {
 
@@ -487,14 +560,40 @@ fun SignupScreen(
                     focusChanged = { state ->
                         isAgeFocused = state.isFocused
                     },
-                    regex = InputsRegex.AGE_REGEX
+                    regex = InputsRegex.AGE_REGEX,
+                    updateFocusChangeValue = {
+                        if (signupDataTest.value.age != null && signupDataTest.value.age.isNotEmpty()) {
+                            signupViewModel.updateSignupData(
+                                text = convertMillisToDate(
+                                    Date().time.minus(
+                                        yearsToMillis(signupDataTest.value.age.toLong())
+                                    )
+                                ),
+                                TextFieldType.DOB,
+                            )
+                        } else {
+                            signupViewModel.updateSignupData("0", TextFieldType.Age)
+                        }
+                    }
 
                 )
+                Divider(
+                    color = Color.Black.copy(alpha = 0.3f),
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .width(1.dp)
+                )
+
 
                 DatePickerBar(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .fillMaxWidth()
+                        .wrapContentSize()
+                        .weight(0.4f),
                     text = "Pick your date of birth",
                     onClick = { isDatePickerSheetOpen = true },
-                    selectedDate = signupDataTest.value.dob
+                    selectedDate = signupDataTest.value.dob,
                 )
             }
 
@@ -557,6 +656,9 @@ fun SignupScreen(
 
 
                 CustomOutlinedPasswordInput(
+                    modifier = Modifier
+                        .focusRequester(focusRequester = passwordFocusRequester)
+                        ,
                     text = password,
                     onTextChanged = { password = it },
                     label = "Password",
@@ -567,6 +669,8 @@ fun SignupScreen(
                 )
 
                 CustomOutlinedPasswordInput(
+                    modifier = Modifier
+                        .focusRequester(focusRequester = confirmPasswordFocusRequester),
                     text = confirmPassword,
                     onTextChanged = { confirmPassword = it },
                     label = "confirm password",
@@ -593,8 +697,9 @@ fun SignupScreen(
             ),
             onClick = {
 
-                emailListColor[primaryEmailIndex] = emailList[primaryEmailIndex].isEmpty()
-                phoneListColor[primaryPhoneIndex] = phoneList[primaryPhoneIndex].isEmpty()
+
+                signupViewModel.emailListColor[primaryEmailIndex] = emailList[primaryEmailIndex].isEmpty()
+                signupViewModel.phoneListColor[primaryPhoneIndex] = phoneList[primaryPhoneIndex].isEmpty()
 
                 fNameColor = signupDataTest.value.firstName.isEmpty()
                 lNameColor = signupDataTest.value.lastName.isEmpty()
@@ -645,8 +750,6 @@ fun SignupScreen(
 
                         signupViewModel.publicSignupDetails = signupViewModel.getSignupDetails()
 
-
-
                         navController.navigate("DataScreen")
 
                     } else {
@@ -656,7 +759,45 @@ fun SignupScreen(
 
 
                 } else {
-                    Toast.makeText(context, "Check fields value", Toast.LENGTH_SHORT).show()
+                    Log.i("passwordColor",passwordColor.toString())
+                    if (fNameColor) {
+                        coroutineScope.launch {
+                            namesBringIntoView.bringIntoView()
+                            fNameFocusRequester.requestFocus()
+                        }
+                        Toast.makeText(context, "Check First name value", Toast.LENGTH_SHORT).show()
+                    }else if(lNameColor){
+                        coroutineScope.launch {
+                            lNameFocusRequester.requestFocus()
+                        }
+                        Toast.makeText(context, "Check last name value", Toast.LENGTH_SHORT).show()
+                    }
+                    else if (signupViewModel.emailListColor[primaryEmailIndex]) {
+                        coroutineScope.launch {
+                            emailBringIntoView.bringIntoView()
+                            emailFocusRequester.requestFocus()
+                        }
+                        Toast.makeText(context, "Check email value", Toast.LENGTH_SHORT).show()
+                    } else if (signupViewModel.phoneListColor[primaryPhoneIndex]) {
+                        coroutineScope.launch {
+                            phoneBringIntoView.bringIntoView()
+                            phoneFocusRequester.requestFocus()
+                        }
+                        Toast.makeText(context, "Check phone  value", Toast.LENGTH_SHORT).show()
+                    } else if (passwordColor) {
+                        coroutineScope.launch {
+                            passwordBringIntoView.bringIntoView()
+                            passwordFocusRequester.requestFocus()
+                        }
+                        Toast.makeText(context, "Check password value", Toast.LENGTH_SHORT).show()
+                    }else{
+                        coroutineScope.launch {
+                            confirmPasswordBringIntoView.bringIntoView()
+                            confirmPasswordFocusRequester.requestFocus()
+                        }
+                        Toast.makeText(context, "Check confirm password value", Toast.LENGTH_SHORT).show()
+                    }
+//                    Toast.makeText(context, "Check fields value", Toast.LENGTH_SHORT).show()
                 }
 
             }
@@ -811,7 +952,8 @@ fun SignupScreen(
                             isPhotoTaken = false
                             isProfileSelected = true
                             isCameraSheetOpen = false
-                            selectedImageType = 2
+                            signupViewModel.updateSelectedImagType(idx = 2)
+
                         }) {
                             Image(
                                 painter = painterResource(id = R.drawable.tick_ic),

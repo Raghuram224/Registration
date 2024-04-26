@@ -1,6 +1,7 @@
 package com.example.registration.viewModels
 
 import android.graphics.Bitmap
+import android.net.Uri
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 
@@ -47,12 +48,18 @@ class SignupViewModel @Inject constructor() : ViewModel() {
         )
     )
     private val _capturedImage= MutableStateFlow<Bitmap?>(null)
+    private var _selectedImage =MutableStateFlow<Uri?>(null)
+    private var _selectedImageType = MutableStateFlow(0)
 
 
     val signupData = _signupData.asStateFlow()
     val emailList = mutableStateListOf("")
     val phoneList = mutableStateListOf("")
     val capturedImage = _capturedImage.asStateFlow()
+    val selectedImageType =  _selectedImageType.asStateFlow()
+    val selectedImage = _selectedImage.asStateFlow()
+    val emailListColor = mutableStateListOf(false)
+    val phoneListColor = mutableStateListOf(false)
 
     lateinit var publicSignupDetails: SignupDetails
 
@@ -156,6 +163,13 @@ class SignupViewModel @Inject constructor() : ViewModel() {
 
     fun updateCapturedImage(bitmap: Bitmap){
         _capturedImage.value =bitmap
+    }
+
+    fun updateSelectedImagType(idx: Int){
+        _selectedImageType.value =idx
+    }
+    fun updateSelectedImage(uri: Uri?){
+        _selectedImage.value =uri
     }
 
 

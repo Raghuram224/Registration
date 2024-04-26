@@ -14,6 +14,8 @@ fun DataScreen (
 
 ) {
     Log.i("Data",signupViewModel.publicSignupDetails.toString())
+
+
     if (signupViewModel.publicSignupDetails!=null){
         Column {
             Text(text = "First name: ${signupViewModel.publicSignupDetails.firstName}")

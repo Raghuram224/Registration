@@ -5,7 +5,6 @@ import android.graphics.Bitmap
 import android.graphics.Rect
 import android.net.Uri
 import android.os.Build
-import android.util.Log
 import android.view.ViewTreeObserver
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
@@ -35,7 +34,6 @@ import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -51,7 +49,9 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.FocusState
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
@@ -71,6 +71,7 @@ import com.example.registration.R
 import com.example.registration.ui.theme.Blue
 import com.example.registration.ui.theme.White
 import com.example.registration.ui.theme.dimens
+import com.example.registration.ui.theme.titleStyle
 import java.text.SimpleDateFormat
 import java.util.Date
 
@@ -94,8 +95,7 @@ fun UserProfile(
     }
 
     Column(
-        modifier = Modifier
-            .fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -106,23 +106,21 @@ fun UserProfile(
         )
         when (selectedImageType) {
             0 -> {
-                Box(
-                    modifier = Modifier
-                        .size(100.dp)
-                        .clip(RoundedCornerShape(50))
-                        .background(White)
-                ) {
+                Box(modifier = Modifier
+                    .clickable {
+                        isDropDownExpanded = true
+                        chooseProfileImage()
+                    }
+                    .size(100.dp)
+                    .clip(RoundedCornerShape(50))
+                    .background(White)) {
                     Image(
                         modifier = Modifier
                             .align(Alignment.Center)
                             .fillMaxWidth()
                             .size(50.dp)
                             .padding(vertical = MaterialTheme.dimens.signupDimension.itemVerticalPadding08)
-                            .size(MaterialTheme.dimens.signupDimension.profileSize)
-                            .clickable {
-                                isDropDownExpanded = true
-                                chooseProfileImage()
-                            },
+                            .size(MaterialTheme.dimens.signupDimension.profileSize),
                         painter = painterResource(id = R.drawable.add_ic),
                         contentDescription = "profile",
                     )
@@ -208,10 +206,9 @@ fun UserProfile(
                 onDismissRequest = { isDropDownExpanded = false },
 
                 ) {
-                DropdownMenuItem(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .align(Alignment.CenterHorizontally),
+                DropdownMenuItem(modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.CenterHorizontally),
                     text = { Text(text = "Camera") },
                     onClick = {
                         openCamera()
@@ -219,12 +216,10 @@ fun UserProfile(
                     },
                     leadingIcon = {
                         Image(imageVector = Icons.Default.Camera, contentDescription = "Camera")
-                    }
-                )
-                DropdownMenuItem(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .align(Alignment.CenterHorizontally),
+                    })
+                DropdownMenuItem(modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.CenterHorizontally),
                     text = { Text(text = "Gallery") },
                     onClick = {
                         openGallery()
@@ -232,14 +227,12 @@ fun UserProfile(
                     },
                     leadingIcon = {
                         Image(imageVector = Icons.Default.Photo, contentDescription = "Gallery")
-                    }
-                )
+                    })
                 if (isProfileSelected) {
 
-                    DropdownMenuItem(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .align(Alignment.CenterHorizontally),
+                    DropdownMenuItem(modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.CenterHorizontally),
                         text = { Text(text = "Remove") },
                         onClick = {
                             removeProfile()
@@ -247,8 +240,7 @@ fun UserProfile(
                         },
                         leadingIcon = {
                             Image(imageVector = Icons.Default.Person, contentDescription = "Remove")
-                        }
-                    )
+                        })
                 }
             }
         }
@@ -282,6 +274,7 @@ fun SignupEmail(
     isFieldError: SnapshotStateList<Boolean>,
     removeField: (idx: Int) -> Unit,
     regex: String,
+    emailFocusRequester: FocusRequester,
 
 
     ) {
@@ -289,8 +282,7 @@ fun SignupEmail(
 
     emailList.forEachIndexed { index, key ->
         Row(
-            modifier = Modifier
-                .fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center,
 
@@ -298,14 +290,15 @@ fun SignupEmail(
             CustomTextField(
                 modifier = Modifier
                     .weight(0.9f)
+                    .focusRequester(focusRequester = emailFocusRequester)
                     .fillMaxWidth(),
                 itemNo = (index + 1).toString(),
                 text = emailList[index],
                 onTextChanged = { emailList[index] = it },
                 keyBoardType = KeyboardType.Email,
                 label = "Email",
-                isError = if (isFieldError.isEmpty()) isFieldError.add(false) else isFieldError[index],
-                regex = regex
+                isError = isFieldError[index],
+                regex = regex,
             )
 
             if (!isPrimaryEmailSelected) {
@@ -339,8 +332,7 @@ fun SignupEmail(
                     modifier = Modifier
                         .weight(0.1f)
                         .size(30.dp),
-                    onClick = { removeField(index) }
-                ) {
+                    onClick = { removeField(index) }) {
                     Image(
                         painter = painterResource(id = R.drawable.minus_ic),
                         contentDescription = "remove field"
@@ -351,19 +343,16 @@ fun SignupEmail(
         }
 
     }
-    Row(
-        modifier = Modifier
-            .clickable {
-                emailList.add("")
-                isFieldError.add(false)
-            }
-            .padding(MaterialTheme.dimens.signupDimension.padding08),
+    Row(modifier = Modifier
+        .clickable {
+            emailList.add("")
+            isFieldError.add(false)
+        }
+        .padding(MaterialTheme.dimens.signupDimension.padding08),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center
-    ) {
+        horizontalArrangement = Arrangement.Center) {
         Image(
-            modifier = Modifier
-                .size(30.dp),
+            modifier = Modifier.size(30.dp),
             painter = painterResource(id = R.drawable.add_ic),
             contentDescription = ""
         )
@@ -384,17 +373,18 @@ fun SignupPhone(
     isFieldError: SnapshotStateList<Boolean>,
     removeField: (idx: Int) -> Unit,
     regex: String,
+    phoneFocusRequester: FocusRequester
 ) {
 
     phoneList.forEachIndexed { index, key ->
         Row(
-            modifier = Modifier
-                .fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center,
         ) {
             CustomTextField(
                 modifier = Modifier
+                    .focusRequester(focusRequester = phoneFocusRequester)
                     .weight(0.9f)
                     .fillMaxWidth(),
                 itemNo = (index + 1).toString(),
@@ -440,8 +430,7 @@ fun SignupPhone(
                     modifier = Modifier
                         .weight(0.1f)
                         .size(30.dp),
-                    onClick = { removeField(index) }
-                ) {
+                    onClick = { removeField(index) }) {
                     Image(
                         painter = painterResource(id = R.drawable.minus_ic),
                         contentDescription = "remove field"
@@ -452,19 +441,16 @@ fun SignupPhone(
 
     }
 
-    Row(
-        modifier = Modifier
-            .clickable {
-                phoneList.add("")
-                isFieldError.add(false)
-            }
-            .padding(MaterialTheme.dimens.signupDimension.padding08),
+    Row(modifier = Modifier
+        .clickable {
+            phoneList.add("")
+            isFieldError.add(false)
+        }
+        .padding(MaterialTheme.dimens.signupDimension.padding08),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center
-    ) {
+        horizontalArrangement = Arrangement.Center) {
         Image(
-            modifier = Modifier
-                .size(30.dp),
+            modifier = Modifier.size(30.dp),
             painter = painterResource(id = R.drawable.add_ic),
             contentDescription = ""
         )
@@ -487,9 +473,11 @@ fun CustomOutlinedInput(
     focusChanged: (FocusState) -> Unit = {},
     isError: Boolean = false,
     visualTransformation: VisualTransformation = VisualTransformation.None,
-    regex: String
+    regex: String,
+    updateFocusChangeValue: () -> Unit = {},
 
-) {
+
+    ) {
 
     TextField(
         modifier = modifier
@@ -500,6 +488,9 @@ fun CustomOutlinedInput(
             .fillMaxWidth()
 
             .onFocusChanged {
+                if (!it.hasFocus) {
+                    updateFocusChangeValue()
+                }
                 focusChanged(it)
             },
         value = text,
@@ -511,8 +502,7 @@ fun CustomOutlinedInput(
         },
         placeholder = {
             Text(
-                text = "$label $itemNo",
-                color = Color.Black.copy(alpha = 0.3f)
+                text = "$label $itemNo", color = Color.Black.copy(alpha = 0.3f)
             )
         },
         keyboardOptions = KeyboardOptions(keyboardType = keyBoardType, imeAction = ImeAction.Done),
@@ -524,12 +514,13 @@ fun CustomOutlinedInput(
             textColor = Blue,
             disabledTextColor = Color.Transparent,
             backgroundColor = Color.Transparent,
-            focusedIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent,
+            focusedIndicatorColor = Blue,
+            unfocusedIndicatorColor = Color.Black.copy(alpha = 0.1f),
             disabledIndicatorColor = Color.Transparent,
             cursorColor = Blue
 
-        )
+        ),
+        textStyle = MaterialTheme.typography.body1.titleStyle()
 
     )
 
@@ -567,13 +558,10 @@ fun CustomTextField(
             }
 
         },
-        textStyle = TextStyle(
-            fontSize = MaterialTheme.dimens.signupDimension.normalFont16
-        ),
+        textStyle = MaterialTheme.typography.body1.titleStyle(),
         placeholder = {
             Text(
-                text = "$label $itemNo",
-                color = Color.Black.copy(alpha = 0.3f)
+                text = "$label $itemNo", color = Color.Black.copy(alpha = 0.3f)
             )
         },
         keyboardOptions = KeyboardOptions(keyboardType = keyBoardType),
@@ -586,12 +574,13 @@ fun CustomTextField(
             disabledTextColor = Color.Transparent,
             backgroundColor = Color.Transparent,
             focusedIndicatorColor = Blue,
-            unfocusedIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Black.copy(alpha = 0.1f),
             disabledIndicatorColor = Color.Transparent,
             cursorColor = Blue
 
+        ),
+
         )
-    )
 }
 
 @Composable
@@ -628,8 +617,7 @@ fun CustomOutlinedPasswordInput(
         },
         label = {
             Text(
-                text = "$label $itemNo",
-                color = Color.Black.copy(alpha = 0.3f)
+                text = "$label $itemNo", color = Color.Black.copy(alpha = 0.3f)
             )
         },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
@@ -638,8 +626,7 @@ fun CustomOutlinedPasswordInput(
         isError = isError,
         visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
         trailingIcon = {
-            val image = if (passwordVisible)
-                R.drawable.eye_close_ic
+            val image = if (passwordVisible) R.drawable.eye_close_ic
             else R.drawable.eye_open_ic
             Image(
                 modifier = Modifier
@@ -657,24 +644,22 @@ fun CustomOutlinedPasswordInput(
             textColor = Blue,
             disabledTextColor = Color.Transparent,
             backgroundColor = Color.Transparent,
-            focusedIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent,
+            focusedIndicatorColor = Blue,
+            unfocusedIndicatorColor = Color.Black.copy(alpha = 0.1f),
             disabledIndicatorColor = Color.Transparent,
             cursorColor = Blue
 
-        )
+        ),
+        textStyle = MaterialTheme.typography.body1.titleStyle(),
 
-    )
+        )
 
 
 }
 
 @Composable
 fun DatePickerBar(
-    text: String,
-    onClick: () -> Unit,
-    selectedDate: String,
-    modifier: Modifier = Modifier
+    text: String, onClick: () -> Unit, selectedDate: String, modifier: Modifier = Modifier
 ) {
     Column(
         modifier = modifier
@@ -682,23 +667,21 @@ fun DatePickerBar(
                 vertical = MaterialTheme.dimens.signupDimension.itemVerticalPadding08,
                 horizontal = MaterialTheme.dimens.signupDimension.itemHorizontalPadding04
             )
-            .clip(RoundedCornerShape(5.dp))
+            .clip(RoundedCornerShape(5.dp)),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
 
 
     ) {
-        Row(
-            modifier = Modifier
-                .clickable {
-                    onClick()
-                },
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
+        Column(
+            modifier = Modifier.clickable {
+                onClick()
+            },
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                modifier = Modifier
-                    .padding(MaterialTheme.dimens.signupDimension.padding04)
-                    .fillMaxWidth()
-                    .weight(1f),
+                modifier = Modifier.padding(MaterialTheme.dimens.signupDimension.padding04),
                 text = text,
                 style = TextStyle(
                     color = Color.Black.copy(alpha = 0.3f),
@@ -708,8 +691,7 @@ fun DatePickerBar(
             )
 
             Image(
-                modifier = Modifier
-                    .size(20.dp),
+                modifier = Modifier.size(20.dp),
                 painter = painterResource(id = R.drawable.calendar_ic),
                 contentDescription = "Calendar"
             )
@@ -718,11 +700,10 @@ fun DatePickerBar(
         }
 
         Text(
-            modifier = Modifier
-                .padding(
-                    vertical = MaterialTheme.dimens.signupDimension.itemVerticalPadding08,
-                    horizontal = MaterialTheme.dimens.signupDimension.itemHorizontalPadding04
-                ),
+            modifier = Modifier.padding(
+                vertical = MaterialTheme.dimens.signupDimension.itemVerticalPadding08,
+                horizontal = MaterialTheme.dimens.signupDimension.itemHorizontalPadding04
+            ),
             text = selectedDate,
             style = TextStyle(
                 color = Blue,
@@ -749,15 +730,13 @@ fun CustomDatePicker(
 
 
     Column(
-        modifier = Modifier
-            .background(Color.White),
+        modifier = Modifier.background(Color.White),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
 
         ) {
         DatePicker(
-            state = datePickerState,
-            modifier = Modifier
+            state = datePickerState, modifier = Modifier
         )
 
         Row(
@@ -770,19 +749,17 @@ fun CustomDatePicker(
             TextButton(onClick = { onDismiss() }) {
                 Text(text = "Cancel")
             }
-            TextButton(
-                onClick = {
+            TextButton(onClick = {
 
-                    if (selectedDateInMillis != null) {
-                        updateAge(milliToYears(Date().time.minus(selectedDateInMillis)))
-                    }
-                    onClick(
-                        convertMillisToDate(selectedDateInMillis)
-                    )
-                    onDismiss()
-
+                if (selectedDateInMillis != null) {
+                    updateAge(milliToYears(Date().time.minus(selectedDateInMillis)))
                 }
-            ) {
+                onClick(
+                    convertMillisToDate(selectedDateInMillis)
+                )
+                onDismiss()
+
+            }) {
                 Text(text = "Confirm")
             }
         }
@@ -823,8 +800,7 @@ data class SignupDetails(
     )
 
 enum class Keyboard {
-    Opened,
-    Closed
+    Opened, Closed
 }
 
 @Composable
