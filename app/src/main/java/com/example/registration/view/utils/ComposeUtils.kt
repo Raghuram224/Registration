@@ -171,6 +171,7 @@ fun CustomPassword(
 fun CustomHyperLink(
     fullText: String,
     linkText: String,
+    signupNavigation:()->Unit,
 ) {
     val annotatedString = buildAnnotatedString {
         append(fullText)
@@ -193,6 +194,7 @@ fun CustomHyperLink(
     ClickableText(
         text = annotatedString,
         onClick = { offset ->
+            signupNavigation()
             annotatedString.getStringAnnotations("tag", offset, offset)
         }
     )

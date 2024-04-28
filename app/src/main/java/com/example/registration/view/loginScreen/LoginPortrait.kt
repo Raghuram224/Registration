@@ -11,6 +11,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -18,25 +20,35 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.registration.R
+import com.example.registration.constants.InputsRegex
 import com.example.registration.ui.theme.DarkGreen
 import com.example.registration.view.utils.CustomEmail
 import com.example.registration.view.utils.CustomHyperLink
 import com.example.registration.view.utils.CustomPassword
+import com.example.registration.viewModels.LoginInputFields
+import com.example.registration.viewModels.LoginViewModel
+import kotlinx.coroutines.flow.collect
 
 @Composable
 fun LoginPortrait(
+    modifier: Modifier = Modifier,
+    signupNavigation: () -> Unit,
+    successNavigation: () -> Unit,
+    loginViewModel: LoginViewModel,
     email: String,
     password: String,
-    passwordStringCallback: (password: String) -> Unit,
-    emailStringCallBack: (email: String) -> Unit,
-    modifier: Modifier = Modifier
-) {
+    emailCallBack: (String) -> Unit,
+    passwordCallBack: (String) -> Unit,
+
+
+    ) {
 
     val context = LocalContext.current
+
+
 
     Column(
         verticalArrangement = Arrangement.Center,
@@ -75,11 +87,11 @@ fun LoginPortrait(
             )
         CustomEmail(
             email = email,
-            emailStringCallback = emailStringCallBack
+            emailStringCallback = emailCallBack
         )
         CustomPassword(
             password = password,
-            passwordStringCallback = passwordStringCallback
+            passwordStringCallback = passwordCallBack
         )
 
         Button(
@@ -88,8 +100,10 @@ fun LoginPortrait(
                 .padding(vertical = 16.dp)
                 .fillMaxWidth(),
             onClick = {
-                if (checkEmailAndPassword(email = email, password = password)) {
-                    Toast.makeText(context, "Log in success", Toast.LENGTH_SHORT).show()
+                if (loginViewModel.authentication(email = email, password = password)) {
+
+                    successNavigation()
+
 
                 } else {
                     Toast.makeText(context, "Log in failed", Toast.LENGTH_SHORT).show()
@@ -113,7 +127,8 @@ fun LoginPortrait(
 
         CustomHyperLink(
             fullText = "Don't have an account ",
-            linkText = "Sign up"
+            linkText = "Sign up",
+            signupNavigation = signupNavigation
         )
 
 

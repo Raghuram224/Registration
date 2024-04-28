@@ -29,20 +29,25 @@ import com.example.registration.ui.theme.DarkGreen
 import com.example.registration.view.utils.CustomEmail
 import com.example.registration.view.utils.CustomHyperLink
 import com.example.registration.view.utils.CustomPassword
+import com.example.registration.viewModels.LoginViewModel
 
 @Composable
 fun LoginLandScape(
+    modifier: Modifier = Modifier,
     email: String,
     password: String,
     passwordStringCallback: (password: String) -> Unit,
     emailStringCallBack: (email: String) -> Unit,
-    modifier: Modifier = Modifier
+    signupNavigation: () -> Unit,
+    successNavigation: () -> Unit,
+    loginViewModel: LoginViewModel
+
 ) {
 
     val context = LocalContext.current
 
     Row(
-       verticalAlignment = Alignment.CenterVertically,
+        verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center,
         modifier = Modifier
             .padding(horizontal = 16.dp)
@@ -61,10 +66,11 @@ fun LoginLandScape(
                 contentDescription = "Logo",
 
 
-            )
+                )
             CustomHyperLink(
                 fullText = "Don't have an account ",
-                linkText = "Sign up"
+                linkText = "Sign up",
+                signupNavigation = signupNavigation
             )
         }
         Column(
@@ -110,7 +116,10 @@ fun LoginLandScape(
                     .padding(vertical = 8.dp)
                     .fillMaxWidth(),
                 onClick = {
-                    if (checkEmailAndPassword(email = email, password = password)) {
+                    if (loginViewModel.authentication(email = email, password = password)) {
+
+                        successNavigation()
+
                         Toast.makeText(context, "Log in success", Toast.LENGTH_SHORT).show()
 
                     } else {
@@ -137,22 +146,8 @@ fun LoginLandScape(
         }
 
 
-
     }
 
 
 }
 
-@Preview(
-    showSystemUi = true,
-    device = "spec:width=411dp,height=891dp,dpi=420,isRound=false,chinSize=0dp,orientation=landscape"
-)
-@Composable
-private fun PreviewHome() {
-    LoginLandScape(
-        email = "",
-        password ="" ,
-        passwordStringCallback = {},
-        emailStringCallBack ={}
-    )
-}

@@ -4,13 +4,13 @@ import android.graphics.Bitmap
 import android.net.Uri
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
+import com.example.registration.data.localDB.RegistrationEntity
+import com.example.registration.modal.SignupRepo
 
-import com.example.registration.view.signupScreen.SignupDetails
+import com.example.registration.view.signupScreen.UserDetails
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 
@@ -25,16 +25,19 @@ enum class TextFieldType {
     PrimaryPhone,
     OtherEmails,
     OtherPhones,
+    Password,
 
 
 }
 
 
 @HiltViewModel
-class SignupViewModel @Inject constructor() : ViewModel() {
+class SignupViewModel @Inject constructor(
+   private val  signupRepo: SignupRepo
+) : ViewModel() {
 
     private val _signupData = MutableStateFlow(
-        SignupDetails(
+        UserDetails(
             dob = "",
             age = "",
             lastName = "",
@@ -44,6 +47,7 @@ class SignupViewModel @Inject constructor() : ViewModel() {
             primaryPhone = "",
             primaryEmail = "",
             otherPhones = "",
+            password= ""
 
         )
     )
@@ -61,7 +65,7 @@ class SignupViewModel @Inject constructor() : ViewModel() {
     val emailListColor = mutableStateListOf(false)
     val phoneListColor = mutableStateListOf(false)
 
-    lateinit var publicSignupDetails: SignupDetails
+    lateinit var userDetails: UserDetails
 
 
 
@@ -132,6 +136,12 @@ class SignupViewModel @Inject constructor() : ViewModel() {
                     it.copy(otherPhones = text)
                 }
             }
+
+            TextFieldType.Password -> {
+                _signupData.update {
+                    it.copy(password = text)
+                }
+            }
         }
     }
 
@@ -139,7 +149,6 @@ class SignupViewModel @Inject constructor() : ViewModel() {
     fun checkFieldsValue(
         primaryEmail: String,
         primaryPhone: String,
-
         firstName: String,
         lastName: String,
         password: String,
@@ -157,7 +166,7 @@ class SignupViewModel @Inject constructor() : ViewModel() {
         return  password == confirmPassword
     }
 
-    fun getSignupDetails():SignupDetails{
+    fun getSignupDetails():UserDetails{
         return _signupData.value
     }
 
@@ -171,6 +180,13 @@ class SignupViewModel @Inject constructor() : ViewModel() {
     fun updateSelectedImage(uri: Uri?){
         _selectedImage.value =uri
     }
+
+    fun insertData(){
+        signupRepo.clearData()
+        signupRepo.insetIntoDb(userDetails = userDetails)
+    }
+
+
 
 
 

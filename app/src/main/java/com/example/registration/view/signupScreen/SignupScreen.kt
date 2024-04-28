@@ -10,7 +10,9 @@ import android.graphics.Matrix
 import android.net.Uri
 import android.os.Build
 import android.util.Log
+import android.view.Gravity
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -56,7 +58,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -157,7 +158,7 @@ fun SignupScreen(
 
 
     // UI state
-    val signupDataTest = signupViewModel.signupData.collectAsState() //Test
+    val signupData = signupViewModel.signupData.collectAsState() //Test
     val capturedImage by signupViewModel.capturedImage.collectAsState()
 
 
@@ -191,9 +192,7 @@ fun SignupScreen(
         mutableStateOf(false)
     }
 
-    var password by remember {
-        mutableStateOf("")
-    }
+
     var confirmPassword by remember {
         mutableStateOf("")
     }
@@ -236,7 +235,7 @@ fun SignupScreen(
     val phoneList = signupViewModel.phoneList
 
     val coroutineScope = rememberCoroutineScope()
-    val keyboardController= LocalSoftwareKeyboardController.current
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     // bring intoView View Requester
     val namesBringIntoView = remember {
@@ -281,6 +280,11 @@ fun SignupScreen(
         FocusRequester()
     }
 
+
+
+    BackHandler {
+        navController.navigate("LoginScreen")
+    }
 
     Column(
         modifier = Modifier
@@ -354,7 +358,7 @@ fun SignupScreen(
                     modifier = Modifier
                         .bringIntoViewRequester(namesBringIntoView)
                         .focusRequester(focusRequester = fNameFocusRequester),
-                    text = signupDataTest.value.firstName,
+                    text = signupData.value.firstName,
                     onTextChanged = {
 
                         signupViewModel.updateSignupData(it, TextFieldType.FirstName)
@@ -369,7 +373,7 @@ fun SignupScreen(
                 CustomOutlinedInput(
                     modifier = Modifier
                         .focusRequester(focusRequester = lNameFocusRequester),
-                    text = signupDataTest.value.lastName,
+                    text = signupData.value.lastName,
                     onTextChanged = {
 
                         signupViewModel.updateSignupData(it, TextFieldType.LastName)
@@ -436,8 +440,7 @@ fun SignupScreen(
                     emailFocusRequester = emailFocusRequester,
 
 
-
-                )
+                    )
             }
 
 
@@ -495,7 +498,7 @@ fun SignupScreen(
                     phoneFocusRequester = phoneFocusRequester
 
 
-                    )
+                )
             }
 
 
@@ -507,11 +510,11 @@ fun SignupScreen(
             if (keyBoardState == Keyboard.Closed && isAgeFocused) {
                 focusManager.clearFocus()
 
-                if (signupDataTest.value.age != null && signupDataTest.value.age.isNotEmpty()) {
+                if (signupData.value.age != null && signupData.value.age.isNotEmpty()) {
                     signupViewModel.updateSignupData(
                         text = convertMillisToDate(
                             Date().time.minus(
-                                yearsToMillis(signupDataTest.value.age.toLong())
+                                yearsToMillis(signupData.value.age.toLong())
                             )
                         ),
                         TextFieldType.DOB,
@@ -550,7 +553,7 @@ fun SignupScreen(
                     modifier = Modifier
                         .weight(0.4f)
                         .focusRequester(focusRequester = ageFocusRequester),
-                    text = if (signupDataTest.value.age != null) signupDataTest.value.age else "0",
+                    text = if (signupData.value.age != null) signupData.value.age else "0",
                     onTextChanged = {
 
                         signupViewModel.updateSignupData(it, TextFieldType.Age)
@@ -562,11 +565,11 @@ fun SignupScreen(
                     },
                     regex = InputsRegex.AGE_REGEX,
                     updateFocusChangeValue = {
-                        if (signupDataTest.value.age != null && signupDataTest.value.age.isNotEmpty()) {
+                        if (signupData.value.age != null && signupData.value.age.isNotEmpty()) {
                             signupViewModel.updateSignupData(
                                 text = convertMillisToDate(
                                     Date().time.minus(
-                                        yearsToMillis(signupDataTest.value.age.toLong())
+                                        yearsToMillis(signupData.value.age.toLong())
                                     )
                                 ),
                                 TextFieldType.DOB,
@@ -593,7 +596,7 @@ fun SignupScreen(
                         .weight(0.4f),
                     text = "Pick your date of birth",
                     onClick = { isDatePickerSheetOpen = true },
-                    selectedDate = signupDataTest.value.dob,
+                    selectedDate = signupData.value.dob,
                 )
             }
 
@@ -620,7 +623,7 @@ fun SignupScreen(
             ) {
 
                 CustomOutlinedInput(
-                    text = signupDataTest.value.address,
+                    text = signupData.value.address,
                     onTextChanged = {
 
                         signupViewModel.updateSignupData(text = it, TextFieldType.Address)
@@ -657,10 +660,9 @@ fun SignupScreen(
 
                 CustomOutlinedPasswordInput(
                     modifier = Modifier
-                        .focusRequester(focusRequester = passwordFocusRequester)
-                        ,
-                    text = password,
-                    onTextChanged = { password = it },
+                        .focusRequester(focusRequester = passwordFocusRequester),
+                    text = signupData.value.password,
+                    onTextChanged = { signupViewModel.updateSignupData(text = it,TextFieldType.Password) },
                     label = "Password",
                     isError = passwordColor,
                     regex = InputsRegex.PASSWORD_REGEX
@@ -698,27 +700,29 @@ fun SignupScreen(
             onClick = {
 
 
-                signupViewModel.emailListColor[primaryEmailIndex] = emailList[primaryEmailIndex].isEmpty()
-                signupViewModel.phoneListColor[primaryPhoneIndex] = phoneList[primaryPhoneIndex].isEmpty()
+                signupViewModel.emailListColor[primaryEmailIndex] =
+                    emailList[primaryEmailIndex].isEmpty()
+                signupViewModel.phoneListColor[primaryPhoneIndex] =
+                    phoneList[primaryPhoneIndex].isEmpty()
 
-                fNameColor = signupDataTest.value.firstName.isEmpty()
-                lNameColor = signupDataTest.value.lastName.isEmpty()
-                passwordColor = password.isEmpty()
+                fNameColor = signupData.value.firstName.isEmpty()
+                lNameColor = signupData.value.lastName.isEmpty()
+                passwordColor = signupData.value.password.isEmpty()
                 confirmPasswordColor = confirmPassword.isEmpty()
 
                 if (
                     signupViewModel.checkFieldsValue(
                         primaryEmail = emailList[primaryEmailIndex],
                         primaryPhone = phoneList[primaryPhoneIndex],
-                        firstName = signupDataTest.value.firstName,
-                        lastName = signupDataTest.value.lastName,
-                        password = password,
+                        firstName = signupData.value.firstName,
+                        lastName = signupData.value.lastName,
+                        password = signupData.value.password,
                         confirmPassword = confirmPassword
                     )
 
                 ) {
                     if (signupViewModel.checkPassword(
-                            password = password,
+                            password = signupData.value.password,
                             confirmPassword = confirmPassword
                         )
                     ) {
@@ -748,9 +752,10 @@ fun SignupScreen(
                             TextFieldType.PrimaryPhone
                         )
 
-                        signupViewModel.publicSignupDetails = signupViewModel.getSignupDetails()
-
-                        navController.navigate("DataScreen")
+                        signupViewModel.userDetails = signupViewModel.getSignupDetails()
+                        signupViewModel.insertData()
+                        Toast.makeText(context,"Signup success",Toast.LENGTH_SHORT).show()
+                        navController.navigate("LoginScreen")
 
                     } else {
                         Toast.makeText(context, "check your password is same", Toast.LENGTH_SHORT)
@@ -759,45 +764,53 @@ fun SignupScreen(
 
 
                 } else {
-                    Log.i("passwordColor",passwordColor.toString())
+                    Log.i("passwordColor", passwordColor.toString())
+                    val toastText: String
+
                     if (fNameColor) {
                         coroutineScope.launch {
                             namesBringIntoView.bringIntoView()
                             fNameFocusRequester.requestFocus()
                         }
-                        Toast.makeText(context, "Check First name value", Toast.LENGTH_SHORT).show()
-                    }else if(lNameColor){
+                        toastText = "Check First name value"
+
+                    } else if (lNameColor) {
                         coroutineScope.launch {
                             lNameFocusRequester.requestFocus()
                         }
-                        Toast.makeText(context, "Check last name value", Toast.LENGTH_SHORT).show()
-                    }
-                    else if (signupViewModel.emailListColor[primaryEmailIndex]) {
+                        toastText = "Check last name value"
+                    } else if (signupViewModel.emailListColor[primaryEmailIndex]) {
                         coroutineScope.launch {
                             emailBringIntoView.bringIntoView()
                             emailFocusRequester.requestFocus()
                         }
-                        Toast.makeText(context, "Check email value", Toast.LENGTH_SHORT).show()
+                        toastText = "Check email value"
+
                     } else if (signupViewModel.phoneListColor[primaryPhoneIndex]) {
                         coroutineScope.launch {
                             phoneBringIntoView.bringIntoView()
                             phoneFocusRequester.requestFocus()
                         }
-                        Toast.makeText(context, "Check phone  value", Toast.LENGTH_SHORT).show()
+                        toastText = "Check phone  value"
                     } else if (passwordColor) {
                         coroutineScope.launch {
                             passwordBringIntoView.bringIntoView()
                             passwordFocusRequester.requestFocus()
                         }
-                        Toast.makeText(context, "Check password value", Toast.LENGTH_SHORT).show()
-                    }else{
+                        toastText = "Check password value"
+                    } else {
                         coroutineScope.launch {
                             confirmPasswordBringIntoView.bringIntoView()
                             confirmPasswordFocusRequester.requestFocus()
                         }
-                        Toast.makeText(context, "Check confirm password value", Toast.LENGTH_SHORT).show()
+                        toastText = "Check confirm password value"
                     }
-//                    Toast.makeText(context, "Check fields value", Toast.LENGTH_SHORT).show()
+
+                    val toast = Toast.makeText(context, toastText, Toast.LENGTH_SHORT)
+                    if (keyBoardState == Keyboard.Opened) {
+                        toast.setGravity(Gravity.CENTER, 0, 0)
+                    }
+                    toast.show()
                 }
 
             }

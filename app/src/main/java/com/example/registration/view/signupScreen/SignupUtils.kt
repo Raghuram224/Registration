@@ -786,7 +786,7 @@ fun milliToYears(milliseconds: Long): String {
 }
 
 
-data class SignupDetails(
+data class UserDetails(
     val firstName: String,
     val lastName: String,
     val age: String,
@@ -796,8 +796,10 @@ data class SignupDetails(
     val primaryPhone: String,
     val otherEmails: String,
     val otherPhones: String,
+    val password: String,
 
     )
+
 
 enum class Keyboard {
     Opened, Closed

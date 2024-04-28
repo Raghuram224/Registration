@@ -30,26 +30,24 @@ class MainActivity : ComponentActivity() {
             RegistrationTheme {
                 // A surface container using the 'background' color from the theme
                 val navController = rememberNavController()
-                val signupViewModel = hiltViewModel<SignupViewModel>()
+
 
                 val navGraph = remember(navController) {
 
-                    navController.createGraph(startDestination = "SignupScreen") {
+                    navController.createGraph(startDestination = "LoginScreen") {
                         composable(route = "LoginScreen") {
                             LoginScreen(navController = navController)
                         }
                         composable(route = "SignupScreen") {
 
-
+                            val signupViewModel = hiltViewModel<SignupViewModel>()
                             SignupScreen(
                                 signupViewModel = signupViewModel,
                                 navController = navController
                             )
                         }
                         composable(route = "DataScreen") {
-                            DataScreen(
-                                signupViewModel =signupViewModel
-                            )
+                            DataScreen()
                         }
 
 
