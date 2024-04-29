@@ -20,6 +20,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
@@ -42,7 +44,9 @@ import com.example.registration.ui.theme.White
 fun CustomEmail(
     modifier: Modifier = Modifier,
     email: String,
-    emailStringCallback: (email: String) -> Unit
+    emailStringCallback: (email: String) -> Unit,
+    isEmailError:Boolean,
+    focusRequester: FocusRequester
 ) {
 
     Column(
@@ -62,14 +66,16 @@ fun CustomEmail(
             )
 
         OutlinedTextField(
+            modifier = Modifier
+                .focusRequester(focusRequester = focusRequester)
+                .fillMaxWidth(),
             shape = RoundedCornerShape(30),
             value = email,
             onValueChange = {
                 emailStringCallback(it)
 
             },
-            modifier = Modifier
-                .fillMaxWidth(),
+
             textStyle = TextStyle.Default.copy(
                 fontSize = 20.sp,
                 color = Color.Black
@@ -85,6 +91,7 @@ fun CustomEmail(
                 focusedContainerColor = White,
                 unfocusedContainerColor = White
             ),
+            isError = isEmailError
 
 
 
@@ -98,7 +105,9 @@ fun CustomEmail(
 fun CustomPassword(
     modifier: Modifier = Modifier,
     password: String,
-    passwordStringCallback: (password: String) -> Unit
+    passwordStringCallback: (password: String) -> Unit,
+    isPasswordError:Boolean,
+    focusRequester: FocusRequester
 ) {
 
     var passwordVisible by rememberSaveable {
@@ -121,13 +130,14 @@ fun CustomPassword(
             )
 
         OutlinedTextField(
+            modifier = Modifier
+                .focusRequester(focusRequester =focusRequester)
+                .fillMaxWidth(),
             shape = RoundedCornerShape(30),
             value = password,
             onValueChange = {
                 passwordStringCallback(it)
             },
-            modifier = Modifier
-                .fillMaxWidth(),
             textStyle = TextStyle.Default.copy(
                 fontSize = 20.sp,
                 color = Color.Black
@@ -156,7 +166,8 @@ fun CustomPassword(
                 }
 
 
-            }
+            },
+            isError = isPasswordError
 
 
         )
@@ -200,19 +211,5 @@ fun CustomHyperLink(
     )
 
 
-}
-
-@Preview(showSystemUi = true)
-@Composable
-private fun PreviewCustom() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp)
-    ) {
-        CustomEmail(emailStringCallback = { it -> }, email = "")
-        CustomPassword(passwordStringCallback = { it -> }, password = "")
-//        CustomTextField()
-    }
 }
 

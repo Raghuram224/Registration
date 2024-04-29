@@ -1,10 +1,10 @@
 package com.example.registration
 
-import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.annotation.RequiresApi
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
@@ -15,15 +15,15 @@ import com.example.registration.ui.theme.RegistrationTheme
 import com.example.registration.view.DataScreen
 import com.example.registration.view.loginScreen.LoginScreen
 import com.example.registration.view.signupScreen.SignupScreen
+import com.example.registration.viewModels.LoginViewModel
 import com.example.registration.viewModels.SignupViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    @RequiresApi(Build.VERSION_CODES.O)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
 
 
         setContent {
@@ -36,7 +36,14 @@ class MainActivity : ComponentActivity() {
 
                     navController.createGraph(startDestination = "LoginScreen") {
                         composable(route = "LoginScreen") {
-                            LoginScreen(navController = navController)
+                            val loginViewModel = hiltViewModel<LoginViewModel>()
+
+
+                            LoginScreen(
+                                navController = navController,
+                                loginViewModel = loginViewModel,
+
+                                )
                         }
                         composable(route = "SignupScreen") {
 
@@ -47,7 +54,9 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                         composable(route = "DataScreen") {
-                            DataScreen()
+                            DataScreen(
+                                navController = navController
+                            )
                         }
 
 

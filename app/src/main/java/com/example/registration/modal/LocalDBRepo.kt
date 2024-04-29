@@ -8,9 +8,31 @@ import com.example.registration.data.localDB.RegistrationEntity
 import com.example.registration.view.signupScreen.UserDetails
 import javax.inject.Inject
 
-class SignupRepo @Inject constructor( mContext: Context) {
+class LocalDBRepo @Inject constructor(mContext: Context) {
+    private val registrationDao: RegistrationDao =
+        LocalDB.getIntance(context = mContext).registrationDao
 
-    private val registrationDao:RegistrationDao = LocalDB.getIntance(context = mContext).registrationDao
+    private  var userDetails:RegistrationEntity
+    init {
+        userDetails = getDBData()
+    }
+
+
+
+    private fun getDBData(): RegistrationEntity {
+        return registrationDao.getSignupDetails()
+    }
+
+
+    fun validateEmail(email: String): Boolean {
+
+        return if (userDetails!=null) email == userDetails.primaryEmail else false
+    }
+
+    fun validatePassword(password: String): Boolean {
+        val passwordHash = PasswordHash.generateHash(password = password)
+        return if (userDetails!=null) passwordHash == userDetails.password else false
+    }
 
     fun insetIntoDb(userDetails: UserDetails){
         registrationDao.insertSignupDetails(

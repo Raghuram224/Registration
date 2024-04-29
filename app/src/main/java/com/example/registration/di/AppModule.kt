@@ -1,8 +1,7 @@
 package com.example.registration.di
 
 import android.content.Context
-import com.example.registration.modal.LoginRepo
-import com.example.registration.modal.SignupRepo
+import com.example.registration.modal.LocalDBRepo
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -16,10 +15,8 @@ object AppModule {
 
     @Singleton
     @Provides
-    fun provideApplicationContextForSignup(@ApplicationContext context: Context) = SignupRepo(mContext = context)
+    fun provideApplicationContext(@ApplicationContext context: Context) = LocalDBRepo(mContext = context)
 
-    @Singleton
-    @Provides
-    fun provideApplicationContextForLogin(@ApplicationContext context: Context) = LoginRepo(mContext = context)
+
 
 }

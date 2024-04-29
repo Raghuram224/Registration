@@ -4,8 +4,8 @@ import android.graphics.Bitmap
 import android.net.Uri
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
-import com.example.registration.data.localDB.RegistrationEntity
-import com.example.registration.modal.SignupRepo
+import com.example.registration.constants.InputsRegex
+import com.example.registration.modal.LocalDBRepo
 
 import com.example.registration.view.signupScreen.UserDetails
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -33,7 +33,7 @@ enum class TextFieldType {
 
 @HiltViewModel
 class SignupViewModel @Inject constructor(
-   private val  signupRepo: SignupRepo
+   private val  localDBRepo: LocalDBRepo
 ) : ViewModel() {
 
     private val _signupData = MutableStateFlow(
@@ -155,10 +155,10 @@ class SignupViewModel @Inject constructor(
         confirmPassword: String
     ): Boolean {
 
-
+        val validateEmail = checkValidEmail()
         return primaryEmail.isNotEmpty() && primaryPhone.isNotEmpty() &&
                 firstName.isNotEmpty() && lastName.isNotEmpty()
-                && password.isNotEmpty() && confirmPassword.isNotEmpty()
+                && password.isNotEmpty() && confirmPassword.isNotEmpty() && validateEmail
 
     }
 
@@ -182,8 +182,21 @@ class SignupViewModel @Inject constructor(
     }
 
     fun insertData(){
-        signupRepo.clearData()
-        signupRepo.insetIntoDb(userDetails = userDetails)
+        localDBRepo.clearData()
+        localDBRepo.insetIntoDb(userDetails = userDetails)
+    }
+    fun checkValidEmail():Boolean{
+        var valid =false
+        emailList.forEachIndexed{ idx,item->
+            if (item.matches(regex = Regex(InputsRegex.EMAIL_VALIDATION_REGEX))) {
+                valid = true
+            } else {
+                emailListColor[idx] = true
+                return  false
+
+            }
+        }
+        return  valid
     }
 
 

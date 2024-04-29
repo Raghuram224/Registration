@@ -10,25 +10,33 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.registration.R
+import com.example.registration.constants.InputsRegex
 import com.example.registration.ui.theme.DarkGreen
 import com.example.registration.view.utils.CustomEmail
 import com.example.registration.view.utils.CustomHyperLink
 import com.example.registration.view.utils.CustomPassword
+import com.example.registration.viewModels.LoginInputFields
 import com.example.registration.viewModels.LoginViewModel
 
 @Composable
@@ -36,8 +44,6 @@ fun LoginLandScape(
     modifier: Modifier = Modifier,
     email: String,
     password: String,
-    passwordStringCallback: (password: String) -> Unit,
-    emailStringCallBack: (email: String) -> Unit,
     signupNavigation: () -> Unit,
     successNavigation: () -> Unit,
     loginViewModel: LoginViewModel
@@ -45,7 +51,19 @@ fun LoginLandScape(
 ) {
 
     val context = LocalContext.current
-
+    var isEmailError by remember {
+        mutableStateOf(false)
+    }
+    var isPasswordError by remember {
+        mutableStateOf(false)
+    }
+    //Focus requester
+    val emailFocusRequester = remember {
+        FocusRequester()
+    }
+    val passwordFocusRequester = remember {
+        FocusRequester()
+    }
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center,
@@ -56,12 +74,13 @@ fun LoginLandScape(
 
         Column(
             modifier = modifier
-                .fillMaxHeight()
-                .weight(0.3f),
+                .fillMaxHeight(),
             verticalArrangement = Arrangement.SpaceEvenly,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Image(
+                modifier = Modifier
+                    .wrapContentSize(),
                 painter = painterResource(id = R.drawable.shopping_bag_logo),
                 contentDescription = "Logo",
 
@@ -103,11 +122,27 @@ fun LoginLandScape(
                 )
             CustomEmail(
                 email = email,
-                emailStringCallback = emailStringCallBack
+                emailStringCallback = {
+                    if (it.matches(regex = Regex(InputsRegex.EMAIL_ALLOWED_REGEX))) {
+
+                        loginViewModel.updateLoginData(text = it, type = LoginInputFields.Email)
+                    }
+                },
+                isEmailError = isEmailError,
+                focusRequester = emailFocusRequester,
             )
             CustomPassword(
                 password = password,
-                passwordStringCallback = passwordStringCallback
+                passwordStringCallback = {
+                    if (it.matches(regex = Regex(InputsRegex.PASSWORD_REGEX))) {
+                        loginViewModel.updateLoginData(
+                            text = it,
+                            type = LoginInputFields.Password
+                        )
+                    }
+                },
+                isPasswordError = isPasswordError,
+                focusRequester = passwordFocusRequester
             )
 
             Button(
@@ -116,15 +151,40 @@ fun LoginLandScape(
                     .padding(vertical = 8.dp)
                     .fillMaxWidth(),
                 onClick = {
-                    if (loginViewModel.authentication(email = email, password = password)) {
+                    var toastText = "Invalid credentials"
+                    if (email.isNotEmpty() && password.isNotEmpty()) {
+                        if (loginViewModel.authenticateEmail(email = email)) {
 
-                        successNavigation()
+                            isEmailError = false
+                            if (loginViewModel.authenticatePassword(password = password)) {
+                                isPasswordError = false
+                                toastText = "Login success"
+                                successNavigation()
+                            } else {
+                                isPasswordError = true
+                                toastText = "Wrong password"
+                                passwordFocusRequester.requestFocus()
+                            }
 
-                        Toast.makeText(context, "Log in success", Toast.LENGTH_SHORT).show()
+                        } else {
+                            emailFocusRequester.requestFocus()
+                            isEmailError = true
+                            toastText = "Email or password wrong"
 
+                        }
+                    } else if (email.isEmpty()) {
+                        emailFocusRequester.requestFocus()
+                        isEmailError = true
+                        if (password.isEmpty()) {
+                            isPasswordError = true
+                        }
                     } else {
-                        Toast.makeText(context, "Log in failed", Toast.LENGTH_SHORT).show()
+                        passwordFocusRequester.requestFocus()
+                        isEmailError = true
+                        isPasswordError = true
                     }
+
+                    Toast.makeText(context, toastText, Toast.LENGTH_SHORT).show()
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = DarkGreen

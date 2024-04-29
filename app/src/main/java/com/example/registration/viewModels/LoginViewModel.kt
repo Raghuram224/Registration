@@ -1,7 +1,7 @@
 package com.example.registration.viewModels
 
 import androidx.lifecycle.ViewModel
-import com.example.registration.modal.LoginRepo
+import com.example.registration.modal.LocalDBRepo
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -14,7 +14,7 @@ enum class LoginInputFields{
 }
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val loginRepo: LoginRepo
+    private val localDBRepo: LocalDBRepo
 ) : ViewModel() {
 
     private val  _email = MutableStateFlow("")
@@ -23,8 +23,13 @@ class LoginViewModel @Inject constructor(
     val email = _email.asStateFlow()
     val passwords = _password.asStateFlow()
 
-    fun authentication(email: String, password: String): Boolean {
-        return loginRepo.validateCredentials(email = email, password = password)
+
+
+    fun authenticateEmail(email: String):Boolean{
+        return  localDBRepo.validateEmail(email = email)
+    }
+    fun  authenticatePassword(password:String):Boolean{
+        return localDBRepo.validatePassword(password = password)
     }
 
     fun updateLoginData(text:String,type:LoginInputFields){

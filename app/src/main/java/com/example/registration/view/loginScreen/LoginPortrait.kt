@@ -1,5 +1,6 @@
 package com.example.registration.view.loginScreen
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -11,10 +12,13 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -24,13 +28,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.registration.R
 import com.example.registration.constants.InputsRegex
+import com.example.registration.ui.theme.Blue
 import com.example.registration.ui.theme.DarkGreen
 import com.example.registration.view.utils.CustomEmail
 import com.example.registration.view.utils.CustomHyperLink
 import com.example.registration.view.utils.CustomPassword
 import com.example.registration.viewModels.LoginInputFields
 import com.example.registration.viewModels.LoginViewModel
-import kotlinx.coroutines.flow.collect
 
 @Composable
 fun LoginPortrait(
@@ -40,14 +44,24 @@ fun LoginPortrait(
     loginViewModel: LoginViewModel,
     email: String,
     password: String,
-    emailCallBack: (String) -> Unit,
-    passwordCallBack: (String) -> Unit,
 
 
     ) {
 
     val context = LocalContext.current
-
+    var isEmailError by remember {
+        mutableStateOf(false)
+    }
+    var isPasswordError by remember {
+        mutableStateOf(false)
+    }
+    //Focus requester
+    val emailFocusRequester = remember {
+        FocusRequester()
+    }
+    val passwordFocusRequester = remember {
+        FocusRequester()
+    }
 
 
     Column(
@@ -71,7 +85,7 @@ fun LoginPortrait(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 4.dp, vertical = 8.dp),
-            color = DarkGreen
+            color = Blue
 
         )
 
@@ -87,11 +101,30 @@ fun LoginPortrait(
             )
         CustomEmail(
             email = email,
-            emailStringCallback = emailCallBack
+            emailStringCallback = {
+
+                Log.i("inputs match : $it", it.matches(regex = Regex(InputsRegex.EMAIL_ALLOWED_REGEX)).toString())
+                if (it.matches(regex = Regex(InputsRegex.EMAIL_ALLOWED_REGEX))) {
+
+                    loginViewModel.updateLoginData(text = it, type = LoginInputFields.Email)
+                }
+//                Log.i("inputs",it)
+            },
+            isEmailError = isEmailError,
+            focusRequester = emailFocusRequester
         )
         CustomPassword(
             password = password,
-            passwordStringCallback = passwordCallBack
+            passwordStringCallback = {
+                if (it.matches(regex = Regex(InputsRegex.PASSWORD_REGEX))) {
+                    loginViewModel.updateLoginData(
+                        text = it,
+                        type = LoginInputFields.Password
+                    )
+                }
+            },
+            isPasswordError = isPasswordError,
+            focusRequester = passwordFocusRequester
         )
 
         Button(
@@ -100,17 +133,54 @@ fun LoginPortrait(
                 .padding(vertical = 16.dp)
                 .fillMaxWidth(),
             onClick = {
-                if (loginViewModel.authentication(email = email, password = password)) {
+                var toastText = "Invalid credentials"
+                if (email.matches(regex = Regex(InputsRegex.EMAIL_VALIDATION_REGEX))) {
+                    if (email.isNotEmpty() && password.isNotEmpty()) {
 
-                    successNavigation()
+                        if (loginViewModel.authenticateEmail(email = email)) {
 
+                            isEmailError = false
+                            if (loginViewModel.authenticatePassword(password = password)) {
+                                isPasswordError = false
+                                toastText = "Login success"
+                                successNavigation()
+                            } else {
+                                isPasswordError = true
+                                toastText = "Wrong password"
+                                passwordFocusRequester.requestFocus()
+                            }
+
+                        } else {
+                            emailFocusRequester.requestFocus()
+                            isEmailError = true
+                            isPasswordError =true
+                            toastText = "Email or password wrong"
+
+                        }
+
+                    } else if (email.isEmpty()) {
+                        emailFocusRequester.requestFocus()
+                        isEmailError = true
+                        if (password.isEmpty()) {
+                            isPasswordError = true
+                        }
+                    } else {
+                        passwordFocusRequester.requestFocus()
+                        isPasswordError = true
+                    }
 
                 } else {
-                    Toast.makeText(context, "Log in failed", Toast.LENGTH_SHORT).show()
+                    emailFocusRequester.requestFocus()
+                    isEmailError = true
+                    toastText = "check given email is valid"
                 }
+
+                Toast.makeText(context, toastText, Toast.LENGTH_SHORT).show()
+
+
             },
             colors = ButtonDefaults.buttonColors(
-                containerColor = DarkGreen
+                containerColor = Blue
             )
 
         ) {

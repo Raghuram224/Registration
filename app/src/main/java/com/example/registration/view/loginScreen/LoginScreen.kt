@@ -1,6 +1,7 @@
 package com.example.registration.view.loginScreen
 
 import android.content.res.Configuration
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -19,10 +20,10 @@ fun LoginScreen(
     modifier: Modifier = Modifier
         .background(Color.White),
     navController: NavController,
+    loginViewModel: LoginViewModel,
+
 ) {
     val configuration = LocalConfiguration.current
-
-    val loginViewModel = hiltViewModel<LoginViewModel>()
 
     val email by loginViewModel.email.collectAsState()
     val password by loginViewModel.passwords.collectAsState()
@@ -36,48 +37,24 @@ fun LoginScreen(
                 },
                 loginViewModel = loginViewModel,
                 successNavigation = {
+                    navController.popBackStack()
                     navController.navigate("DataScreen")
                 },
                 email = email,
                 password = password,
-                emailCallBack = {
-                    if (it.matches(regex = Regex(InputsRegex.EMAIL_REGEX))) {
 
-                        loginViewModel.updateLoginData(text = it, type = LoginInputFields.Email)
-                    }
-                },
-                passwordCallBack = {
-                    if (it.matches(regex = Regex(InputsRegex.PASSWORD_REGEX))) {
-                        loginViewModel.updateLoginData(
-                            text = it,
-                            type = LoginInputFields.Password
-                        )
-                    }
-                }
             )
 
         Configuration.ORIENTATION_LANDSCAPE -> {
             LoginLandScape(
                 email = email,
                 password = password,
-                emailStringCallBack = {
-                    if (it.matches(regex = Regex(InputsRegex.EMAIL_REGEX))) {
 
-                        loginViewModel.updateLoginData(text = it, type = LoginInputFields.Email)
-                    }
-                },
-                passwordStringCallback = {
-                    if (it.matches(regex = Regex(InputsRegex.PASSWORD_REGEX))) {
-                        loginViewModel.updateLoginData(
-                            text = it,
-                            type = LoginInputFields.Password
-                        )
-                    }
-                },
                 signupNavigation = {
                     navController.navigate("SignupScreen")
                 },
                 successNavigation = {
+                    navController.popBackStack()
                     navController.navigate("DataScreen")
                 },
                 loginViewModel = loginViewModel

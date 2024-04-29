@@ -8,15 +8,14 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Matrix
 import android.net.Uri
-import android.os.Build
 import android.util.Log
 import android.view.Gravity
+import android.view.View
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.RequiresApi
 import androidx.camera.core.ImageCapture.OnImageCapturedCallback
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
@@ -79,6 +78,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.navigation.NavController
 import com.example.registration.R
 import com.example.registration.constants.InputsRegex
@@ -93,7 +94,6 @@ import kotlinx.coroutines.launch
 import java.util.Date
 
 
-@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @SuppressLint("MutableCollectionMutableState")
 @Composable
@@ -283,7 +283,7 @@ fun SignupScreen(
 
 
     BackHandler {
-        navController.navigate("LoginScreen")
+        navController.navigateUp()
     }
 
     Column(
@@ -436,7 +436,7 @@ fun SignupScreen(
                         }
 
                     },
-                    regex = InputsRegex.EMAIL_REGEX,
+                    regex = InputsRegex.EMAIL_ALLOWED_REGEX,
                     emailFocusRequester = emailFocusRequester,
 
 
@@ -662,7 +662,12 @@ fun SignupScreen(
                     modifier = Modifier
                         .focusRequester(focusRequester = passwordFocusRequester),
                     text = signupData.value.password,
-                    onTextChanged = { signupViewModel.updateSignupData(text = it,TextFieldType.Password) },
+                    onTextChanged = {
+                        signupViewModel.updateSignupData(
+                            text = it,
+                            TextFieldType.Password
+                        )
+                    },
                     label = "Password",
                     isError = passwordColor,
                     regex = InputsRegex.PASSWORD_REGEX
@@ -699,7 +704,6 @@ fun SignupScreen(
             ),
             onClick = {
 
-
                 signupViewModel.emailListColor[primaryEmailIndex] =
                     emailList[primaryEmailIndex].isEmpty()
                 signupViewModel.phoneListColor[primaryPhoneIndex] =
@@ -709,6 +713,7 @@ fun SignupScreen(
                 lNameColor = signupData.value.lastName.isEmpty()
                 passwordColor = signupData.value.password.isEmpty()
                 confirmPasswordColor = confirmPassword.isEmpty()
+
 
                 if (
                     signupViewModel.checkFieldsValue(
@@ -754,11 +759,23 @@ fun SignupScreen(
 
                         signupViewModel.userDetails = signupViewModel.getSignupDetails()
                         signupViewModel.insertData()
-                        Toast.makeText(context,"Signup success",Toast.LENGTH_SHORT).show()
-                        navController.navigate("LoginScreen")
+                        Toast.makeText(context, "Signup success", Toast.LENGTH_SHORT).show()
+                        navController.popBackStack()
 
-                    } else {
-                        Toast.makeText(context, "check your password is same", Toast.LENGTH_SHORT)
+                    } else if (confirmPasswordColor){
+                        Toast.makeText(
+                            context,
+                            "check your password is same",
+                            Toast.LENGTH_SHORT
+                        )
+                            .show()
+                    }
+                    else{
+                        Toast.makeText(
+                            context,
+                            "check your credentials",
+                            Toast.LENGTH_SHORT
+                        )
                             .show()
                     }
 
@@ -767,7 +784,8 @@ fun SignupScreen(
                     Log.i("passwordColor", passwordColor.toString())
                     val toastText: String
 
-                    if (fNameColor) {
+
+                     if (fNameColor) {
                         coroutineScope.launch {
                             namesBringIntoView.bringIntoView()
                             fNameFocusRequester.requestFocus()
@@ -784,7 +802,7 @@ fun SignupScreen(
                             emailBringIntoView.bringIntoView()
                             emailFocusRequester.requestFocus()
                         }
-                        toastText = "Check email value"
+                        toastText = "Check given email is valid"
 
                     } else if (signupViewModel.phoneListColor[primaryPhoneIndex]) {
                         coroutineScope.launch {
@@ -811,6 +829,8 @@ fun SignupScreen(
                         toast.setGravity(Gravity.CENTER, 0, 0)
                     }
                     toast.show()
+
+
                 }
 
             }
@@ -1035,6 +1055,22 @@ private fun hasRequiredPermission(
     }
 }
 
+fun Toast.showAboveKeyboard(containerView: View) {
+
+    val insets = ViewCompat.getRootWindowInsets(containerView)
+    val imeVisible = insets?.isVisible(WindowInsetsCompat.Type.ime()) ?: false
+    val imeHeight = insets?.getInsets(WindowInsetsCompat.Type.ime())?.bottom
+    val fallbackYOffset =
+        containerView.resources.getDimensionPixelOffset(androidx.appcompat.R.dimen.abc_action_bar_default_height_material)
+    val noSoftKeyboardYOffset =
+        containerView.resources.getDimensionPixelOffset(androidx.appcompat.R.dimen.abc_action_button_min_width_material)
+    setGravity(
+        Gravity.CENTER_HORIZONTAL or Gravity.BOTTOM,
+        0,
+        if (imeVisible) imeHeight ?: fallbackYOffset else noSoftKeyboardYOffset
+    )
+    show()
+}
 
 fun yearsToMillis(years: Long): Long {
     val days = years * 365
@@ -1044,7 +1080,6 @@ fun yearsToMillis(years: Long): Long {
     val milliseconds = seconds * 1000
     return milliseconds
 }
-
 
 @Preview(
     showSystemUi = true
