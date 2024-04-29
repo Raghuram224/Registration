@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import com.example.registration.constants.InputsRegex
 import com.example.registration.modal.LocalDBRepo
+import com.example.registration.permissionHandler.PermissionHandler
 
 import com.example.registration.view.signupScreen.UserDetails
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -33,7 +34,8 @@ enum class TextFieldType {
 
 @HiltViewModel
 class SignupViewModel @Inject constructor(
-   private val  localDBRepo: LocalDBRepo
+   private val  localDBRepo: LocalDBRepo,
+    private val permissionHandler: PermissionHandler
 ) : ViewModel() {
 
     private val _signupData = MutableStateFlow(
@@ -174,7 +176,7 @@ class SignupViewModel @Inject constructor(
         _capturedImage.value =bitmap
     }
 
-    fun updateSelectedImagType(idx: Int){
+    fun updateSelectedImageType(idx: Int){
         _selectedImageType.value =idx
     }
     fun updateSelectedImage(uri: Uri?){
@@ -197,6 +199,10 @@ class SignupViewModel @Inject constructor(
             }
         }
         return  valid
+    }
+
+    fun checkRequiredPermission():Boolean{
+        return  permissionHandler.hasRequiredPermission()
     }
 
 

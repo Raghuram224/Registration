@@ -4,13 +4,11 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
-import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Matrix
 import android.net.Uri
 import android.util.Log
 import android.view.Gravity
-import android.view.View
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -78,8 +76,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.navigation.NavController
 import com.example.registration.R
 import com.example.registration.constants.InputsRegex
@@ -139,7 +135,7 @@ fun SignupScreen(
         contract = ActivityResultContracts.PickVisualMedia(),
         onResult = { uri: Uri? ->
             if (uri != null) {
-                signupViewModel.updateSelectedImagType(idx = 1)
+                signupViewModel.updateSelectedImageType(idx = 1)
                 signupViewModel.updateSelectedImage(uri = uri)
                 isProfileSelected = true
             }
@@ -166,10 +162,7 @@ fun SignupScreen(
 
     val keyBoardState by keyboardAsState()
 
-    //permission
-    val PERMISSIONS = arrayOf(
-        Manifest.permission.CAMERA
-    )
+
     //Fields color
     var fNameColor by remember {
         mutableStateOf(false)
@@ -281,7 +274,6 @@ fun SignupScreen(
     }
 
 
-
     BackHandler {
         navController.navigateUp()
     }
@@ -310,11 +302,7 @@ fun SignupScreen(
                     Manifest.permission.CAMERA
                 )
 
-                if (hasRequiredPermission(
-                        mContext = context,
-                        PERMISSIONS = PERMISSIONS
-                    )
-                ) {
+                if (signupViewModel.checkRequiredPermission()) {
                     isCameraSheetOpen = true
 
                 }
@@ -329,7 +317,7 @@ fun SignupScreen(
             },
             removeProfile = {
                 isProfileSelected = false
-                signupViewModel.updateSelectedImagType(idx = 0)
+                signupViewModel.updateSelectedImageType(idx = 0)
 
             }
 
@@ -985,7 +973,7 @@ fun SignupScreen(
                             isPhotoTaken = false
                             isProfileSelected = true
                             isCameraSheetOpen = false
-                            signupViewModel.updateSelectedImagType(idx = 2)
+                            signupViewModel.updateSelectedImageType(idx = 2)
 
                         }) {
                             Image(
@@ -1042,35 +1030,8 @@ private fun takePhoto(
     )
 }
 
-private fun hasRequiredPermission(
-    mContext: Context,
-    PERMISSIONS: Array<String>
-): Boolean {
 
-    return PERMISSIONS.all {
-        ContextCompat.checkSelfPermission(
-            mContext,
-            it
-        ) == PackageManager.PERMISSION_GRANTED
-    }
-}
 
-fun Toast.showAboveKeyboard(containerView: View) {
-
-    val insets = ViewCompat.getRootWindowInsets(containerView)
-    val imeVisible = insets?.isVisible(WindowInsetsCompat.Type.ime()) ?: false
-    val imeHeight = insets?.getInsets(WindowInsetsCompat.Type.ime())?.bottom
-    val fallbackYOffset =
-        containerView.resources.getDimensionPixelOffset(androidx.appcompat.R.dimen.abc_action_bar_default_height_material)
-    val noSoftKeyboardYOffset =
-        containerView.resources.getDimensionPixelOffset(androidx.appcompat.R.dimen.abc_action_button_min_width_material)
-    setGravity(
-        Gravity.CENTER_HORIZONTAL or Gravity.BOTTOM,
-        0,
-        if (imeVisible) imeHeight ?: fallbackYOffset else noSoftKeyboardYOffset
-    )
-    show()
-}
 
 fun yearsToMillis(years: Long): Long {
     val days = years * 365

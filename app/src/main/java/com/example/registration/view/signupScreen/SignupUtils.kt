@@ -475,6 +475,7 @@ fun CustomOutlinedInput(
     visualTransformation: VisualTransformation = VisualTransformation.None,
     regex: String,
     updateFocusChangeValue: () -> Unit = {},
+    readOnly:Boolean =false
 
 
     ) {
@@ -509,6 +510,7 @@ fun CustomOutlinedInput(
         minLines = minLines,
         maxLines = maxLines,
         isError = isError,
+        readOnly = readOnly,
         visualTransformation = visualTransformation,
         colors = TextFieldDefaults.textFieldColors(
             textColor = Blue,

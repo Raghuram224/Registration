@@ -38,7 +38,7 @@ fun LoginScreen(
                 loginViewModel = loginViewModel,
                 successNavigation = {
                     navController.popBackStack()
-                    navController.navigate("DataScreen")
+                    navController.navigate("ProfileScreen")
                 },
                 email = email,
                 password = password,
