@@ -4,9 +4,7 @@ import android.annotation.SuppressLint
 import android.graphics.Bitmap
 import android.graphics.Rect
 import android.net.Uri
-import android.os.Build
 import android.view.ViewTreeObserver
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -475,7 +473,8 @@ fun CustomOutlinedInput(
     visualTransformation: VisualTransformation = VisualTransformation.None,
     regex: String,
     updateFocusChangeValue: () -> Unit = {},
-    readOnly:Boolean =false
+    readOnly:Boolean =false,
+    textColor: Color = Blue
 
 
     ) {
@@ -513,7 +512,7 @@ fun CustomOutlinedInput(
         readOnly = readOnly,
         visualTransformation = visualTransformation,
         colors = TextFieldDefaults.textFieldColors(
-            textColor = Blue,
+            textColor = textColor,
             disabledTextColor = Color.Transparent,
             backgroundColor = Color.Transparent,
             focusedIndicatorColor = Blue,

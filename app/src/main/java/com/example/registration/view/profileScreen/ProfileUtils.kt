@@ -149,7 +149,7 @@ fun TextHeading(
                 vertical = MaterialTheme.dimens.signupDimension.itemVerticalPadding08,
                 horizontal = MaterialTheme.dimens.signupDimension.itemHorizontalPadding04
             ),
-        text = "Primary $itemName",
+        text = itemName,
         style = TextStyle(
             fontSize = MaterialTheme.dimens.signupDimension.headingFont20,
             fontWeight = FontWeight.Medium,
