@@ -210,15 +210,8 @@ fun SignupScreen(
                 isCameraSheetOpen = true
 
             } else {
-//                if (!hasRequiredPermission(mContext = context, PERMISSIONS = PERMISSIONS)) {
-//                    ActivityCompat.requestPermissions(
-//                        activity,
-//                        PERMISSIONS,
-//                        0
-//                    )
-//                } else {
                 Toast.makeText(context, "camera permission denied", Toast.LENGTH_SHORT).show()
-//                }
+
             }
         }
 
@@ -228,7 +221,6 @@ fun SignupScreen(
     val phoneList = signupViewModel.phoneList
 
     val coroutineScope = rememberCoroutineScope()
-    val keyboardController = LocalSoftwareKeyboardController.current
 
     // bring intoView View Requester
     val namesBringIntoView = remember {
@@ -278,6 +270,7 @@ fun SignupScreen(
         navController.navigateUp()
     }
 
+
     Column(
         modifier = Modifier
             .background(LightGray)
@@ -323,25 +316,9 @@ fun SignupScreen(
 
         )
 
-
-        Card(
-            modifier = Modifier
-                .padding(
-                    vertical = MaterialTheme.dimens.signupDimension.padding08,
-                    horizontal = MaterialTheme.dimens.signupDimension.padding04
-                ),
-            colors = CardDefaults.cardColors(
-                containerColor = White
-            )
-        ) {
-            Column(
-                modifier = Modifier
-                    .padding(
-                        horizontal = MaterialTheme.dimens.signupDimension.padding08,
-                        vertical = MaterialTheme.dimens.signupDimension.padding08
-                    )
-            ) {
-
+        CardCreator(
+            modifier = Modifier,
+            anyComposable = @Composable {
                 CustomOutlinedInput(
                     modifier = Modifier
                         .bringIntoViewRequester(namesBringIntoView)
@@ -372,26 +349,12 @@ fun SignupScreen(
 
                 )
             }
-        }
-        Card(
-            modifier = Modifier
-                .padding(
-                    vertical = MaterialTheme.dimens.signupDimension.padding08,
-                    horizontal = MaterialTheme.dimens.signupDimension.padding04
-                ),
-            colors = CardDefaults.cardColors(
-                containerColor = White
-            )
-        ) {
-            Column(
-                modifier = Modifier
-                    .padding(
-                        horizontal = MaterialTheme.dimens.signupDimension.padding08,
-                        vertical = MaterialTheme.dimens.signupDimension.padding08
-                    )
-            ) {
+        )
 
 
+        CardCreator(
+            modifier = Modifier,
+            anyComposable = @Composable {
                 SignupEmail(
                     modifier = Modifier
                         .bringIntoViewRequester(emailBringIntoView),
@@ -430,28 +393,11 @@ fun SignupScreen(
 
                     )
             }
+        )
 
-
-        }
-
-        Card(
-            modifier = Modifier
-                .padding(
-                    vertical = MaterialTheme.dimens.signupDimension.padding08,
-                    horizontal = MaterialTheme.dimens.signupDimension.padding04
-                ),
-            colors = CardDefaults.cardColors(
-                containerColor = White
-            )
-        ) {
-            Column(
-                modifier = Modifier
-                    .padding(
-                        horizontal = MaterialTheme.dimens.signupDimension.padding08,
-                        vertical = MaterialTheme.dimens.signupDimension.padding08
-                    )
-            ) {
-
+        CardCreator(
+            modifier = Modifier,
+            anyComposable = @Composable {
                 SignupPhone(
                     modifier = Modifier
                         .bringIntoViewRequester(phoneBringIntoView)
@@ -488,9 +434,9 @@ fun SignupScreen(
 
                 )
             }
+        )
 
 
-        }
 
 
 
@@ -592,24 +538,9 @@ fun SignupScreen(
         }
 
 
-        Card(
-            modifier = Modifier
-                .padding(
-                    vertical = MaterialTheme.dimens.signupDimension.padding08,
-                    horizontal = MaterialTheme.dimens.signupDimension.padding04
-                ),
-            colors = CardDefaults.cardColors(
-                containerColor = White
-            )
-        ) {
-            Column(
-                modifier = Modifier
-                    .padding(
-                        horizontal = MaterialTheme.dimens.signupDimension.padding08,
-                        vertical = MaterialTheme.dimens.signupDimension.padding08
-                    )
-            ) {
-
+        CardCreator(
+            modifier = Modifier,
+            anyComposable = @Composable {
                 CustomOutlinedInput(
                     text = signupData.value.address,
                     onTextChanged = {
@@ -623,29 +554,11 @@ fun SignupScreen(
                     regex = InputsRegex.ALLOW_ANY_REGEX
                 )
             }
+        )
 
-        }
-
-
-        Card(
-            modifier = Modifier
-                .padding(
-                    vertical = MaterialTheme.dimens.signupDimension.padding08,
-                    horizontal = MaterialTheme.dimens.signupDimension.padding04
-                ),
-            colors = CardDefaults.cardColors(
-                containerColor = White
-            )
-        ) {
-            Column(
-                modifier = Modifier
-                    .padding(
-                        horizontal = MaterialTheme.dimens.signupDimension.padding08,
-                        vertical = MaterialTheme.dimens.signupDimension.padding08
-                    )
-            ) {
-
-
+        CardCreator(
+            modifier = Modifier,
+            anyComposable = @Composable {
                 CustomOutlinedPasswordInput(
                     modifier = Modifier
                         .focusRequester(focusRequester = passwordFocusRequester),
@@ -675,9 +588,7 @@ fun SignupScreen(
 
                 )
             }
-
-
-        }
+        )
 
 
         Button(
@@ -750,15 +661,14 @@ fun SignupScreen(
                         Toast.makeText(context, "Signup success", Toast.LENGTH_SHORT).show()
                         navController.popBackStack()
 
-                    } else if (confirmPasswordColor){
+                    } else if (confirmPasswordColor) {
                         Toast.makeText(
                             context,
                             "check your password is same",
                             Toast.LENGTH_SHORT
                         )
                             .show()
-                    }
-                    else{
+                    } else {
                         Toast.makeText(
                             context,
                             "check your credentials",
@@ -773,7 +683,7 @@ fun SignupScreen(
                     val toastText: String
 
 
-                     if (fNameColor) {
+                    if (fNameColor) {
                         coroutineScope.launch {
                             namesBringIntoView.bringIntoView()
                             fNameFocusRequester.requestFocus()
@@ -1029,8 +939,6 @@ private fun takePhoto(
         }
     )
 }
-
-
 
 
 fun yearsToMillis(years: Long): Long {

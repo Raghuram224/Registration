@@ -33,7 +33,7 @@ class MainActivity : ComponentActivity() {
 
                 val navGraph = remember(navController) {
 
-                    navController.createGraph(startDestination = "ProfileScreen") {
+                    navController.createGraph(startDestination = "SignupScreen") {
                         composable(route = "LoginScreen") {
                             val loginViewModel = hiltViewModel<LoginViewModel>()
 

@@ -11,6 +11,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -28,6 +29,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Camera
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Photo
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.DropdownMenuItem
@@ -473,11 +476,11 @@ fun CustomOutlinedInput(
     visualTransformation: VisualTransformation = VisualTransformation.None,
     regex: String,
     updateFocusChangeValue: () -> Unit = {},
-    readOnly:Boolean =false,
+    readOnly: Boolean = false,
     textColor: Color = Blue
 
 
-    ) {
+) {
 
     TextField(
         modifier = modifier
@@ -768,6 +771,33 @@ fun CustomDatePicker(
 
 }
 
+@Composable
+fun CardCreator(
+    modifier: Modifier,
+    anyComposable: @Composable () -> Unit ,
+) {
+    Card(
+        modifier = modifier
+            .padding(
+                vertical = MaterialTheme.dimens.signupDimension.padding08,
+                horizontal = MaterialTheme.dimens.signupDimension.padding04
+            ),
+        colors = CardDefaults.cardColors(
+            containerColor = White
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(
+                    horizontal = MaterialTheme.dimens.signupDimension.padding08,
+                    vertical = MaterialTheme.dimens.signupDimension.padding08
+                )
+        ) {
+            anyComposable()
+        }
+    }
+}
+
 @SuppressLint("SimpleDateFormat")
 fun convertMillisToDate(mill: Long?): String {
     val format = SimpleDateFormat("dd/MM/yyyy")
@@ -828,5 +858,7 @@ fun keyboardAsState(): State<Keyboard> {
 
     return keyboardState
 }
+
+
 
 
