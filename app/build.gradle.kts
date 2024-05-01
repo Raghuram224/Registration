@@ -5,6 +5,7 @@ plugins {
     //dagger
     kotlin("kapt")
     id("com.google.dagger.hilt.android")
+
 }
 
 android {
@@ -128,7 +129,13 @@ dependencies {
     annotationProcessor("androidx.room:room-compiler:$roomVersion")
     kapt("androidx.room:room-compiler:$roomVersion")
 
-
+    //serialization
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
+    implementation( "com.google.code.gson:gson:2.10.1")
 }
+
+
+
+
 
 

@@ -1,10 +1,12 @@
 package com.example.registration.viewModels
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.registration.modal.LocalDBRepo
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 
@@ -33,6 +35,8 @@ class LoginViewModel @Inject constructor(
     }
 
     fun updateLoginData(text:String,type:LoginInputFields){
+
+//        println(localDBRepo.userDetails)
         when(type){
             LoginInputFields.Email -> {
                 _email.value = text
@@ -42,5 +46,14 @@ class LoginViewModel @Inject constructor(
             }
         }
     }
+    fun clearData(){
+        viewModelScope.launch {
+            localDBRepo.clearData()
+            localDBRepo.updateDBData()
+        }
+
+    }
+
+
 
 }

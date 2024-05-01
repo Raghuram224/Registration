@@ -4,8 +4,10 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
 
-@Database(entities = [RegistrationEntity::class], version = 2)
+@Database(entities = [RegistrationEntity::class], version = 6)
+@TypeConverters(Converter::class)
 abstract class LocalDB:RoomDatabase() {
     abstract val registrationDao:RegistrationDao
 
@@ -13,7 +15,7 @@ abstract class LocalDB:RoomDatabase() {
         @Volatile
         private var INSTANCE: LocalDB?=null
 
-        fun getIntance(context: Context): LocalDB {
+        fun getInstance(context: Context): LocalDB {
             var tempInstance = INSTANCE
             if (tempInstance==null){
                 tempInstance= Room.databaseBuilder(

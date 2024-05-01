@@ -17,14 +17,27 @@ data class SignupDimensions(
     val itemVerticalPadding08: Dp = 8.dp,
     val padding04:Dp=4.dp,
     val padding08:Dp=8.dp,
-    val padding16:Dp=8.dp,
+    val padding16:Dp=16.dp,
+    val padding20:Dp =20.dp,
     val profileSize: Dp = 100.dp,
     val normalFont16: TextUnit = 16.sp,
     val headingFont20: TextUnit = 20.sp
 )
 
+data class ContactDimension(
+    val padding02:Dp=4.dp,
+    val padding04:Dp=4.dp,
+    val padding08:Dp=8.dp,
+    val padding10:Dp=8.dp,
+    val padding16:Dp=16.dp,
+    val padding20:Dp =20.dp,
+    val profileSize: Dp = 100.dp,
+    val normalFont16: TextUnit = 16.sp,
+    val headingFont20: TextUnit = 20.sp
+)
 data class Dimensions(
-    val signupDimension : SignupDimensions = SignupDimensions()
+    val signupDimension : SignupDimensions = SignupDimensions(),
+    val contactDimension:ContactDimension = ContactDimension()
 )
 
 val LocalDimension = compositionLocalOf { Dimensions() }
@@ -33,6 +46,7 @@ val MaterialTheme.dimens : Dimensions
         @Composable
         @ReadOnlyComposable
         get() = LocalDimension.current
+
 
 
 //val MaterialTheme.dimens:ComposeD

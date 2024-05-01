@@ -10,7 +10,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.createGraph
 import com.example.registration.ui.theme.RegistrationTheme
-import com.example.registration.view.profileScreen.ProfileScreen
+import com.example.registration.view.contactScreen.ContactScreen
 import com.example.registration.view.loginScreen.LoginScreen
 import com.example.registration.view.signupScreen.SignupScreen
 import com.example.registration.viewModels.LoginViewModel
@@ -33,7 +33,7 @@ class MainActivity : ComponentActivity() {
 
                 val navGraph = remember(navController) {
 
-                    navController.createGraph(startDestination = "SignupScreen") {
+                    navController.createGraph(startDestination = "ProfileScreen") {
                         composable(route = "LoginScreen") {
                             val loginViewModel = hiltViewModel<LoginViewModel>()
 
@@ -54,11 +54,10 @@ class MainActivity : ComponentActivity() {
                         }
                         composable(route = "ProfileScreen") {
                             val profileViewModel = hiltViewModel<ProfileViewModel>()
-//                            ProfileScreen(
-//                                navController = navController,
-//                                profileViewModel =profileViewModel
-//                            )
-                            ProfileScreen()
+                            ContactScreen(
+                                navController = navController,
+                                profileViewModel = profileViewModel
+                            )
                         }
 
 

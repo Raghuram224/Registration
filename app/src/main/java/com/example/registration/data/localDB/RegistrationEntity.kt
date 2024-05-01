@@ -1,42 +1,49 @@
 package com.example.registration.data.localDB
 
+import android.graphics.Bitmap
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
 @Entity(tableName = "registration_table")
-data class  RegistrationEntity(
+data class RegistrationEntity(
     @PrimaryKey(autoGenerate = true)
-    val sid :Int=0,
+    val sid: Int = 0,
 
-    @ColumnInfo(name ="firstName" )
+    @ColumnInfo(name = "firstName")
     val firstName: String,
 
-    @ColumnInfo(name ="lastName" )
+    @ColumnInfo(name = "lastName")
     val lastName: String,
 
-    @ColumnInfo(name ="age" )
+    @ColumnInfo(name = "age")
     val age: String,
 
-    @ColumnInfo(name ="address" )
+    @ColumnInfo(name = "address")
     val address: String,
 
-    @ColumnInfo(name ="dob" )
+    @ColumnInfo(name = "dob")
     val dob: String,
 
-    @ColumnInfo(name ="primaryEmail" )
+    @ColumnInfo(name = "primaryEmail")
     val primaryEmail: String,
 
-    @ColumnInfo(name ="primaryPhone" )
+    @ColumnInfo(name = "primaryPhone")
     val primaryPhone: String,
 
-    @ColumnInfo(name ="otherEmails" )
-    val otherEmails: String,
+    @ColumnInfo(name = "website")
+    val website: String,
 
-    @ColumnInfo(name ="otherPhones" )
-    val otherPhones: String,
+    @ColumnInfo(name = "otherPhones")
+    val otherPhones: String?,
+
+    @ColumnInfo(name = "otherEmails")
+    val otherEmails: String?,
 
     @ColumnInfo(name = "password")
-    val password :String
+    val password: String,
 
-    )
+    @ColumnInfo(name = "profileImage")
+    val profileImage:Bitmap?
+
+)

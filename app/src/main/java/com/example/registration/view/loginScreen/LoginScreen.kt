@@ -33,6 +33,9 @@ fun LoginScreen(
         Configuration.ORIENTATION_PORTRAIT ->
             LoginPortrait(
                 signupNavigation = {
+
+                    loginViewModel.clearData()
+
                     navController.navigate("SignupScreen")
                 },
                 loginViewModel = loginViewModel,

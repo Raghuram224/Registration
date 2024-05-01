@@ -7,6 +7,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Matrix
 import android.net.Uri
+import android.os.Build
 import android.util.Log
 import android.view.Gravity
 import android.widget.Toast
@@ -23,12 +24,10 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -44,8 +43,6 @@ import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Camera
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalBottomSheet
@@ -69,7 +66,6 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
@@ -81,9 +77,9 @@ import com.example.registration.R
 import com.example.registration.constants.InputsRegex
 import com.example.registration.ui.theme.Blue
 import com.example.registration.ui.theme.LightGray
-import com.example.registration.ui.theme.White
 import com.example.registration.ui.theme.dimens
 import com.example.registration.view.utils.CameraPreview
+import com.example.registration.viewModels.OtherEmailOrPhoneFields
 import com.example.registration.viewModels.SignupViewModel
 import com.example.registration.viewModels.TextFieldType
 import kotlinx.coroutines.launch
@@ -126,7 +122,6 @@ fun SignupScreen(
 
     // camera essentials
 
-    val selectedImageType by signupViewModel.selectedImageType.collectAsState()
 
     var isProfileSelected by remember {
         mutableStateOf(false)
@@ -135,8 +130,24 @@ fun SignupScreen(
         contract = ActivityResultContracts.PickVisualMedia(),
         onResult = { uri: Uri? ->
             if (uri != null) {
-                signupViewModel.updateSelectedImageType(idx = 1)
-                signupViewModel.updateSelectedImage(uri = uri)
+                signupViewModel.updateProfileImage(bitmap = null)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    signupViewModel.updateProfileImage(
+                        bitmap = convertUriToBitmapAboveAndroidP(
+                            uri = uri,
+                            activity = activity
+                        )
+                    )
+
+                } else {
+                    signupViewModel.updateProfileImage(
+                        bitmap = convertUriToBitmapBelowAndroidP(
+                            uri = uri,
+                            activity = activity
+                        )
+                    )
+                }
+
                 isProfileSelected = true
             }
         }
@@ -150,17 +161,18 @@ fun SignupScreen(
 
         }
     }
-    val selectedImage by signupViewModel.selectedImage.collectAsState()
 
 
     // UI state
     val signupData = signupViewModel.signupData.collectAsState() //Test
-    val capturedImage by signupViewModel.capturedImage.collectAsState()
-
+//    val capturedImage by signupViewModel.capturedImage.collectAsState()
+    val profileImage by signupViewModel.profileImage.collectAsState()
 
     val focusManager = LocalFocusManager.current
 
     val keyBoardState by keyboardAsState()
+
+    val isNavigatedFromContactScreen by signupViewModel.isNavigatedFromContactScreen.collectAsState()
 
 
     //Fields color
@@ -264,10 +276,23 @@ fun SignupScreen(
     val confirmPasswordFocusRequester = remember {
         FocusRequester()
     }
+    var tempImageHolder by rememberSaveable {
+        mutableStateOf<Bitmap?>(null)
+    }
 
 
     BackHandler {
+
         navController.navigateUp()
+
+    }
+
+    if (isNavigatedFromContactScreen) {
+        LaunchedEffect(Unit) {
+
+            signupViewModel.updateEmailAndPhoneList()
+            confirmPassword = signupViewModel.signupData.value.password
+        }
     }
 
 
@@ -285,9 +310,9 @@ fun SignupScreen(
                 isProfileSheetOpen = true
 
             },
-            selectedImageUri = selectedImage,
-            selectedImageType = selectedImageType,
-            selectedCameraImage = capturedImage,
+            imageBitmap = profileImage,
+//            selectedImageType = selectedImageType,
+//            selectedCameraImage = capturedImage,
             isProfileSelected = isProfileSelected,
             openCamera = {
 
@@ -310,13 +335,13 @@ fun SignupScreen(
             },
             removeProfile = {
                 isProfileSelected = false
-                signupViewModel.updateSelectedImageType(idx = 0)
+                signupViewModel.updateProfileImage(bitmap = null)
 
             }
 
         )
 
-        CardCreator(
+        CustomColumnCardCreator(
             modifier = Modifier,
             anyComposable = @Composable {
                 CustomOutlinedInput(
@@ -352,7 +377,7 @@ fun SignupScreen(
         )
 
 
-        CardCreator(
+        CustomColumnCardCreator(
             modifier = Modifier,
             anyComposable = @Composable {
                 SignupEmail(
@@ -395,7 +420,7 @@ fun SignupScreen(
             }
         )
 
-        CardCreator(
+        CustomColumnCardCreator(
             modifier = Modifier,
             anyComposable = @Composable {
                 SignupPhone(
@@ -437,9 +462,6 @@ fun SignupScreen(
         )
 
 
-
-
-
         LaunchedEffect(key1 = keyBoardState) {
             if (keyBoardState == Keyboard.Closed && isAgeFocused) {
                 focusManager.clearFocus()
@@ -460,29 +482,9 @@ fun SignupScreen(
             }
         }
 
-        Card(
-            modifier = Modifier
-                .padding(
-                    vertical = MaterialTheme.dimens.signupDimension.padding08,
-                    horizontal = MaterialTheme.dimens.signupDimension.padding04
-                ),
-            colors = CardDefaults.cardColors(
-                containerColor = White
-            )
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(IntrinsicSize.Min)
-                    .padding(
-                        horizontal = MaterialTheme.dimens.signupDimension.padding08,
-                        vertical = MaterialTheme.dimens.signupDimension.padding08
-                    ),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
-            ) {
-
-
+        CustomRowCardCreator(
+            modifier = Modifier,
+            anyComposable = {
                 CustomOutlinedInput(
                     modifier = Modifier
                         .weight(0.4f)
@@ -514,6 +516,7 @@ fun SignupScreen(
                     }
 
                 )
+
                 Divider(
                     color = Color.Black.copy(alpha = 0.3f),
                     modifier = Modifier
@@ -533,12 +536,10 @@ fun SignupScreen(
                     selectedDate = signupData.value.dob,
                 )
             }
+        )
 
 
-        }
-
-
-        CardCreator(
+        CustomColumnCardCreator(
             modifier = Modifier,
             anyComposable = @Composable {
                 CustomOutlinedInput(
@@ -555,40 +556,56 @@ fun SignupScreen(
                 )
             }
         )
-
-        CardCreator(
+        CustomColumnCardCreator(
             modifier = Modifier,
-            anyComposable = @Composable {
-                CustomOutlinedPasswordInput(
-                    modifier = Modifier
-                        .focusRequester(focusRequester = passwordFocusRequester),
-                    text = signupData.value.password,
+            anyComposable = {
+                CustomOutlinedInput(
+                    text = signupData.value.website,
                     onTextChanged = {
-                        signupViewModel.updateSignupData(
-                            text = it,
-                            TextFieldType.Password
-                        )
+                        signupViewModel.updateSignupData(text = it, type = TextFieldType.Website)
                     },
-                    label = "Password",
-                    isError = passwordColor,
-                    regex = InputsRegex.PASSWORD_REGEX
-
-
-                )
-
-                CustomOutlinedPasswordInput(
-                    modifier = Modifier
-                        .focusRequester(focusRequester = confirmPasswordFocusRequester),
-                    text = confirmPassword,
-                    onTextChanged = { confirmPassword = it },
-                    label = "confirm password",
-                    isError = confirmPasswordColor,
-                    regex = InputsRegex.PASSWORD_REGEX
-
-
+                    label = "Website",
+                    regex = InputsRegex.WEBSITE_REGEX_ALLOWED_PARAM
                 )
             }
         )
+
+        if (!isNavigatedFromContactScreen) {
+            CustomColumnCardCreator(
+                modifier = Modifier,
+                anyComposable = @Composable {
+                    CustomOutlinedPasswordInput(
+                        modifier = Modifier
+                            .focusRequester(focusRequester = passwordFocusRequester),
+                        text = signupData.value.password,
+                        onTextChanged = {
+                            signupViewModel.updateSignupData(
+                                text = it,
+                                TextFieldType.Password
+                            )
+                        },
+                        label = "Password",
+                        isError = passwordColor,
+                        regex = InputsRegex.PASSWORD_REGEX
+
+
+                    )
+
+                    CustomOutlinedPasswordInput(
+                        modifier = Modifier
+                            .focusRequester(focusRequester = confirmPasswordFocusRequester),
+                        text = confirmPassword,
+                        onTextChanged = { confirmPassword = it },
+                        label = "confirm password",
+                        isError = confirmPasswordColor,
+                        regex = InputsRegex.PASSWORD_REGEX
+
+
+                    )
+                }
+            )
+        }
+
 
 
         Button(
@@ -639,14 +656,15 @@ fun SignupScreen(
                             idx = primaryPhoneIndex
                         )
 
-                        signupViewModel.updateSignupData(
+                        signupViewModel.updateOtherEmailOrPhone(
                             text = otherEmails,
-                            TextFieldType.OtherEmails
+                            OtherEmailOrPhoneFields.OtherEmail
                         )
-                        signupViewModel.updateSignupData(
+                        signupViewModel.updateOtherEmailOrPhone(
                             text = otherPhones,
-                            TextFieldType.OtherPhones
+                            OtherEmailOrPhoneFields.OtherPhones
                         )
+
                         signupViewModel.updateSignupData(
                             text = emailList[primaryEmailIndex],
                             TextFieldType.PrimaryEmail
@@ -655,11 +673,25 @@ fun SignupScreen(
                             text = phoneList[primaryPhoneIndex],
                             TextFieldType.PrimaryPhone
                         )
+                        signupViewModel.updateProfileImageIntoDb(bitmap = profileImage)
 
                         signupViewModel.userDetails = signupViewModel.getSignupDetails()
                         signupViewModel.insertData()
-                        Toast.makeText(context, "Signup success", Toast.LENGTH_SHORT).show()
-                        navController.popBackStack()
+
+                        Toast.makeText(
+                            context,
+                            if (isNavigatedFromContactScreen) "Contact saved" else "Signup success",
+                            Toast.LENGTH_SHORT
+                        ).show()
+
+                        signupViewModel.updateUIData()  // Update ui data
+                        if(isNavigatedFromContactScreen){
+                            navController.navigate("ProfileScreen")
+                        }else{
+                            navController.popBackStack()
+                        }
+
+
 
                     } else if (confirmPasswordColor) {
                         Toast.makeText(
@@ -728,14 +760,13 @@ fun SignupScreen(
                     }
                     toast.show()
 
-
                 }
 
             }
         )
         {
             Text(
-                text = "Sign up",
+                text = if (isNavigatedFromContactScreen) "Save" else "Signup",
                 style = TextStyle(
                     color = Color.White,
                     fontSize = MaterialTheme.dimens.signupDimension.normalFont16
@@ -814,8 +845,7 @@ fun SignupScreen(
                                     controller = cameraController,
                                     mContext = context,
                                     onPhotoTaken = {
-//                                        onPhotoTaken = signupViewModel::takePhoto
-                                        signupViewModel.updateCapturedImage(bitmap = it)
+                                        tempImageHolder = it
 
                                     }
 
@@ -838,10 +868,11 @@ fun SignupScreen(
             }
         }
     }
-    Log.i("bitmap", capturedImage.toString())
+    Log.i("bitmap", profileImage.toString())
 
 
     if (isPhotoTaken) {
+        Log.i("bitmap image", tempImageHolder.toString())
         ModalBottomSheet(
             onDismissRequest = {
                 isPhotoTaken = false
@@ -852,13 +883,13 @@ fun SignupScreen(
                 modifier = Modifier
                     .fillMaxSize()
             ) {
-                if (capturedImage != null) {
+                if (tempImageHolder != null) {
                     Image(
                         modifier = Modifier
                             .weight(0.9f)
                             .fillMaxSize()
                             .size(MaterialTheme.dimens.signupDimension.profileSize),
-                        bitmap = capturedImage!!.asImageBitmap(),
+                        bitmap = tempImageHolder!!.asImageBitmap(),
                         contentDescription = "profile",
                         contentScale = ContentScale.FillBounds
                     )
@@ -871,7 +902,9 @@ fun SignupScreen(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
 
-                        IconButton(onClick = { isPhotoTaken = false }) {
+                        IconButton(onClick = {
+                            isPhotoTaken = false
+                        }) {
                             Image(
                                 painter = painterResource(id = R.drawable.close_camera_ic),
                                 contentDescription = "close"
@@ -883,12 +916,12 @@ fun SignupScreen(
                             isPhotoTaken = false
                             isProfileSelected = true
                             isCameraSheetOpen = false
-                            signupViewModel.updateSelectedImageType(idx = 2)
+                            signupViewModel.updateProfileImage(bitmap = tempImageHolder)
 
                         }) {
                             Image(
                                 painter = painterResource(id = R.drawable.tick_ic),
-                                contentDescription = "close"
+                                contentDescription = "accepted"
                             )
                         }
 

@@ -143,6 +143,8 @@ fun LoginPortrait(
                             if (loginViewModel.authenticatePassword(password = password)) {
                                 isPasswordError = false
                                 toastText = "Login success"
+
+
                                 successNavigation()
                             } else {
                                 isPasswordError = true
