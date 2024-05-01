@@ -1,10 +1,13 @@
 package com.example.registration.view.signupScreen
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.graphics.Bitmap
+import android.graphics.ImageDecoder
 import android.graphics.Rect
 import android.net.Uri
 import android.os.Build
+import android.provider.MediaStore
 import android.view.ViewTreeObserver
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
@@ -13,6 +16,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -30,6 +34,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Camera
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Photo
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.DropdownMenuItem
@@ -55,7 +61,6 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
@@ -80,9 +85,7 @@ import java.util.Date
 @Composable
 fun UserProfile(
     modifier: Modifier = Modifier,
-    selectedImageType: Int,
-    selectedImageUri: Uri?,
-    selectedCameraImage: Bitmap?,
+    imageBitmap: Bitmap?,
     chooseProfileImage: () -> Unit,
     isProfileSelected: Boolean,
     openCamera: () -> Unit,
@@ -90,6 +93,7 @@ fun UserProfile(
     removeProfile: () -> Unit,
 
     ) {
+
     var isDropDownExpanded by remember {
         mutableStateOf(false)
     }
@@ -104,146 +108,99 @@ fun UserProfile(
                 .height(20.dp)
                 .fillMaxWidth()
         )
-        when (selectedImageType) {
-            0 -> {
-                Box(modifier = Modifier
+
+        if (imageBitmap != null) {
+            AsyncImage(
+                modifier = Modifier
+                    .padding(vertical = MaterialTheme.dimens.signupDimension.pageVerticalPadding08)
+                    .clip(RoundedCornerShape(50))
+                    .size(MaterialTheme.dimens.signupDimension.profileSize)
                     .clickable {
                         isDropDownExpanded = true
                         chooseProfileImage()
-                    }
+                    },
+                model = imageBitmap,
+                contentDescription = "profile",
+                contentScale = ContentScale.Crop,
+            )
+        } else {
+            Box(
+                modifier = Modifier
                     .size(100.dp)
                     .clip(RoundedCornerShape(50))
-                    .background(White)) {
-                    Image(
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                            .fillMaxWidth()
-                            .size(50.dp)
-                            .padding(vertical = MaterialTheme.dimens.signupDimension.itemVerticalPadding08)
-                            .size(MaterialTheme.dimens.signupDimension.profileSize),
-                        painter = painterResource(id = R.drawable.add_ic),
-                        contentDescription = "profile",
-                    )
-                }
-
+                    .background(White)
+            ) {
+                Image(
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .fillMaxWidth()
+                        .size(50.dp)
+                        .padding(vertical = MaterialTheme.dimens.signupDimension.itemVerticalPadding08)
+                        .size(MaterialTheme.dimens.signupDimension.profileSize)
+                        .clickable {
+                            isDropDownExpanded = true
+                            chooseProfileImage()
+                        },
+                    painter = painterResource(id = R.drawable.add_ic),
+                    contentDescription = "profile",
+                )
             }
-
-            1 -> {
-                if (selectedImageUri != null) {
-                    AsyncImage(
-                        modifier = Modifier
-                            .padding(vertical = MaterialTheme.dimens.signupDimension.pageVerticalPadding08)
-                            .clip(RoundedCornerShape(50))
-                            .size(MaterialTheme.dimens.signupDimension.profileSize)
-                            .clickable {
-                                isDropDownExpanded = true
-                                chooseProfileImage()
-                            },
-                        model = selectedImageUri,
-                        contentDescription = "profile",
-                        contentScale = ContentScale.Crop,
-                    )
-                } else {
-                    Box(
-                        modifier = Modifier
-                            .size(100.dp)
-                            .clip(RoundedCornerShape(50))
-                            .background(White)
-                    ) {
-                        Image(
-                            modifier = Modifier
-                                .align(Alignment.Center)
-                                .fillMaxWidth()
-                                .size(50.dp)
-                                .padding(vertical = MaterialTheme.dimens.signupDimension.itemVerticalPadding08)
-                                .size(MaterialTheme.dimens.signupDimension.profileSize)
-                                .clickable {
-                                    isDropDownExpanded = true
-                                    chooseProfileImage()
-                                },
-                            painter = painterResource(id = R.drawable.add_ic),
-                            contentDescription = "profile",
-                        )
-                    }
-                }
-            }
-
-            2 -> {
-                if (selectedCameraImage != null) {
-                    Image(
-                        modifier = Modifier
-                            .padding(vertical = MaterialTheme.dimens.signupDimension.itemVerticalPadding08)
-                            .size(MaterialTheme.dimens.signupDimension.profileSize)
-                            .clip(RoundedCornerShape(50))
-                            .clickable {
-                                isDropDownExpanded = true
-                                chooseProfileImage()
-                            },
-                        bitmap = selectedCameraImage.asImageBitmap(),
-                        contentDescription = "profile",
-                        contentScale = ContentScale.FillBounds
-                    )
-                }
-            }
-
         }
+    }
+
+    ExposedDropdownMenuBox(
+        modifier = Modifier
+            .fillMaxWidth(),
+        expanded = isDropDownExpanded,
+        onExpandedChange = { isDropDownExpanded = it },
+
+        ) {
 
 
-
-
-        ExposedDropdownMenuBox(
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.CenterHorizontally),
+        ExposedDropdownMenu(
             expanded = isDropDownExpanded,
-            onExpandedChange = { isDropDownExpanded = it },
+            onDismissRequest = { isDropDownExpanded = false },
 
             ) {
+            DropdownMenuItem(modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.CenterHorizontally),
+                text = { Text(text = "Camera") },
+                onClick = {
+                    openCamera()
+                    isDropDownExpanded = false
+                },
+                leadingIcon = {
+                    Image(imageVector = Icons.Default.Camera, contentDescription = "Camera")
+                })
+            DropdownMenuItem(modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.CenterHorizontally),
+                text = { Text(text = "Gallery") },
+                onClick = {
+                    openGallery()
+                    isDropDownExpanded = false
+                },
+                leadingIcon = {
+                    Image(imageVector = Icons.Default.Photo, contentDescription = "Gallery")
+                })
+            if (isProfileSelected || imageBitmap!=null) {
 
-
-            ExposedDropdownMenu(
-                expanded = isDropDownExpanded,
-                onDismissRequest = { isDropDownExpanded = false },
-
-                ) {
                 DropdownMenuItem(modifier = Modifier
                     .fillMaxWidth()
                     .align(Alignment.CenterHorizontally),
-                    text = { Text(text = "Camera") },
+                    text = { Text(text = "Remove") },
                     onClick = {
-                        openCamera()
+                        removeProfile()
                         isDropDownExpanded = false
                     },
                     leadingIcon = {
-                        Image(imageVector = Icons.Default.Camera, contentDescription = "Camera")
-                    })
-                DropdownMenuItem(modifier = Modifier
-                    .fillMaxWidth()
-                    .align(Alignment.CenterHorizontally),
-                    text = { Text(text = "Gallery") },
-                    onClick = {
-                        openGallery()
-                        isDropDownExpanded = false
-                    },
-                    leadingIcon = {
-                        Image(imageVector = Icons.Default.Photo, contentDescription = "Gallery")
-                    })
-                if (isProfileSelected) {
-
-                    DropdownMenuItem(modifier = Modifier
-                        .fillMaxWidth()
-                        .align(Alignment.CenterHorizontally),
-                        text = { Text(text = "Remove") },
-                        onClick = {
-                            removeProfile()
-                            isDropDownExpanded = false
-                        },
-                        leadingIcon = {
-                            Image(imageVector = Icons.Default.Person, contentDescription = "Remove")
-                        })
-                }
+                        Image(imageVector = Icons.Default.Person, contentDescription = "Remove")
+                    }
+                )
             }
         }
+    }
 
 
 //
@@ -257,7 +214,6 @@ fun UserProfile(
 //                textAlign = TextAlign.Center
 //            )
 //        )
-    }
 
 
 }
@@ -475,9 +431,13 @@ fun CustomOutlinedInput(
     visualTransformation: VisualTransformation = VisualTransformation.None,
     regex: String,
     updateFocusChangeValue: () -> Unit = {},
+    readOnly: Boolean = false,
+    textColor: Color = Blue,
+    focusedIndicatorColor:Color = Blue,
+    unfocusedIndicatorColor:Color = Color.Black.copy(alpha = 0.1f),
 
 
-    ) {
+) {
 
     TextField(
         modifier = modifier
@@ -509,13 +469,14 @@ fun CustomOutlinedInput(
         minLines = minLines,
         maxLines = maxLines,
         isError = isError,
+        readOnly = readOnly,
         visualTransformation = visualTransformation,
         colors = TextFieldDefaults.textFieldColors(
-            textColor = Blue,
+            textColor = textColor,
             disabledTextColor = Color.Transparent,
             backgroundColor = Color.Transparent,
-            focusedIndicatorColor = Blue,
-            unfocusedIndicatorColor = Color.Black.copy(alpha = 0.1f),
+            focusedIndicatorColor = focusedIndicatorColor,
+            unfocusedIndicatorColor =unfocusedIndicatorColor,
             disabledIndicatorColor = Color.Transparent,
             cursorColor = Blue
 
@@ -767,6 +728,65 @@ fun CustomDatePicker(
 
 }
 
+@Composable
+fun CustomColumnCardCreator(
+    modifier: Modifier,
+    anyComposable: @Composable () -> Unit,
+) {
+    Card(
+        modifier = modifier
+            .padding(
+                vertical = MaterialTheme.dimens.signupDimension.padding08,
+                horizontal = MaterialTheme.dimens.signupDimension.padding04
+            ),
+        colors = CardDefaults.cardColors(
+            containerColor = White
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(
+                    horizontal = MaterialTheme.dimens.signupDimension.padding08,
+                    vertical = MaterialTheme.dimens.signupDimension.padding08
+                )
+        ) {
+            anyComposable()
+        }
+    }
+}
+
+@Composable
+fun CustomRowCardCreator(
+    modifier: Modifier,
+    anyComposable: @Composable () -> Unit,
+) {
+    Card(
+        modifier = Modifier
+            .padding(
+                vertical = MaterialTheme.dimens.signupDimension.padding08,
+                horizontal = MaterialTheme.dimens.signupDimension.padding04
+            ),
+        colors = CardDefaults.cardColors(
+            containerColor = White
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(IntrinsicSize.Min)
+                .padding(
+                    horizontal = MaterialTheme.dimens.signupDimension.padding08,
+                    vertical = MaterialTheme.dimens.signupDimension.padding08
+                ),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            anyComposable()
+        }
+    }
+}
+
+
 @SuppressLint("SimpleDateFormat")
 fun convertMillisToDate(mill: Long?): String {
     val format = SimpleDateFormat("dd/MM/yyyy")
@@ -793,9 +813,11 @@ data class UserDetails(
     val dob: String,
     val primaryEmail: String,
     val primaryPhone: String,
-    val otherEmails: String,
-    val otherPhones: String,
+    val otherEmails: String?,
+    val otherPhones: String?,
+    val website: String,
     val password: String,
+    var profileImage:Bitmap?
 
     )
 
@@ -829,3 +851,12 @@ fun keyboardAsState(): State<Keyboard> {
 }
 
 
+@RequiresApi(Build.VERSION_CODES.P)
+fun convertUriToBitmapAboveAndroidP(uri: Uri, activity: Activity): Bitmap {
+    val source = ImageDecoder.createSource(activity.contentResolver, uri)
+    return ImageDecoder.decodeBitmap(source)
+}
+
+fun convertUriToBitmapBelowAndroidP(uri: Uri, activity: Activity): Bitmap {
+    return MediaStore.Images.Media.getBitmap(activity.contentResolver, uri)
+}

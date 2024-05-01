@@ -13,4 +13,7 @@ interface RegistrationDao {
 
     @Query("delete  from registration_table")
     fun clearData()
+
+    @Query("SELECT (SELECT COUNT(*) FROM registration_table) == 0")
+    fun isDBEmpty(): Boolean
 }
