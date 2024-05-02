@@ -1,5 +1,7 @@
 package com.example.registration.view.contactScreen
 
+import android.app.Activity
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,30 +20,35 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.registration.ui.theme.White
-import com.example.registration.viewModels.ProfileViewModel
+import com.example.registration.viewModels.ContactViewModel
 
 @Composable
 fun ContactScreen(
-navController: NavController,
-profileViewModel: ProfileViewModel
+    navController: NavController,
+    contactViewModel: ContactViewModel
 ) {
 
+    val activity = LocalContext.current as Activity
+    val uiColor = contactViewModel.uiColor
 
-    val uiColor = profileViewModel.uiColor
+    val userDetails by contactViewModel.userDetails.collectAsState()
+    val context = LocalContext.current
 
-    val userDetails by profileViewModel.userDetails.collectAsState()
 
-    profileViewModel.updateUIData()
+//    contactViewModel.updateUIData()
+
+//    BackHandler {
+//        activity.finish()
+//    }
 
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { navController.navigate("SignupScreen")},
+                onClick = { navController.navigate("SignupScreen") },
                 elevation = FloatingActionButtonDefaults.elevation(
                     defaultElevation = 10.dp
                 ),
@@ -78,7 +85,9 @@ profileViewModel: ProfileViewModel
                     modifier = Modifier
                         .weight(0.7f),
                     uiColor = uiColor,
-                    contactDetails = userDetails
+                    contactDetails = userDetails,
+                    contactViewModel = contactViewModel,
+                    context = context
 
                 )
             }
@@ -87,4 +96,5 @@ profileViewModel: ProfileViewModel
 
 
 }
+
 

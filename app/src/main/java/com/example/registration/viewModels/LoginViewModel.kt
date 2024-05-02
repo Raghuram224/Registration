@@ -10,50 +10,52 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 
-enum class LoginInputFields{
+enum class LoginInputFields {
     Email,
     Password,
 }
+
 @HiltViewModel
 class LoginViewModel @Inject constructor(
     private val localDBRepo: LocalDBRepo
 ) : ViewModel() {
 
-    private val  _email = MutableStateFlow("")
+    private val _email = MutableStateFlow("")
     private val _password = MutableStateFlow("")
 
     val email = _email.asStateFlow()
     val passwords = _password.asStateFlow()
 
 
+    fun authenticateEmail(email: String): Boolean {
+        return email == localDBRepo.userDetails.primaryEmail
 
-    fun authenticateEmail(email: String):Boolean{
-        return  localDBRepo.validateEmail(email = email)
-    }
-    fun  authenticatePassword(password:String):Boolean{
-        return localDBRepo.validatePassword(password = password)
     }
 
-    fun updateLoginData(text:String,type:LoginInputFields){
+    fun authenticatePassword(password: String): Boolean {
+        return password == localDBRepo.userDetails.password
+    }
 
-//        println(localDBRepo.userDetails)
-        when(type){
+    fun updateLoginData(text: String, type: LoginInputFields) {
+
+        when (type) {
             LoginInputFields.Email -> {
                 _email.value = text
             }
+
             LoginInputFields.Password -> {
                 _password.value = text
             }
         }
     }
-    fun clearData(){
+
+    fun clearData() {
         viewModelScope.launch {
             localDBRepo.clearData()
-            localDBRepo.updateDBData()
+//            localDBRepo.updateDBData()
         }
 
     }
-
 
 
 }

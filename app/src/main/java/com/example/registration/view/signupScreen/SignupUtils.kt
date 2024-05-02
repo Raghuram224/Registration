@@ -806,17 +806,17 @@ fun milliToYears(milliseconds: Long): String {
 
 
 data class UserDetails(
-    val firstName: String,
-    val lastName: String,
-    val age: String,
-    val address: String,
-    val dob: String,
-    val primaryEmail: String,
-    val primaryPhone: String,
-    val otherEmails: String?,
-    val otherPhones: String?,
-    val website: String,
-    val password: String,
+    var firstName: String,
+    var lastName: String,
+    var age: String,
+    var address: String,
+    var dob: String,
+    var primaryEmail: String,
+    var primaryPhone: String,
+    var otherEmails: String?,
+    var otherPhones: String?,
+    var website: String,
+    var password: String,
     var profileImage:Bitmap?
 
     )

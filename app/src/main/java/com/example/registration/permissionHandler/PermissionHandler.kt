@@ -10,12 +10,15 @@ class PermissionHandler @Inject constructor(
     val mContext: Context
 ) {
     //permission
-    private val PERMISSIONS = arrayOf(
+    val cameraPermissions = arrayOf(
         Manifest.permission.CAMERA
     )
-    fun hasRequiredPermission(): Boolean {
+    val phonePermissions = arrayOf(
+        Manifest.permission.CALL_PHONE
+    )
+    fun hasRequiredPermission(permissions:Array<String>): Boolean {
 
-        return PERMISSIONS.all {
+        return permissions.all {
             ContextCompat.checkSelfPermission(
                 mContext,
                 it

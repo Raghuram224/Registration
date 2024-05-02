@@ -15,33 +15,11 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-
-enum class TextFieldType {
-    FirstName,
-    LastName,
-    Age,
-    Address,
-    DOB,
-    PrimaryEmail,
-    PrimaryPhone,
-    Password,
-    Website
-
-
-}
-
-enum class OtherEmailOrPhoneFields {
-    OtherEmail,
-    OtherPhones,
-}
-
-
 @HiltViewModel
-class SignupViewModel @Inject constructor(
+class EditContactsViewmodel @Inject constructor(
     private val localDBRepo: LocalDBRepo,
     private val permissionHandler: PermissionHandler
 ) : ViewModel() {
-
     private val _signupData = MutableStateFlow(
         setContactsDetails()
     )
@@ -173,14 +151,13 @@ class SignupViewModel @Inject constructor(
         primaryPhone: String,
         firstName: String,
         lastName: String,
-        password: String,
-        confirmPassword: String
-    ): Boolean {
+
+        ): Boolean {
 
         val validateEmail = checkValidEmail()
         return primaryEmail.isNotEmpty() && primaryPhone.isNotEmpty() &&
                 firstName.isNotEmpty() && lastName.isNotEmpty()
-                && password.isNotEmpty() && confirmPassword.isNotEmpty() && validateEmail
+                && validateEmail
 
     }
 
@@ -264,7 +241,7 @@ class SignupViewModel @Inject constructor(
         }
     }
 
-    fun updateUIData(){
+    fun updateUIData() {
         localDBRepo.updateDbData()
     }
 

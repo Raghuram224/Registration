@@ -22,6 +22,7 @@ import androidx.camera.view.LifecycleCameraController
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -46,6 +47,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -69,6 +72,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
@@ -77,6 +81,7 @@ import com.example.registration.R
 import com.example.registration.constants.InputsRegex
 import com.example.registration.ui.theme.Blue
 import com.example.registration.ui.theme.LightGray
+import com.example.registration.ui.theme.White
 import com.example.registration.ui.theme.dimens
 import com.example.registration.view.utils.CameraPreview
 import com.example.registration.viewModels.OtherEmailOrPhoneFields
@@ -87,7 +92,7 @@ import java.util.Date
 
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
-@SuppressLint("MutableCollectionMutableState")
+@SuppressLint("MutableCollectionMutableState", "StateFlowValueCalledInComposition")
 @Composable
 fun SignupScreen(
     modifier: Modifier = Modifier,
@@ -117,7 +122,6 @@ fun SignupScreen(
     val datePickerSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val datePickerState = rememberDatePickerState()
     val cameraSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-//    val takenPicturesSheetState = rememberModalBottomSheetState()
     val showTakenPhotoSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     // camera essentials
@@ -165,7 +169,6 @@ fun SignupScreen(
 
     // UI state
     val signupData = signupViewModel.signupData.collectAsState() //Test
-//    val capturedImage by signupViewModel.capturedImage.collectAsState()
     val profileImage by signupViewModel.profileImage.collectAsState()
 
     val focusManager = LocalFocusManager.current
@@ -282,589 +285,593 @@ fun SignupScreen(
 
 
     BackHandler {
-
+//        navController.popBackStack(route ="SignupScreen" ,false,false)
         navController.navigateUp()
-
+//        if (isNavigatedFromContactScreen){
+//            navController.navigate("ProfileScreen"){
+//                popUpTo(0)
+//            }
+//        }else{
+//            navController.navigate("LoginScreen"){
+//                popUpTo(navController.graph.id){
+//                    inclusive = false
+//                }
+//            }
+//        }
     }
 
     if (isNavigatedFromContactScreen) {
-        LaunchedEffect(Unit) {
+//        LaunchedEffect(Unit) {
 
-            signupViewModel.updateEmailAndPhoneList()
-            confirmPassword = signupViewModel.signupData.value.password
-        }
+        signupViewModel.updateEmailAndPhoneList()
+        confirmPassword = signupViewModel.signupData.value.password
+//        }
     }
 
 
-    Column(
-        modifier = Modifier
-            .background(LightGray)
-            .verticalScroll(scrollState)
-            .padding(horizontal = MaterialTheme.dimens.signupDimension.pageHorizontalPadding16),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.Start
-    ) {
-
-        UserProfile(
-            chooseProfileImage = {
-                isProfileSheetOpen = true
-
-            },
-            imageBitmap = profileImage,
-//            selectedImageType = selectedImageType,
-//            selectedCameraImage = capturedImage,
-            isProfileSelected = isProfileSelected,
-            openCamera = {
-
-                cameraContract.launch(
-                    Manifest.permission.CAMERA
-                )
-
-                if (signupViewModel.checkRequiredPermission()) {
-                    isCameraSheetOpen = true
-
-                }
-
-            },
-            openGallery = {
-
-                photoPickerLauncher.launch(
-                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                )
-
-            },
-            removeProfile = {
-                isProfileSelected = false
-                signupViewModel.updateProfileImage(bitmap = null)
-
-            }
-
-        )
-
-        CustomColumnCardCreator(
-            modifier = Modifier,
-            anyComposable = @Composable {
-                CustomOutlinedInput(
-                    modifier = Modifier
-                        .bringIntoViewRequester(namesBringIntoView)
-                        .focusRequester(focusRequester = fNameFocusRequester),
-                    text = signupData.value.firstName,
-                    onTextChanged = {
-
-                        signupViewModel.updateSignupData(it, TextFieldType.FirstName)
-
-                    },
-                    label = "First name",
-                    isError = fNameColor,
-                    regex = InputsRegex.NAME_REGEX,
-                )
-
-
-                CustomOutlinedInput(
-                    modifier = Modifier
-                        .focusRequester(focusRequester = lNameFocusRequester),
-                    text = signupData.value.lastName,
-                    onTextChanged = {
-
-                        signupViewModel.updateSignupData(it, TextFieldType.LastName)
-                    },
-                    label = "Last name",
-                    isError = lNameColor,
-                    regex = InputsRegex.NAME_REGEX
-
-                )
-            }
-        )
-
-
-        CustomColumnCardCreator(
-            modifier = Modifier,
-            anyComposable = @Composable {
-                SignupEmail(
-                    modifier = Modifier
-                        .bringIntoViewRequester(emailBringIntoView),
-                    selectEmail = {
-                        primaryEmailIndex = it
-                        isPrimaryEmailSelected = true
-                    },
-                    isPrimaryEmailSelected = isPrimaryEmailSelected,
-                    closeButtonClick = {
-                        primaryEmailIndex = 0
-                        isPrimaryEmailSelected = false
-                    },
-                    primaryEmailIndex = primaryEmailIndex,
-                    emailList = emailList,
-                    isFieldError = signupViewModel.emailListColor,
-                    removeField = {
-                        if (emailList.size > 1 && it != primaryEmailIndex) {
-
-                            if (primaryEmailIndex == 1) {
-                                emailList.removeAt(0)
-                                signupViewModel.emailListColor.removeAt(0)
-                                primaryEmailIndex = 0
-                            } else {
-
-                                emailList.removeAt(it)
-                                signupViewModel.emailListColor.removeAt(it)
-
-                            }
-
-                        }
-
-                    },
-                    regex = InputsRegex.EMAIL_ALLOWED_REGEX,
-                    emailFocusRequester = emailFocusRequester,
-
-
-                    )
-            }
-        )
-
-        CustomColumnCardCreator(
-            modifier = Modifier,
-            anyComposable = @Composable {
-                SignupPhone(
-                    modifier = Modifier
-                        .bringIntoViewRequester(phoneBringIntoView)
-                        .focusRequester(focusRequester = phoneFocusRequester),
-                    selectPhone = {
-                        primaryPhoneIndex = it
-                        isPrimaryPhoneSelected = true
-                    },
-                    isPrimaryPhoneSelected = isPrimaryPhoneSelected,
-                    closeButtonClick = {
-                        primaryPhoneIndex = 0
-                        isPrimaryPhoneSelected = false
-                    },
-                    primaryPhoneIndex = primaryPhoneIndex,
-                    phoneList = phoneList,
-                    isFieldError = signupViewModel.phoneListColor,
-                    removeField = {
-                        if (phoneList.size > 1 && it != primaryPhoneIndex) {
-                            if (primaryPhoneIndex == 1) {
-                                phoneList.removeAt(0)
-                                signupViewModel.phoneListColor.removeAt(0)
-                                primaryPhoneIndex = 0
-                            } else {
-
-                                phoneList.removeAt(it)
-                                signupViewModel.phoneListColor.removeAt(it)
-                            }
-
-                        }
-                    },
-                    regex = InputsRegex.PHONE_NUMBER_REGEX,
-                    phoneFocusRequester = phoneFocusRequester
-
-
-                )
-            }
-        )
-
-
-        LaunchedEffect(key1 = keyBoardState) {
-            if (keyBoardState == Keyboard.Closed && isAgeFocused) {
-                focusManager.clearFocus()
-
-                if (signupData.value.age != null && signupData.value.age.isNotEmpty()) {
-                    signupViewModel.updateSignupData(
-                        text = convertMillisToDate(
-                            Date().time.minus(
-                                yearsToMillis(signupData.value.age.toLong())
-                            )
-                        ),
-                        TextFieldType.DOB,
-                    )
-                } else {
-                    signupViewModel.updateSignupData("0", TextFieldType.Age)
-                }
-
-            }
-        }
-
-        CustomRowCardCreator(
-            modifier = Modifier,
-            anyComposable = {
-                CustomOutlinedInput(
-                    modifier = Modifier
-                        .weight(0.4f)
-                        .focusRequester(focusRequester = ageFocusRequester),
-                    text = if (signupData.value.age != null) signupData.value.age else "0",
-                    onTextChanged = {
-
-                        signupViewModel.updateSignupData(it, TextFieldType.Age)
-                    },
-                    label = "Age",
-                    keyBoardType = KeyboardType.Phone,
-                    focusChanged = { state ->
-                        isAgeFocused = state.isFocused
-                    },
-                    regex = InputsRegex.AGE_REGEX,
-                    updateFocusChangeValue = {
-                        if (signupData.value.age != null && signupData.value.age.isNotEmpty()) {
-                            signupViewModel.updateSignupData(
-                                text = convertMillisToDate(
-                                    Date().time.minus(
-                                        yearsToMillis(signupData.value.age.toLong())
-                                    )
-                                ),
-                                TextFieldType.DOB,
-                            )
-                        } else {
-                            signupViewModel.updateSignupData("0", TextFieldType.Age)
-                        }
-                    }
-
-                )
-
-                Divider(
-                    color = Color.Black.copy(alpha = 0.3f),
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .width(1.dp)
-                )
-
-
-                DatePickerBar(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .fillMaxWidth()
-                        .wrapContentSize()
-                        .weight(0.4f),
-                    text = "Pick your date of birth",
-                    onClick = { isDatePickerSheetOpen = true },
-                    selectedDate = signupData.value.dob,
-                )
-            }
-        )
-
-
-        CustomColumnCardCreator(
-            modifier = Modifier,
-            anyComposable = @Composable {
-                CustomOutlinedInput(
-                    text = signupData.value.address,
-                    onTextChanged = {
-
-                        signupViewModel.updateSignupData(text = it, TextFieldType.Address)
-                    },
-                    label = "Enter your address",
-                    minLines = 3,
-                    maxLines = 5,
-                    isError = addressColor,
-                    regex = InputsRegex.ALLOW_ANY_REGEX
-                )
-            }
-        )
-        CustomColumnCardCreator(
-            modifier = Modifier,
-            anyComposable = {
-                CustomOutlinedInput(
-                    text = signupData.value.website,
-                    onTextChanged = {
-                        signupViewModel.updateSignupData(text = it, type = TextFieldType.Website)
-                    },
-                    label = "Website",
-                    regex = InputsRegex.WEBSITE_REGEX_ALLOWED_PARAM
-                )
-            }
-        )
-
-        if (!isNavigatedFromContactScreen) {
-            CustomColumnCardCreator(
+    Scaffold(
+        topBar = {
+            SignupTopBar(
                 modifier = Modifier,
-                anyComposable = @Composable {
-                    CustomOutlinedPasswordInput(
-                        modifier = Modifier
-                            .focusRequester(focusRequester = passwordFocusRequester),
-                        text = signupData.value.password,
-                        onTextChanged = {
-                            signupViewModel.updateSignupData(
-                                text = it,
-                                TextFieldType.Password
-                            )
-                        },
-                        label = "Password",
-                        isError = passwordColor,
-                        regex = InputsRegex.PASSWORD_REGEX
+                isNavigatedFromContactScreen = isNavigatedFromContactScreen,
+                cancelButtonClick = { navController.navigateUp() },
+                saveButtonClick = {
 
 
-                    )
+                    signupViewModel.emailListColor[primaryEmailIndex] =
+                        emailList[primaryEmailIndex].isEmpty()
+                    signupViewModel.phoneListColor[primaryPhoneIndex] =
+                        phoneList[primaryPhoneIndex].isEmpty()
 
-                    CustomOutlinedPasswordInput(
-                        modifier = Modifier
-                            .focusRequester(focusRequester = confirmPasswordFocusRequester),
-                        text = confirmPassword,
-                        onTextChanged = { confirmPassword = it },
-                        label = "confirm password",
-                        isError = confirmPasswordColor,
-                        regex = InputsRegex.PASSWORD_REGEX
-
-
-                    )
-                }
-            )
-        }
+                    fNameColor = signupData.value.firstName.isEmpty()
+                    lNameColor = signupData.value.lastName.isEmpty()
+                    passwordColor = signupData.value.password.isEmpty()
+                    confirmPasswordColor = confirmPassword.isEmpty()
 
 
-
-        Button(
-            modifier = Modifier
-                .padding(
-                    vertical = MaterialTheme.dimens.signupDimension.itemVerticalPadding08,
-                    horizontal = MaterialTheme.dimens.signupDimension.itemHorizontalPadding04
-                )
-                .fillMaxWidth(),
-            colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                containerColor = Blue
-            ),
-            onClick = {
-
-                signupViewModel.emailListColor[primaryEmailIndex] =
-                    emailList[primaryEmailIndex].isEmpty()
-                signupViewModel.phoneListColor[primaryPhoneIndex] =
-                    phoneList[primaryPhoneIndex].isEmpty()
-
-                fNameColor = signupData.value.firstName.isEmpty()
-                lNameColor = signupData.value.lastName.isEmpty()
-                passwordColor = signupData.value.password.isEmpty()
-                confirmPasswordColor = confirmPassword.isEmpty()
-
-
-                if (
-                    signupViewModel.checkFieldsValue(
-                        primaryEmail = emailList[primaryEmailIndex],
-                        primaryPhone = phoneList[primaryPhoneIndex],
-                        firstName = signupData.value.firstName,
-                        lastName = signupData.value.lastName,
-                        password = signupData.value.password,
-                        confirmPassword = confirmPassword
-                    )
-
-                ) {
-                    if (signupViewModel.checkPassword(
+                    if (
+                        signupViewModel.checkFieldsValue(
+                            primaryEmail = emailList[primaryEmailIndex],
+                            primaryPhone = phoneList[primaryPhoneIndex],
+                            firstName = signupData.value.firstName,
+                            lastName = signupData.value.lastName,
                             password = signupData.value.password,
                             confirmPassword = confirmPassword
                         )
+
                     ) {
-                        val otherEmails = signupViewModel.convertListToString(
-                            list = emailList,
-                            idx = primaryEmailIndex
-                        )
-                        val otherPhones = signupViewModel.convertListToString(
-                            list = phoneList,
-                            idx = primaryPhoneIndex
-                        )
+                        if (signupViewModel.checkPassword(
+                                password = signupData.value.password,
+                                confirmPassword = confirmPassword
+                            )
+                        ) {
+                            val otherEmails = signupViewModel.convertListToString(
+                                list = emailList,
+                                idx = primaryEmailIndex
+                            )
+                            val otherPhones = signupViewModel.convertListToString(
+                                list = phoneList,
+                                idx = primaryPhoneIndex
+                            )
 
-                        signupViewModel.updateOtherEmailOrPhone(
-                            text = otherEmails,
-                            OtherEmailOrPhoneFields.OtherEmail
-                        )
-                        signupViewModel.updateOtherEmailOrPhone(
-                            text = otherPhones,
-                            OtherEmailOrPhoneFields.OtherPhones
-                        )
+                            signupViewModel.updateOtherEmailOrPhone(
+                                text = otherEmails,
+                                OtherEmailOrPhoneFields.OtherEmail
+                            )
+                            signupViewModel.updateOtherEmailOrPhone(
+                                text = otherPhones,
+                                OtherEmailOrPhoneFields.OtherPhones
+                            )
 
-                        signupViewModel.updateSignupData(
-                            text = emailList[primaryEmailIndex],
-                            TextFieldType.PrimaryEmail
-                        )
-                        signupViewModel.updateSignupData(
-                            text = phoneList[primaryPhoneIndex],
-                            TextFieldType.PrimaryPhone
-                        )
-                        signupViewModel.updateProfileImageIntoDb(bitmap = profileImage)
+                            signupViewModel.updateSignupData(
+                                text = emailList[primaryEmailIndex],
+                                TextFieldType.PrimaryEmail
+                            )
+                            signupViewModel.updateSignupData(
+                                text = phoneList[primaryPhoneIndex],
+                                TextFieldType.PrimaryPhone
+                            )
+                            signupViewModel.updateProfileImageIntoDb(bitmap = profileImage)
 
-                        signupViewModel.userDetails = signupViewModel.getSignupDetails()
-                        signupViewModel.insertData()
+                            signupViewModel.userDetails = signupViewModel.getSignupDetails()
+                            signupViewModel.insertData()
 
-                        Toast.makeText(
-                            context,
-                            if (isNavigatedFromContactScreen) "Contact saved" else "Signup success",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                            Toast.makeText(
+                                context,
+                                if (isNavigatedFromContactScreen) "Contact saved" else "Signup success",
+                                Toast.LENGTH_SHORT
+                            ).show()
 
-                        signupViewModel.updateUIData()  // Update ui data
-                        if(isNavigatedFromContactScreen){
-                            navController.navigate("ProfileScreen")
-                        }else{
-                            navController.popBackStack()
+                            signupViewModel.updateUIData()  // Update ui data
+//                            if (isNavigatedFromContactScreen) {
+//                                navController.navigate("ProfileScreen")
+//                            } else {
+                                navController.navigateUp()
+//                            }
+
+//                            navController.popBackStack(route ="SignupScreen" ,false,false)
+//                            navController.navigate("ProfileScreen")
+
+
+                        } else if (confirmPasswordColor) {
+                            Toast.makeText(
+                                context,
+                                "check your password is same",
+                                Toast.LENGTH_SHORT
+                            )
+                                .show()
+                        } else {
+                            Toast.makeText(
+                                context,
+                                "check your credentials",
+                                Toast.LENGTH_SHORT
+                            )
+                                .show()
                         }
 
 
-
-                    } else if (confirmPasswordColor) {
-                        Toast.makeText(
-                            context,
-                            "check your password is same",
-                            Toast.LENGTH_SHORT
-                        )
-                            .show()
                     } else {
-                        Toast.makeText(
-                            context,
-                            "check your credentials",
-                            Toast.LENGTH_SHORT
-                        )
-                            .show()
+                        Log.i("passwordColor", passwordColor.toString())
+                        val toastText: String
+
+
+                        if (fNameColor) {
+                            coroutineScope.launch {
+                                namesBringIntoView.bringIntoView()
+                                fNameFocusRequester.requestFocus()
+                            }
+                            toastText = "Check First name value"
+
+                        } else if (lNameColor) {
+                            coroutineScope.launch {
+                                lNameFocusRequester.requestFocus()
+                            }
+                            toastText = "Check last name value"
+                        } else if (signupViewModel.emailListColor[primaryEmailIndex]) {
+                            coroutineScope.launch {
+                                emailBringIntoView.bringIntoView()
+                                emailFocusRequester.requestFocus()
+                            }
+                            toastText = "Check given email is valid"
+
+                        } else if (signupViewModel.phoneListColor[primaryPhoneIndex]) {
+                            coroutineScope.launch {
+                                phoneBringIntoView.bringIntoView()
+                                phoneFocusRequester.requestFocus()
+                            }
+                            toastText = "Check phone  value"
+                        } else if (passwordColor) {
+                            coroutineScope.launch {
+                                passwordBringIntoView.bringIntoView()
+                                passwordFocusRequester.requestFocus()
+                            }
+                            toastText = "Check password value"
+                        } else {
+                            coroutineScope.launch {
+                                confirmPasswordBringIntoView.bringIntoView()
+                                confirmPasswordFocusRequester.requestFocus()
+                            }
+                            toastText = "Check confirm password value"
+                        }
+
+                        val toast = Toast.makeText(context, toastText, Toast.LENGTH_SHORT)
+                        if (keyBoardState == Keyboard.Opened) {
+                            toast.setGravity(Gravity.CENTER, 0, 0)
+                        }
+                        toast.show()
+
                     }
 
-
-                } else {
-                    Log.i("passwordColor", passwordColor.toString())
-                    val toastText: String
-
-
-                    if (fNameColor) {
-                        coroutineScope.launch {
-                            namesBringIntoView.bringIntoView()
-                            fNameFocusRequester.requestFocus()
-                        }
-                        toastText = "Check First name value"
-
-                    } else if (lNameColor) {
-                        coroutineScope.launch {
-                            lNameFocusRequester.requestFocus()
-                        }
-                        toastText = "Check last name value"
-                    } else if (signupViewModel.emailListColor[primaryEmailIndex]) {
-                        coroutineScope.launch {
-                            emailBringIntoView.bringIntoView()
-                            emailFocusRequester.requestFocus()
-                        }
-                        toastText = "Check given email is valid"
-
-                    } else if (signupViewModel.phoneListColor[primaryPhoneIndex]) {
-                        coroutineScope.launch {
-                            phoneBringIntoView.bringIntoView()
-                            phoneFocusRequester.requestFocus()
-                        }
-                        toastText = "Check phone  value"
-                    } else if (passwordColor) {
-                        coroutineScope.launch {
-                            passwordBringIntoView.bringIntoView()
-                            passwordFocusRequester.requestFocus()
-                        }
-                        toastText = "Check password value"
-                    } else {
-                        coroutineScope.launch {
-                            confirmPasswordBringIntoView.bringIntoView()
-                            confirmPasswordFocusRequester.requestFocus()
-                        }
-                        toastText = "Check confirm password value"
-                    }
-
-                    val toast = Toast.makeText(context, toastText, Toast.LENGTH_SHORT)
-                    if (keyBoardState == Keyboard.Opened) {
-                        toast.setGravity(Gravity.CENTER, 0, 0)
-                    }
-                    toast.show()
 
                 }
-
-            }
-        )
-        {
-            Text(
-                text = if (isNavigatedFromContactScreen) "Save" else "Signup",
-                style = TextStyle(
-                    color = Color.White,
-                    fontSize = MaterialTheme.dimens.signupDimension.normalFont16
-                )
             )
         }
+    ) { innerPadding -> // body
+        Column(
+            modifier = Modifier
+                .background(LightGray)
+                .verticalScroll(scrollState)
+                .padding(horizontal = MaterialTheme.dimens.signupDimension.pageHorizontalPadding16)
+                .padding(innerPadding),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.Start
+        ) {
 
+            UserProfile(
+                chooseProfileImage = {
+                    isProfileSheetOpen = true
 
+                },
+                imageBitmap = profileImage,
+//            selectedImageType = selectedImageType,
+//            selectedCameraImage = capturedImage,
+                isProfileSelected = isProfileSelected,
+                openCamera = {
 
-        if (isDatePickerSheetOpen) {
-            ModalBottomSheet(
-                modifier = Modifier
-                    .fillMaxSize(1f),
-                onDismissRequest = { isDatePickerSheetOpen = false },
-                sheetState = datePickerSheetState,
-
-                ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                ) {
-
-                    CustomDatePicker(
-                        datePickerState = datePickerState,
-                        onDismiss = { isDatePickerSheetOpen = false },
-                        onClick = {
-
-                            signupViewModel.updateSignupData(it, TextFieldType.DOB)
-                        },
-                        updateAge = {
-
-                            signupViewModel.updateSignupData(it, TextFieldType.Age)
-                        }
+                    cameraContract.launch(
+                        Manifest.permission.CAMERA
                     )
+
+                    if (signupViewModel.checkRequiredPermission()) {
+                        isCameraSheetOpen = true
+
+                    }
+
+                },
+                openGallery = {
+
+                    photoPickerLauncher.launch(
+                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                    )
+
+                },
+                removeProfile = {
+                    isProfileSelected = false
+                    signupViewModel.updateProfileImage(bitmap = null)
+
                 }
 
+            )
+
+            CustomColumnCardCreator(
+                modifier = Modifier,
+                anyComposable = @Composable {
+                    CustomOutlinedInput(
+                        modifier = Modifier
+                            .bringIntoViewRequester(namesBringIntoView)
+                            .focusRequester(focusRequester = fNameFocusRequester),
+                        text = signupData.value.firstName,
+                        onTextChanged = {
+
+                            signupViewModel.updateSignupData(it, TextFieldType.FirstName)
+
+                        },
+                        label = "First name",
+                        isError = fNameColor,
+                        regex = InputsRegex.NAME_REGEX,
+                    )
+
+
+                    CustomOutlinedInput(
+                        modifier = Modifier
+                            .focusRequester(focusRequester = lNameFocusRequester),
+                        text = signupData.value.lastName,
+                        onTextChanged = {
+
+                            signupViewModel.updateSignupData(it, TextFieldType.LastName)
+                        },
+                        label = "Last name",
+                        isError = lNameColor,
+                        regex = InputsRegex.NAME_REGEX
+
+                    )
+                }
+            )
+
+
+            CustomColumnCardCreator(
+                modifier = Modifier,
+                anyComposable = @Composable {
+                    SignupEmail(
+                        modifier = Modifier
+                            .bringIntoViewRequester(emailBringIntoView),
+                        selectEmail = {
+                            primaryEmailIndex = it
+                            isPrimaryEmailSelected = true
+                        },
+                        isPrimaryEmailSelected = isPrimaryEmailSelected,
+                        closeButtonClick = {
+                            primaryEmailIndex = 0
+                            isPrimaryEmailSelected = false
+                        },
+                        primaryEmailIndex = primaryEmailIndex,
+                        emailList = emailList,
+                        isFieldError = signupViewModel.emailListColor,
+                        removeField = {
+                            if (emailList.size > 1 && it != primaryEmailIndex) {
+
+                                if (primaryEmailIndex == 1) {
+                                    emailList.removeAt(0)
+                                    signupViewModel.emailListColor.removeAt(0)
+                                    primaryEmailIndex = 0
+                                } else {
+
+                                    emailList.removeAt(it)
+                                    signupViewModel.emailListColor.removeAt(it)
+
+                                }
+
+                            }
+
+                        },
+                        regex = InputsRegex.EMAIL_ALLOWED_REGEX,
+                        emailFocusRequester = emailFocusRequester,
+
+
+                        )
+                }
+            )
+
+            CustomColumnCardCreator(
+                modifier = Modifier,
+                anyComposable = @Composable {
+                    SignupPhone(
+                        modifier = Modifier
+                            .bringIntoViewRequester(phoneBringIntoView)
+                            .focusRequester(focusRequester = phoneFocusRequester),
+                        selectPhone = {
+                            primaryPhoneIndex = it
+                            isPrimaryPhoneSelected = true
+                        },
+                        isPrimaryPhoneSelected = isPrimaryPhoneSelected,
+                        closeButtonClick = {
+                            primaryPhoneIndex = 0
+                            isPrimaryPhoneSelected = false
+                        },
+                        primaryPhoneIndex = primaryPhoneIndex,
+                        phoneList = phoneList,
+                        isFieldError = signupViewModel.phoneListColor,
+                        removeField = {
+                            if (phoneList.size > 1 && it != primaryPhoneIndex) {
+                                if (primaryPhoneIndex == 1) {
+                                    phoneList.removeAt(0)
+                                    signupViewModel.phoneListColor.removeAt(0)
+                                    primaryPhoneIndex = 0
+                                } else {
+
+                                    phoneList.removeAt(it)
+                                    signupViewModel.phoneListColor.removeAt(it)
+                                }
+
+                            }
+                        },
+                        regex = InputsRegex.PHONE_NUMBER_REGEX,
+                        phoneFocusRequester = phoneFocusRequester
+
+
+                    )
+                }
+            )
+
+
+            LaunchedEffect(key1 = keyBoardState) {
+                if (keyBoardState == Keyboard.Closed && isAgeFocused) {
+                    focusManager.clearFocus()
+
+                    if (signupData.value.age != null && signupData.value.age.isNotEmpty()) {
+                        signupViewModel.updateSignupData(
+                            text = convertMillisToDate(
+                                Date().time.minus(
+                                    yearsToMillis(signupData.value.age.toLong())
+                                )
+                            ),
+                            TextFieldType.DOB,
+                        )
+                    } else {
+                        signupViewModel.updateSignupData("0", TextFieldType.Age)
+                    }
+
+                }
+            }
+
+            CustomRowCardCreator(
+                modifier = Modifier,
+                anyComposable = {
+                    CustomOutlinedInput(
+                        modifier = Modifier
+                            .weight(0.4f)
+                            .focusRequester(focusRequester = ageFocusRequester),
+                        text = if (signupData.value.age != null) signupData.value.age else "0",
+                        onTextChanged = {
+
+                            signupViewModel.updateSignupData(it, TextFieldType.Age)
+                        },
+                        label = "Age",
+                        keyBoardType = KeyboardType.Phone,
+                        focusChanged = { state ->
+                            isAgeFocused = state.isFocused
+                        },
+                        regex = InputsRegex.AGE_REGEX,
+                        updateFocusChangeValue = {
+                            if (signupData.value.age != null && signupData.value.age.isNotEmpty()) {
+                                signupViewModel.updateSignupData(
+                                    text = convertMillisToDate(
+                                        Date().time.minus(
+                                            yearsToMillis(signupData.value.age.toLong())
+                                        )
+                                    ),
+                                    TextFieldType.DOB,
+                                )
+                            } else {
+                                signupViewModel.updateSignupData("0", TextFieldType.Age)
+                            }
+                        }
+
+                    )
+
+                    Divider(
+                        color = Color.Black.copy(alpha = 0.3f),
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .width(1.dp)
+                    )
+
+
+                    DatePickerBar(
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .fillMaxWidth()
+                            .wrapContentSize()
+                            .weight(0.4f),
+                        text = "Pick your date of birth",
+                        onClick = { isDatePickerSheetOpen = true },
+                        selectedDate = signupData.value.dob,
+                    )
+                }
+            )
+
+
+            CustomColumnCardCreator(
+                modifier = Modifier,
+                anyComposable = @Composable {
+                    CustomOutlinedInput(
+                        text = signupData.value.address,
+                        onTextChanged = {
+
+                            signupViewModel.updateSignupData(text = it, TextFieldType.Address)
+                        },
+                        label = "Enter your address",
+                        minLines = 3,
+                        maxLines = 5,
+                        isError = addressColor,
+                        regex = InputsRegex.ALLOW_ANY_REGEX
+                    )
+                }
+            )
+            CustomColumnCardCreator(
+                modifier = Modifier,
+                anyComposable = {
+                    CustomOutlinedInput(
+                        text = signupData.value.website,
+                        onTextChanged = {
+                            signupViewModel.updateSignupData(
+                                text = it,
+                                type = TextFieldType.Website
+                            )
+                        },
+                        label = "Website",
+                        regex = InputsRegex.WEBSITE_REGEX_ALLOWED_PARAM
+                    )
+                }
+            )
+
+            if (!isNavigatedFromContactScreen) {
+                CustomColumnCardCreator(
+                    modifier = Modifier,
+                    anyComposable = @Composable {
+                        CustomOutlinedPasswordInput(
+                            modifier = Modifier
+                                .focusRequester(focusRequester = passwordFocusRequester),
+                            text = signupData.value.password,
+                            onTextChanged = {
+                                signupViewModel.updateSignupData(
+                                    text = it,
+                                    TextFieldType.Password
+                                )
+                            },
+                            label = "Password",
+                            isError = passwordColor,
+                            regex = InputsRegex.PASSWORD_REGEX
+
+
+                        )
+
+                        CustomOutlinedPasswordInput(
+                            modifier = Modifier
+                                .focusRequester(focusRequester = confirmPasswordFocusRequester),
+                            text = confirmPassword,
+                            onTextChanged = { confirmPassword = it },
+                            label = "confirm password",
+                            isError = confirmPasswordColor,
+                            regex = InputsRegex.PASSWORD_REGEX
+
+
+                        )
+                    }
+                )
+            }
+
+
+            if (isDatePickerSheetOpen) {
+                ModalBottomSheet(
+                    modifier = Modifier
+                        .fillMaxSize(1f),
+                    onDismissRequest = { isDatePickerSheetOpen = false },
+                    sheetState = datePickerSheetState,
+
+                    ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                    ) {
+
+                        CustomDatePicker(
+                            datePickerState = datePickerState,
+                            onDismiss = { isDatePickerSheetOpen = false },
+                            onClick = {
+
+                                signupViewModel.updateSignupData(it, TextFieldType.DOB)
+                            },
+                            updateAge = {
+
+                                signupViewModel.updateSignupData(it, TextFieldType.Age)
+                            }
+                        )
+                    }
+
+
+                }
 
             }
 
-        }
+
+            if (isCameraSheetOpen) {
 
 
-        if (isCameraSheetOpen) {
-
-
-            ModalBottomSheet(
-                onDismissRequest = { isCameraSheetOpen = false },
-                sheetState = cameraSheetState,
-                modifier = Modifier
-                    .fillMaxSize()
-
-            ) {
-
-                Column(
+                ModalBottomSheet(
+                    onDismissRequest = { isCameraSheetOpen = false },
+                    sheetState = cameraSheetState,
                     modifier = Modifier
-                        .fillMaxSize(),
-                    verticalArrangement = Arrangement.SpaceBetween
+                        .fillMaxSize()
+
                 ) {
 
-                    CameraPreview(
+                    Column(
                         modifier = Modifier
-                            .weight(0.9f)
                             .fillMaxSize(),
-                        controller = cameraController
-                    )
-
-                    Row(
-                        modifier = Modifier
-                            .weight(0.1f)
-                            .fillMaxSize(),
-                        horizontalArrangement = Arrangement.SpaceEvenly
+                        verticalArrangement = Arrangement.SpaceBetween
                     ) {
-                        IconButton(
-                            onClick = {
-                                takePhoto(
-                                    controller = cameraController,
-                                    mContext = context,
-                                    onPhotoTaken = {
-                                        tempImageHolder = it
 
-                                    }
+                        CameraPreview(
+                            modifier = Modifier
+                                .weight(0.9f)
+                                .fillMaxSize(),
+                            controller = cameraController
+                        )
 
-                                )
-//
-                                isPhotoTaken = true
-                            },
+                        Row(
+                            modifier = Modifier
+                                .weight(0.1f)
+                                .fillMaxSize(),
+                            horizontalArrangement = Arrangement.SpaceEvenly
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.Camera,
-                                contentDescription = "take picture"
-                            )
+                            IconButton(
+                                onClick = {
+                                    takePhoto(
+                                        controller = cameraController,
+                                        mContext = context,
+                                        onPhotoTaken = {
+                                            tempImageHolder = it
+
+                                        }
+
+                                    )
+//
+                                    isPhotoTaken = true
+                                },
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Camera,
+                                    contentDescription = "take picture"
+                                )
+                            }
+
                         }
 
                     }
 
+
                 }
-
-
             }
         }
     }
@@ -973,6 +980,67 @@ private fun takePhoto(
     )
 }
 
+
+@Composable
+fun SignupTopBar(
+    modifier: Modifier,
+    isNavigatedFromContactScreen: Boolean,
+    cancelButtonClick: () -> Unit,
+    saveButtonClick: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(White),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        if (isNavigatedFromContactScreen) {
+            TextButton(
+                modifier = Modifier
+                    .weight(0.5f)
+                    .padding(MaterialTheme.dimens.signupDimension.padding08)
+                    .fillMaxWidth(),
+                onClick = {
+                    cancelButtonClick()
+                }
+            ) {
+                Text(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    text = "Cancel",
+                    color = Blue,
+                    style = TextStyle(
+                        fontSize = MaterialTheme.typography.h6.fontSize,
+                        textAlign = TextAlign.Start
+                    )
+                )
+            }
+        }
+
+
+        TextButton(
+            modifier = Modifier
+                .weight(0.5f)
+                .padding(MaterialTheme.dimens.signupDimension.padding08)
+                .fillMaxWidth(),
+            onClick = {
+                saveButtonClick()
+            }
+        ) {
+            Text(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                text = "Save",
+                color = Blue,
+                style = TextStyle(
+                    fontSize = MaterialTheme.typography.h6.fontSize,
+                    textAlign = TextAlign.End
+                )
+            )
+        }
+    }
+
+}
 
 fun yearsToMillis(years: Long): Long {
     val days = years * 365

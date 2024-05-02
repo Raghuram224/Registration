@@ -14,7 +14,7 @@ import com.example.registration.view.contactScreen.ContactScreen
 import com.example.registration.view.loginScreen.LoginScreen
 import com.example.registration.view.signupScreen.SignupScreen
 import com.example.registration.viewModels.LoginViewModel
-import com.example.registration.viewModels.ProfileViewModel
+import com.example.registration.viewModels.ContactViewModel
 import com.example.registration.viewModels.SignupViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -33,7 +33,7 @@ class MainActivity : ComponentActivity() {
 
                 val navGraph = remember(navController) {
 
-                    navController.createGraph(startDestination = "ProfileScreen") {
+                    navController.createGraph(startDestination = "LoginScreen") {
                         composable(route = "LoginScreen") {
                             val loginViewModel = hiltViewModel<LoginViewModel>()
 
@@ -53,10 +53,10 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                         composable(route = "ProfileScreen") {
-                            val profileViewModel = hiltViewModel<ProfileViewModel>()
+                            val contactViewModel = hiltViewModel<ContactViewModel>()
                             ContactScreen(
                                 navController = navController,
-                                profileViewModel = profileViewModel
+                                contactViewModel = contactViewModel
                             )
                         }
 

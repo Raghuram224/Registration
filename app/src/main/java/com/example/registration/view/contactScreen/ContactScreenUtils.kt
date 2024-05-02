@@ -1,15 +1,24 @@
 package com.example.registration.view.contactScreen
 
+import android.Manifest
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -23,12 +32,17 @@ import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Web
-import androidx.compose.material.icons.filled.WebAsset
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DismissDirection
+import androidx.compose.material3.DismissValue
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.SwipeToDismiss
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberDismissState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,22 +57,38 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.registration.R
+import com.example.registration.ui.theme.DarkGreen
 import com.example.registration.ui.theme.White
 import com.example.registration.ui.theme.dimens
 import com.example.registration.viewModels.PersonalInformation
+import com.example.registration.viewModels.ContactViewModel
+import kotlinx.coroutines.delay
 
 @Composable
 fun ContactDetails(
     modifier: Modifier,
     uiColor: Color,
-    contactDetails: PersonalInformation
+    contactDetails: PersonalInformation,
+    contactViewModel: ContactViewModel,
+    context: Context
 ) {
-//    val tempList = mutableListOf("9898453", "98988989")
-//    val tempEmailList = mutableListOf("raghu@gmail.com", "master@gmail.com")
+    var hasPhonePermission by remember {
+        mutableStateOf(false)
+    }
+    val phoneContract =
+        rememberLauncherForActivityResult(contract = ActivityResultContracts.RequestPermission()) {
+            if (it) {
+                hasPhonePermission = true
+
+            } else {
+                Toast.makeText(context, "phone permission denied", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+
     Card(
         modifier = modifier
             .fillMaxSize(),
@@ -95,36 +125,53 @@ fun ContactDetails(
                 categoryName = "Number",
                 itemValue = contactDetails.primaryPhone,
                 itemList = contactDetails.otherPhones,
-                tintColor = uiColor
-            )
+                tintColor = uiColor,
+                swipeAction = {
+                    if (contactViewModel.hasPhonePermission() || hasPhonePermission) {
+                        openDialer(context = context, it)
+                    } else {
+                        phoneContract.launch(Manifest.permission.CALL_PHONE)
+                    }
+                },
+                context = context,
+
+                )
             ContactItem(
                 modifier = Modifier,
                 icon = Icons.Default.Email,
                 categoryName = "Email",
                 itemValue = contactDetails.primaryEmail,
                 itemList = contactDetails.otherEmails,
-                tintColor = uiColor
+                tintColor = uiColor,
+                context = context
+
             )
             ContactItem(
                 modifier = Modifier,
                 icon = Icons.Default.CalendarMonth,
                 categoryName = "Birthday",
                 itemValue = contactDetails.dob,
-                tintColor = uiColor
+                tintColor = uiColor,
+                context = context
+
             )
             ContactItem(
                 modifier = Modifier,
                 icon = Icons.Default.LocationOn,
                 categoryName = "Address",
                 itemValue = contactDetails.address,
-                tintColor = uiColor
+                tintColor = uiColor,
+                context = context
+
             )
             ContactItem(
                 modifier = Modifier,
                 icon = Icons.Default.Web,
                 categoryName = "Website",
                 itemValue = contactDetails.website,
-                tintColor = uiColor
+                tintColor = uiColor,
+                context = context
+
             )
 
         }
@@ -132,10 +179,16 @@ fun ContactDetails(
 
 }
 
+fun openDialer(context: Context, phoneNumber: String) {
+    val intent = Intent(Intent.ACTION_DIAL)
+    intent.setData(Uri.parse("tel:$phoneNumber"))
+    context.startActivity(intent)
+}
+
 @Composable
 fun ContactProfile(
     modifier: Modifier,
-    contactDetails:PersonalInformation
+    contactDetails: PersonalInformation
 ) {
     Column(
         modifier = modifier
@@ -225,9 +278,11 @@ fun ContactItem(
     categoryName: String,
     itemValue: String,
     itemList: List<String>? = emptyList(),
-    tintColor: Color
+    tintColor: Color,
+    context: Context,
+    swipeAction: (String) -> Unit = {},
 
-) {
+    ) {
     var isExpanded by remember {
 
         mutableStateOf(false)
@@ -269,33 +324,55 @@ fun ContactItem(
                 )
             )
 
-            Text(
-                modifier = Modifier
-                    .padding(MaterialTheme.dimens.contactDimension.padding02),
-                text = itemValue,
-                style = TextStyle(
-                    fontSize = MaterialTheme.typography.subtitle1.fontSize,
-                    fontWeight = FontWeight.Light
+            if (categoryName == "Number") {
+                SwipeToCallContainer(
+                    modifier = Modifier,
+                    item = itemValue,
+                    onCall = { swipeAction(itemValue) }
+                ) {
+                    Text(
+                        modifier = Modifier
+                            .heightIn(40.dp)
+                            .padding(MaterialTheme.dimens.contactDimension.padding02)
+                            .clickable {
+                                openDialer(context = context, itemValue)
+                            },
+                        text = itemValue,
+                        style = TextStyle(
+                            fontSize = MaterialTheme.typography.h6.fontSize,
+                            fontWeight = FontWeight.W300
+                        )
+                    )
+                }
+            } else {
+                Text(
+                    modifier = Modifier
+                        .heightIn(40.dp)
+                        .padding(MaterialTheme.dimens.contactDimension.padding02),
+                    text = itemValue,
+                    style = TextStyle(
+                        fontSize = MaterialTheme.typography.h6.fontSize,
+                        fontWeight = FontWeight.W300
+                    )
                 )
-            )
+            }
             if (!itemList.isNullOrEmpty()) {
                 if (isExpanded) {
 
                     itemList.forEach {
                         Text(
                             modifier = Modifier
+                                .heightIn(40.dp)
                                 .padding(MaterialTheme.dimens.contactDimension.padding02),
                             text = it,
                             style = TextStyle(
-                                fontSize = MaterialTheme.typography.subtitle1.fontSize,
-                                fontWeight = FontWeight.Light
+                                fontSize = MaterialTheme.typography.h6.fontSize,
+                                fontWeight = FontWeight.W300
                             )
                         )
                     }
                 }
 
-
-//                }
             }
         }
         if (!itemList.isNullOrEmpty()) {
@@ -309,5 +386,85 @@ fun ContactItem(
         }
     }
 
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun <T> SwipeToCallContainer(
+    modifier: Modifier,
+    item: T,
+    onCall: () -> Unit,
+    animationDuration: Long = 500,
+    content: @Composable (T) -> Unit
+) {
+    var isCallStarts by remember {
+        mutableStateOf(false)
+    }
+
+    val state = rememberDismissState(
+        confirmValueChange = { value ->
+            when (value) {
+                DismissValue.DismissedToEnd -> {
+                   isCallStarts = true
+                    true
+                }
+
+                DismissValue.DismissedToStart -> true
+                else -> false
+            }
+
+        }
+    )
+
+    val bgColor =
+        when (state.dismissDirection) {
+            DismissDirection.StartToEnd -> DarkGreen
+            DismissDirection.EndToStart -> Color.Transparent
+            else -> Color.Transparent
+        }
+
+    LaunchedEffect(key1 = isCallStarts) {
+        if (isCallStarts) {
+            delay(animationDuration)
+            onCall()
+            state.reset()
+            isCallStarts = false
+
+        }
+    }
+    SwipeToDismiss(
+        state = state,
+        background = {
+            CallerBackground(
+                bgColor = bgColor
+            )
+        },
+        dismissContent = { content(item) },
+        directions = setOf(DismissDirection.StartToEnd)
+    )
+
+
+}
+
+
+@Composable
+fun CallerBackground(
+    bgColor: Color
+) {
+
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(bgColor),
+        contentAlignment = Alignment.CenterStart
+
+    ) {
+        Icon(
+            imageVector = Icons.Default.Phone,
+            contentDescription = "Call",
+            tint = White
+        )
+    }
 }
 
