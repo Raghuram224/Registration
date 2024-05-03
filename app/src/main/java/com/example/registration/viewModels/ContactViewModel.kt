@@ -1,8 +1,8 @@
 package com.example.registration.viewModels
 
-import android.graphics.Bitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.registration.constants.constantModals.PersonalInformation
 import com.example.registration.modal.LocalDBRepo
 import com.example.registration.permissionHandler.PermissionHandler
 import com.example.registration.ui.theme.Blue
@@ -41,7 +41,7 @@ class ContactViewModel @Inject constructor(
     }
 
 
-    val _uiColor = listOf(DarkGreen, RedBG, Blue).random()
+    private val _uiColor = listOf(DarkGreen, RedBG, Blue).random()
     val uiColor = _uiColor
     val userDetails = _userDetails.asStateFlow()
 
@@ -66,8 +66,8 @@ class ContactViewModel @Inject constructor(
                 _userDetails.value.dob = it.dob
                 _userDetails.value.primaryEmail = it.primaryEmail
                 _userDetails.value.primaryPhone = it.primaryPhone
-                _userDetails.value.otherEmails = it.otherEmails?.split(",")
-                _userDetails.value.otherPhones = it.otherPhones?.split(",")
+                _userDetails.value.otherEmails = convertStringToList(text = it.otherEmails)
+                _userDetails.value.otherPhones = convertStringToList(text = it.otherPhones)
                 _userDetails.value.address = it.address
                 _userDetails.value.profileImage = it.profileImage
                 _userDetails.value.website  = it.website
@@ -80,17 +80,3 @@ class ContactViewModel @Inject constructor(
 
 }
 
-data class PersonalInformation(
-    var firstName: String,
-    var lastName: String,
-    var age: String,
-    var address: String,
-    var dob: String,
-    var primaryEmail: String,
-    var primaryPhone: String,
-    var otherEmails: List<String>?,
-    var otherPhones: List<String>?,
-    var profileImage: Bitmap?,
-    var website: String,
-
-    )

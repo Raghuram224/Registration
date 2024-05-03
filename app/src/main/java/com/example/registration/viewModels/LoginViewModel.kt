@@ -1,19 +1,16 @@
 package com.example.registration.viewModels
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import com.example.registration.constants.PasswordHash
+import com.example.registration.constants.constantModals.LoginInputFields
 import com.example.registration.modal.LocalDBRepo
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 
-enum class LoginInputFields {
-    Email,
-    Password,
-}
+
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
@@ -27,14 +24,16 @@ class LoginViewModel @Inject constructor(
     val passwords = _password.asStateFlow()
 
 
-    fun authenticateEmail(email: String): Boolean {
-        return email == localDBRepo.userDetails.primaryEmail
 
-    }
-
-    fun authenticatePassword(password: String): Boolean {
-        return password == localDBRepo.userDetails.password
-    }
+//    fun authenticateEmail(email: String): Boolean {
+//        localDBRepo.currentUserDetails
+//        return email == localDBRepo.authenticateUserDetails.primaryEmail
+//
+//    }
+//
+//    fun authenticatePassword(password: String): Boolean {
+//        return password == localDBRepo.authenticateUserDetails.password
+//    }
 
     fun updateLoginData(text: String, type: LoginInputFields) {
 
@@ -49,13 +48,17 @@ class LoginViewModel @Inject constructor(
         }
     }
 
-    fun clearData() {
-        viewModelScope.launch {
-            localDBRepo.clearData()
-//            localDBRepo.updateDBData()
-        }
+    fun authenticateEmail(email: String):Boolean{
 
+        return localDBRepo.authenticateEmail(email)
     }
+    fun authenticatePassword(password: String):Boolean{
+        return  localDBRepo.authenticatePassword( password = PasswordHash.generateHash(password))
+    }
+
+
+
+
 
 
 }

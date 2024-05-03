@@ -27,13 +27,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.registration.R
+import com.example.registration.constants.constantModals.LoginInputFields
 import com.example.registration.constants.InputsRegex
 import com.example.registration.ui.theme.Blue
-import com.example.registration.ui.theme.DarkGreen
 import com.example.registration.view.utils.CustomEmail
 import com.example.registration.view.utils.CustomHyperLink
 import com.example.registration.view.utils.CustomPassword
-import com.example.registration.viewModels.LoginInputFields
 import com.example.registration.viewModels.LoginViewModel
 
 @Composable
@@ -103,7 +102,10 @@ fun LoginPortrait(
             email = email,
             emailStringCallback = {
 
-                Log.i("inputs match : $it", it.matches(regex = Regex(InputsRegex.EMAIL_ALLOWED_REGEX)).toString())
+                Log.i(
+                    "inputs match : $it",
+                    it.matches(regex = Regex(InputsRegex.EMAIL_ALLOWED_REGEX)).toString()
+                )
                 if (it.matches(regex = Regex(InputsRegex.EMAIL_ALLOWED_REGEX))) {
 
                     loginViewModel.updateLoginData(text = it, type = LoginInputFields.Email)
@@ -133,11 +135,14 @@ fun LoginPortrait(
                 .padding(vertical = 16.dp)
                 .fillMaxWidth(),
             onClick = {
+
                 var toastText = "Invalid credentials"
                 if (email.matches(regex = Regex(InputsRegex.EMAIL_VALIDATION_REGEX))) {
                     if (email.isNotEmpty() && password.isNotEmpty()) {
 
                         if (loginViewModel.authenticateEmail(email = email)) {
+
+
 
                             isEmailError = false
                             if (loginViewModel.authenticatePassword(password = password)) {
@@ -155,7 +160,7 @@ fun LoginPortrait(
                         } else {
                             emailFocusRequester.requestFocus()
                             isEmailError = true
-                            isPasswordError =true
+                            isPasswordError = true
                             toastText = "Email or password wrong"
 
                         }

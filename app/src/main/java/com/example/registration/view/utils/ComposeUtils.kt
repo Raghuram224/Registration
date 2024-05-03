@@ -91,7 +91,9 @@ fun CustomEmail(
                 focusedContainerColor = White,
                 unfocusedContainerColor = White
             ),
-            isError = isEmailError
+            isError = isEmailError,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
+
 
 
 
@@ -167,7 +169,8 @@ fun CustomPassword(
 
 
             },
-            isError = isPasswordError
+            isError = isPasswordError,
+
 
 
         )

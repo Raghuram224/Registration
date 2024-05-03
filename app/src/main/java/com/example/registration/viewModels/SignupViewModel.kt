@@ -4,10 +4,12 @@ import android.graphics.Bitmap
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.registration.constants.constantModals.OtherEmailOrPhoneFields
+import com.example.registration.constants.constantModals.TextFieldType
+import com.example.registration.constants.constantModals.UserDetails
 import com.example.registration.constants.InputsRegex
 import com.example.registration.modal.LocalDBRepo
 import com.example.registration.permissionHandler.PermissionHandler
-import com.example.registration.view.signupScreen.UserDetails
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,24 +18,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 
-enum class TextFieldType {
-    FirstName,
-    LastName,
-    Age,
-    Address,
-    DOB,
-    PrimaryEmail,
-    PrimaryPhone,
-    Password,
-    Website
 
-
-}
-
-enum class OtherEmailOrPhoneFields {
-    OtherEmail,
-    OtherPhones,
-}
 
 
 @HiltViewModel
@@ -43,11 +28,24 @@ class SignupViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _signupData = MutableStateFlow(
-        setContactsDetails()
+        UserDetails(
+            dob = "",
+            age = "",
+            lastName = "",
+            firstName = "",
+            address = "",
+            primaryPhone = "",
+            primaryEmail = "",
+            otherPhones = null,
+            otherEmails = null,
+            website = "",
+            password = "",
+            profileImage = null
+
+        )
     )
 
     private var _profileImage = MutableStateFlow<Bitmap?>(_signupData.value.profileImage)
-    private val _isNavigatedFromContactScreen = MutableStateFlow(!localDBRepo.isLocalDbEmpty())
 
     val signupData = _signupData.asStateFlow()
     var emailList = mutableStateListOf("")
@@ -55,7 +53,6 @@ class SignupViewModel @Inject constructor(
     val profileImage = _profileImage.asStateFlow()
     val emailListColor = mutableStateListOf(false)
     val phoneListColor = mutableStateListOf(false)
-    val isNavigatedFromContactScreen = _isNavigatedFromContactScreen.asStateFlow()
 
     lateinit var userDetails: UserDetails
 
@@ -146,28 +143,6 @@ class SignupViewModel @Inject constructor(
         }
     }
 
-    fun updateEmailAndPhoneList() {
-        val primaryEmail = _signupData.value.primaryEmail
-        val primaryPhone = _signupData.value.primaryPhone
-        emailList = mutableStateListOf(primaryEmail)
-        phoneList = mutableStateListOf(primaryPhone)
-
-        _signupData.value.otherEmails?.split(",")?.forEachIndexed { idx, item ->
-            if (!item.isNullOrEmpty()) {
-                emailList.add(item)
-                emailListColor.add(false)
-            }
-        }
-        _signupData.value.otherPhones?.split(",")?.forEachIndexed { idx, item ->
-            if (!item.isNullOrEmpty()) {
-                phoneList.add(item)
-                phoneListColor.add(false)
-            }
-
-        }
-    }
-
-
     fun checkFieldsValue(
         primaryEmail: String,
         primaryPhone: String,
@@ -200,12 +175,11 @@ class SignupViewModel @Inject constructor(
 
     fun insertData() {
         viewModelScope.launch {
-            localDBRepo.clearData()
-            localDBRepo.insetIntoDb(userDetails = userDetails)
+            localDBRepo.insetIntoDb(userDetails = _signupData.value)
         }
     }
 
-    fun checkValidEmail(): Boolean {
+    private fun checkValidEmail(): Boolean {
         var valid = false
         emailList.forEachIndexed { idx, item ->
             if (item.matches(regex = Regex(InputsRegex.EMAIL_VALIDATION_REGEX))) {
@@ -227,46 +201,45 @@ class SignupViewModel @Inject constructor(
         _signupData.value.profileImage = bitmap
     }
 
-    private fun setContactsDetails(): UserDetails {
-        if (localDBRepo.isLocalDbEmpty()) {
-            return UserDetails(
-                dob = "",
-                age = "",
-                lastName = "",
-                firstName = "",
-                address = "",
-                primaryPhone = "",
-                primaryEmail = "",
-                otherPhones = null,
-                otherEmails = null,
-                website = "",
-                password = "",
-                profileImage = null
+//    private fun setContactsDetails(): UserDetails {
+//            return UserDetails(
+//                dob = "",
+//                age = "",
+//                lastName = "",
+//                firstName = "",
+//                address = "",
+//                primaryPhone = "",
+//                primaryEmail = "",
+//                otherPhones = null,
+//                otherEmails = null,
+//                website = "",
+//                password = "",
+//                profileImage = null
+//
+//            )
+//        } else {
+//
+//            return UserDetails(
+//                dob = localDBRepo.userDetails.dob,
+//                age = localDBRepo.userDetails.age,
+//                lastName = localDBRepo.userDetails.lastName,
+//                firstName = localDBRepo.userDetails.firstName,
+//                address = localDBRepo.userDetails.address,
+//                primaryPhone = localDBRepo.userDetails.primaryPhone,
+//                primaryEmail = localDBRepo.userDetails.primaryEmail,
+//                otherPhones = localDBRepo.userDetails.otherPhones,
+//                otherEmails = localDBRepo.userDetails.otherEmails,
+//                website = localDBRepo.userDetails.website,
+//                password = localDBRepo.userDetails.password,
+//                profileImage = localDBRepo.userDetails.profileImage
+//
+//            )
+//        }
+//    }
 
-            )
-        } else {
-
-            return UserDetails(
-                dob = localDBRepo.userDetails.dob,
-                age = localDBRepo.userDetails.age,
-                lastName = localDBRepo.userDetails.lastName,
-                firstName = localDBRepo.userDetails.firstName,
-                address = localDBRepo.userDetails.address,
-                primaryPhone = localDBRepo.userDetails.primaryPhone,
-                primaryEmail = localDBRepo.userDetails.primaryEmail,
-                otherPhones = localDBRepo.userDetails.otherPhones,
-                otherEmails = localDBRepo.userDetails.otherEmails,
-                website = localDBRepo.userDetails.website,
-                password = localDBRepo.userDetails.password,
-                profileImage = localDBRepo.userDetails.profileImage
-
-            )
-        }
-    }
-
-    fun updateUIData(){
-        localDBRepo.updateDbData()
-    }
+//    fun updateUIData(){
+//        localDBRepo.updateDbData()
+//    }
 
 
 }

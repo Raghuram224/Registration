@@ -23,13 +23,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.registration.constants.AllScreens
+import com.example.registration.constants.constantModals.Screens
 import com.example.registration.ui.theme.White
 import com.example.registration.viewModels.ContactViewModel
 
 @Composable
 fun ContactScreen(
     navController: NavController,
-    contactViewModel: ContactViewModel
+    contactViewModel: ContactViewModel,
+
 ) {
 
     val activity = LocalContext.current as Activity
@@ -39,16 +42,10 @@ fun ContactScreen(
     val context = LocalContext.current
 
 
-//    contactViewModel.updateUIData()
-
-//    BackHandler {
-//        activity.finish()
-//    }
-
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { navController.navigate("SignupScreen") },
+                onClick = { navController.navigate(AllScreens.screen.editContactScreen) },
                 elevation = FloatingActionButtonDefaults.elevation(
                     defaultElevation = 10.dp
                 ),

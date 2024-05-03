@@ -4,10 +4,12 @@ import android.graphics.Bitmap
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.registration.constants.constantModals.OtherEmailOrPhoneFields
+import com.example.registration.constants.constantModals.TextFieldType
+import com.example.registration.constants.constantModals.UserDetails
 import com.example.registration.constants.InputsRegex
 import com.example.registration.modal.LocalDBRepo
 import com.example.registration.permissionHandler.PermissionHandler
-import com.example.registration.view.signupScreen.UserDetails
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -20,22 +22,20 @@ class EditContactsViewmodel @Inject constructor(
     private val localDBRepo: LocalDBRepo,
     private val permissionHandler: PermissionHandler
 ) : ViewModel() {
-    private val _signupData = MutableStateFlow(
+    private val _contactData = MutableStateFlow(
         setContactsDetails()
     )
 
-    private var _profileImage = MutableStateFlow<Bitmap?>(_signupData.value.profileImage)
-    private val _isNavigatedFromContactScreen = MutableStateFlow(!localDBRepo.isLocalDbEmpty())
+    private var _profileImage = MutableStateFlow<Bitmap?>(_contactData.value.profileImage)
+    private var _isDataLoaded = MutableStateFlow(false)
 
-    val signupData = _signupData.asStateFlow()
-    var emailList = mutableStateListOf("")
-    var phoneList = mutableStateListOf("")
+    val contactData = _contactData.asStateFlow()
+    var emailList = mutableStateListOf(_contactData.value.primaryEmail)
+    var phoneList = mutableStateListOf(_contactData.value.primaryPhone)
     val profileImage = _profileImage.asStateFlow()
     val emailListColor = mutableStateListOf(false)
     val phoneListColor = mutableStateListOf(false)
-    val isNavigatedFromContactScreen = _isNavigatedFromContactScreen.asStateFlow()
-
-    lateinit var userDetails: UserDetails
+    val isDataLoaded = _isDataLoaded.asStateFlow()
 
 
     fun convertListToString(list: List<String>, idx: Int): String? {
@@ -50,58 +50,58 @@ class EditContactsViewmodel @Inject constructor(
     }
 
 
-    fun updateSignupData(text: String, type: TextFieldType) {
+    fun updateContactData(text: String, type: TextFieldType) {
         when (type) {
             TextFieldType.FirstName -> {
-                _signupData.update {
+                _contactData.update {
                     it.copy(firstName = text)
                 }
             }
 
             TextFieldType.LastName -> {
-                _signupData.update {
+                _contactData.update {
                     it.copy(lastName = text)
                 }
             }
 
             TextFieldType.Age -> {
-                _signupData.update {
+                _contactData.update {
                     it.copy(age = text)
                 }
             }
 
             TextFieldType.Address -> {
-                _signupData.update {
+                _contactData.update {
                     it.copy(address = text)
                 }
             }
 
             TextFieldType.DOB -> {
-                _signupData.update {
+                _contactData.update {
                     it.copy(dob = text)
                 }
             }
 
             TextFieldType.PrimaryEmail -> {
-                _signupData.update {
+                _contactData.update {
                     it.copy(primaryEmail = text)
                 }
             }
 
             TextFieldType.PrimaryPhone -> {
-                _signupData.update {
+                _contactData.update {
                     it.copy(primaryPhone = text)
                 }
             }
 
             TextFieldType.Password -> {
-                _signupData.update {
+                _contactData.update {
                     it.copy(password = text)
                 }
             }
 
             TextFieldType.Website -> {
-                _signupData.update {
+                _contactData.update {
                     it.copy(website = text)
                 }
             }
@@ -111,37 +111,16 @@ class EditContactsViewmodel @Inject constructor(
     fun updateOtherEmailOrPhone(text: String?, type: OtherEmailOrPhoneFields) {
         when (type) {
             OtherEmailOrPhoneFields.OtherEmail -> {
-                _signupData.update {
+                _contactData.update {
                     it.copy(otherEmails = text)
                 }
             }
 
             OtherEmailOrPhoneFields.OtherPhones -> {
-                _signupData.update {
+                _contactData.update {
                     it.copy(otherPhones = text)
                 }
             }
-        }
-    }
-
-    fun updateEmailAndPhoneList() {
-        val primaryEmail = _signupData.value.primaryEmail
-        val primaryPhone = _signupData.value.primaryPhone
-        emailList = mutableStateListOf(primaryEmail)
-        phoneList = mutableStateListOf(primaryPhone)
-
-        _signupData.value.otherEmails?.split(",")?.forEachIndexed { idx, item ->
-            if (!item.isNullOrEmpty()) {
-                emailList.add(item)
-                emailListColor.add(false)
-            }
-        }
-        _signupData.value.otherPhones?.split(",")?.forEachIndexed { idx, item ->
-            if (!item.isNullOrEmpty()) {
-                phoneList.add(item)
-                phoneListColor.add(false)
-            }
-
         }
     }
 
@@ -161,39 +140,36 @@ class EditContactsViewmodel @Inject constructor(
 
     }
 
-    fun checkPassword(password: String, confirmPassword: String): Boolean {
-        return password == confirmPassword
-    }
-
-    fun getSignupDetails(): UserDetails {
-        return _signupData.value
-    }
-
 
     fun updateProfileImage(bitmap: Bitmap?) {
         _profileImage.value = bitmap
 
     }
 
-    fun insertData() {
+    fun updateData() {
         viewModelScope.launch {
-            localDBRepo.clearData()
-            localDBRepo.insetIntoDb(userDetails = userDetails)
+            localDBRepo.updateUserDetails(userDetails = _contactData.value)
         }
     }
 
-    fun checkValidEmail(): Boolean {
+    private fun checkValidEmail(): Boolean {
         var valid = false
         emailList.forEachIndexed { idx, item ->
-            if (item.matches(regex = Regex(InputsRegex.EMAIL_VALIDATION_REGEX))) {
-                valid = true
-            } else {
-                emailListColor[idx] = true
-                return false
+            if (item != null) {
+                if (item.matches(regex = Regex(InputsRegex.EMAIL_VALIDATION_REGEX))) {
+                    valid = true
+                } else {
+                    emailListColor[idx] = true
+                    return false
 
+                }
             }
         }
         return valid
+    }
+
+    private fun convertStringToList(text: String?): List<String>? {
+        return text?.split(",")
     }
 
     fun checkRequiredPermission(): Boolean {
@@ -201,48 +177,50 @@ class EditContactsViewmodel @Inject constructor(
     }
 
     fun updateProfileImageIntoDb(bitmap: Bitmap?) {
-        _signupData.value.profileImage = bitmap
+        _contactData.value.profileImage = bitmap
     }
 
     private fun setContactsDetails(): UserDetails {
-        if (localDBRepo.isLocalDbEmpty()) {
-            return UserDetails(
-                dob = "",
-                age = "",
-                lastName = "",
-                firstName = "",
-                address = "",
-                primaryPhone = "",
-                primaryEmail = "",
-                otherPhones = null,
-                otherEmails = null,
-                website = "",
-                password = "",
-                profileImage = null
 
-            )
-        } else {
-
-            return UserDetails(
-                dob = localDBRepo.userDetails.dob,
-                age = localDBRepo.userDetails.age,
-                lastName = localDBRepo.userDetails.lastName,
-                firstName = localDBRepo.userDetails.firstName,
-                address = localDBRepo.userDetails.address,
-                primaryPhone = localDBRepo.userDetails.primaryPhone,
-                primaryEmail = localDBRepo.userDetails.primaryEmail,
-                otherPhones = localDBRepo.userDetails.otherPhones,
-                otherEmails = localDBRepo.userDetails.otherEmails,
-                website = localDBRepo.userDetails.website,
-                password = localDBRepo.userDetails.password,
-                profileImage = localDBRepo.userDetails.profileImage
+        return localDBRepo.currentUserDetails.let {
+            UserDetails(
+                dob = it.dob,
+                age = it.age,
+                lastName = it.lastName,
+                firstName = it.firstName,
+                address = it.address,
+                primaryPhone = it.primaryPhone,
+                primaryEmail = it.primaryEmail,
+                otherPhones = it.otherPhones,
+                otherEmails = it.otherEmails,
+                website = it.website,
+                password = it.password,
+                profileImage = it.profileImage
 
             )
         }
+
     }
 
-    fun updateUIData() {
-        localDBRepo.updateDbData()
+    fun loadEmailAndOtherPhones() {
+        convertStringToList(contactData.value.otherEmails)?.forEach {
+            if (it.isNotEmpty()) {
+                emailList.add(it)
+                emailListColor.add(false)
+
+
+            }
+
+        }
+        convertStringToList(contactData.value.otherPhones)?.forEach {
+            if (it.isNotEmpty()) {
+                phoneList.add(it)
+                phoneListColor.add(false)
+            }
+
+        }
+
+        _isDataLoaded.value =true
     }
 
 

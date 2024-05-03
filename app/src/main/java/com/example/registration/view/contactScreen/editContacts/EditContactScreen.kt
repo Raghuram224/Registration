@@ -1,11 +1,9 @@
-package com.example.registration.view.contactScreen
+package com.example.registration.view.contactScreen.editContacts
 
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
-import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.Matrix
 import android.net.Uri
 import android.os.Build
 import android.util.Log
@@ -15,9 +13,6 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.camera.core.ImageCapture.OnImageCapturedCallback
-import androidx.camera.core.ImageCaptureException
-import androidx.camera.core.ImageProxy
 import androidx.camera.view.LifecycleCameraController
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
@@ -72,10 +67,13 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import com.example.registration.R
+import com.example.registration.constants.constantModals.Keyboard
+import com.example.registration.constants.constantModals.OtherEmailOrPhoneFields
+import com.example.registration.constants.constantModals.TextFieldType
 import com.example.registration.constants.InputsRegex
+import com.example.registration.constants.constantModals.Screens
 import com.example.registration.ui.theme.Blue
 import com.example.registration.ui.theme.White
 import com.example.registration.ui.theme.dimens
@@ -84,7 +82,6 @@ import com.example.registration.view.signupScreen.CustomDatePicker
 import com.example.registration.view.signupScreen.CustomOutlinedInput
 import com.example.registration.view.signupScreen.CustomRowCardCreator
 import com.example.registration.view.signupScreen.DatePickerBar
-import com.example.registration.view.signupScreen.Keyboard
 import com.example.registration.view.signupScreen.SignupEmail
 import com.example.registration.view.signupScreen.SignupPhone
 import com.example.registration.view.signupScreen.UserProfile
@@ -92,11 +89,10 @@ import com.example.registration.view.signupScreen.convertMillisToDate
 import com.example.registration.view.signupScreen.convertUriToBitmapAboveAndroidP
 import com.example.registration.view.signupScreen.convertUriToBitmapBelowAndroidP
 import com.example.registration.view.signupScreen.keyboardAsState
+import com.example.registration.view.signupScreen.takePhoto
 import com.example.registration.view.signupScreen.yearsToMillis
 import com.example.registration.view.utils.CameraPreview
 import com.example.registration.viewModels.EditContactsViewmodel
-import com.example.registration.viewModels.OtherEmailOrPhoneFields
-import com.example.registration.viewModels.TextFieldType
 import kotlinx.coroutines.launch
 import java.util.Date
 
@@ -108,6 +104,7 @@ fun EditContactScreen(
     modifier: Modifier = Modifier,
     editContactsViewModel: EditContactsViewmodel,
     navController: NavController,
+
 ) {
     val activity = LocalContext.current as Activity
     val scrollState = rememberScrollState()
@@ -178,14 +175,13 @@ fun EditContactScreen(
 
 
     // UI state
-    val contactData = editContactsViewModel.signupData.collectAsState() //Test
+    val contactData = editContactsViewModel.contactData.collectAsState() //Test
     val profileImage by editContactsViewModel.profileImage.collectAsState()
 
     val focusManager = LocalFocusManager.current
 
     val keyBoardState by keyboardAsState()
-
-    val isNavigatedFromContactScreen by editContactsViewModel.isNavigatedFromContactScreen.collectAsState()
+    val isDataLoaded by  editContactsViewModel.isDataLoaded.collectAsState()
 
 
     //Fields color
@@ -230,10 +226,10 @@ fun EditContactScreen(
             }
         }
 
-
     //list
     val emailList = editContactsViewModel.emailList
     val phoneList = editContactsViewModel.phoneList
+
 
     val coroutineScope = rememberCoroutineScope()
 
@@ -273,31 +269,21 @@ fun EditContactScreen(
 
 
     BackHandler {
-//        navController.popBackStack(route ="SignupScreen" ,false,false)
         navController.navigateUp()
-//        if (isNavigatedFromContactScreen){
-//            navController.navigate("ProfileScreen"){
-//                popUpTo(0)
-//            }
-//        }else{
-//            navController.navigate("LoginScreen"){
-//                popUpTo(navController.graph.id){
-//                    inclusive = false
-//                }
-//            }
-//        }
+
     }
 
-
+    if (!isDataLoaded){
+        editContactsViewModel.loadEmailAndOtherPhones()
+    }
+    Log.i("Data loaded",contactData.value.toString())
 
     Scaffold(
         topBar = {
             EditContactsTopBar(
                 modifier = Modifier,
-                isNavigatedFromContactScreen = isNavigatedFromContactScreen,
                 cancelButtonClick = { navController.navigateUp() },
                 saveButtonClick = {
-
 
                     editContactsViewModel.emailListColor[primaryEmailIndex] =
                         emailList[primaryEmailIndex].isEmpty()
@@ -338,26 +324,25 @@ fun EditContactScreen(
                             OtherEmailOrPhoneFields.OtherPhones
                         )
 
-                        editContactsViewModel.updateSignupData(
+                        editContactsViewModel.updateContactData(
                             text = emailList[primaryEmailIndex],
                             TextFieldType.PrimaryEmail
                         )
-                        editContactsViewModel.updateSignupData(
+                        editContactsViewModel.updateContactData(
                             text = phoneList[primaryPhoneIndex],
                             TextFieldType.PrimaryPhone
                         )
                         editContactsViewModel.updateProfileImageIntoDb(bitmap = profileImage)
 
-                        editContactsViewModel.userDetails = editContactsViewModel.getSignupDetails()
-                        editContactsViewModel.insertData()
+                        editContactsViewModel.updateData()
 
                         Toast.makeText(
                             context,
-                             "Contact saved" ,
+                            "Contact saved",
                             Toast.LENGTH_SHORT
                         ).show()
 
-                        editContactsViewModel.updateUIData()  // Update ui data
+//                        editContactsViewModel.updateUIData()  // Update ui data
 
                         navController.navigateUp()
 
@@ -392,7 +377,7 @@ fun EditContactScreen(
                                 phoneFocusRequester.requestFocus()
                             }
                             toastText = "Check phone  value"
-                        }  else {
+                        } else {
 
                             toastText = "Check fields value value"
                         }
@@ -464,7 +449,7 @@ fun EditContactScreen(
                         text = contactData.value.firstName,
                         onTextChanged = {
 
-                            editContactsViewModel.updateSignupData(it, TextFieldType.FirstName)
+                            editContactsViewModel.updateContactData(it, TextFieldType.FirstName)
 
                         },
                         label = "First name",
@@ -479,7 +464,7 @@ fun EditContactScreen(
                         text = contactData.value.lastName,
                         onTextChanged = {
 
-                            editContactsViewModel.updateSignupData(it, TextFieldType.LastName)
+                            editContactsViewModel.updateContactData(it, TextFieldType.LastName)
                         },
                         label = "Last name",
                         isError = lNameColor,
@@ -580,7 +565,7 @@ fun EditContactScreen(
                     focusManager.clearFocus()
 
                     if (contactData.value.age != null && contactData.value.age.isNotEmpty()) {
-                        editContactsViewModel.updateSignupData(
+                        editContactsViewModel.updateContactData(
                             text = convertMillisToDate(
                                 Date().time.minus(
                                     yearsToMillis(contactData.value.age.toLong())
@@ -589,7 +574,7 @@ fun EditContactScreen(
                             TextFieldType.DOB,
                         )
                     } else {
-                        editContactsViewModel.updateSignupData("0", TextFieldType.Age)
+                        editContactsViewModel.updateContactData("0", TextFieldType.Age)
                     }
 
                 }
@@ -605,7 +590,7 @@ fun EditContactScreen(
                         text = if (contactData.value.age != null) contactData.value.age else "0",
                         onTextChanged = {
 
-                            editContactsViewModel.updateSignupData(it, TextFieldType.Age)
+                            editContactsViewModel.updateContactData(it, TextFieldType.Age)
                         },
                         label = "Age",
                         keyBoardType = KeyboardType.Phone,
@@ -615,7 +600,7 @@ fun EditContactScreen(
                         regex = InputsRegex.AGE_REGEX,
                         updateFocusChangeValue = {
                             if (contactData.value.age != null && contactData.value.age.isNotEmpty()) {
-                                editContactsViewModel.updateSignupData(
+                                editContactsViewModel.updateContactData(
                                     text = convertMillisToDate(
                                         Date().time.minus(
                                             yearsToMillis(contactData.value.age.toLong())
@@ -624,7 +609,7 @@ fun EditContactScreen(
                                     TextFieldType.DOB,
                                 )
                             } else {
-                                editContactsViewModel.updateSignupData("0", TextFieldType.Age)
+                                editContactsViewModel.updateContactData("0", TextFieldType.Age)
                             }
                         }
 
@@ -659,7 +644,10 @@ fun EditContactScreen(
                         text = contactData.value.address,
                         onTextChanged = {
 
-                            editContactsViewModel.updateSignupData(text = it, TextFieldType.Address)
+                            editContactsViewModel.updateContactData(
+                                text = it,
+                                TextFieldType.Address
+                            )
                         },
                         label = "Enter your address",
                         minLines = 3,
@@ -675,7 +663,7 @@ fun EditContactScreen(
                     CustomOutlinedInput(
                         text = contactData.value.website,
                         onTextChanged = {
-                            editContactsViewModel.updateSignupData(
+                            editContactsViewModel.updateContactData(
                                 text = it,
                                 type = TextFieldType.Website
                             )
@@ -705,11 +693,11 @@ fun EditContactScreen(
                             onDismiss = { isDatePickerSheetOpen = false },
                             onClick = {
 
-                                editContactsViewModel.updateSignupData(it, TextFieldType.DOB)
+                                editContactsViewModel.updateContactData(it, TextFieldType.DOB)
                             },
                             updateAge = {
 
-                                editContactsViewModel.updateSignupData(it, TextFieldType.Age)
+                                editContactsViewModel.updateContactData(it, TextFieldType.Age)
                             }
                         )
                     }
@@ -761,7 +749,6 @@ fun EditContactScreen(
                                         }
 
                                     )
-//
                                     isPhotoTaken = true
                                 },
                             ) {
@@ -821,14 +808,15 @@ fun EditContactScreen(
                             )
                         }
 
-                        IconButton(onClick = {
+                        IconButton(
+                            onClick = {
 
-                            isPhotoTaken = false
-                            isProfileSelected = true
-                            isCameraSheetOpen = false
-                            editContactsViewModel.updateProfileImage(bitmap = tempImageHolder)
+                                isPhotoTaken = false
+                                isProfileSelected = true
+                                isCameraSheetOpen = false
+                                editContactsViewModel.updateProfileImage(bitmap = tempImageHolder)
 
-                        }) {
+                            }) {
                             Image(
                                 painter = painterResource(id = R.drawable.tick_ic),
                                 contentDescription = "accepted"
@@ -847,47 +835,9 @@ fun EditContactScreen(
 }
 
 
-private fun takePhoto(
-    controller: LifecycleCameraController,
-    mContext: Context,
-    onPhotoTaken: (bitmap: Bitmap) -> Unit,
-) {
-    controller.takePicture(
-        ContextCompat.getMainExecutor(mContext),
-        object : OnImageCapturedCallback() {
-            override fun onCaptureSuccess(image: ImageProxy) {
-                super.onCaptureSuccess(image)
-
-                val matrix = Matrix().apply {
-                    postRotate(image.imageInfo.rotationDegrees.toFloat())
-                }
-                val rotatedImage = Bitmap.createBitmap(
-                    image.toBitmap(),
-                    0,
-                    0,
-                    image.width,
-                    image.height,
-                    matrix,
-                    true
-                )
-                onPhotoTaken(rotatedImage)
-            }
-
-            override fun onError(exception: ImageCaptureException) {
-                super.onError(exception)
-
-                Log.i("Camera", "Error while taking photos", exception)
-            }
-
-        }
-    )
-}
-
-
 @Composable
 fun EditContactsTopBar(
     modifier: Modifier,
-    isNavigatedFromContactScreen: Boolean,
     cancelButtonClick: () -> Unit,
     saveButtonClick: () -> Unit,
 ) {
@@ -897,28 +847,27 @@ fun EditContactsTopBar(
             .background(White),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        if (isNavigatedFromContactScreen) {
-            TextButton(
-                modifier = Modifier
-                    .weight(0.5f)
-                    .padding(MaterialTheme.dimens.signupDimension.padding08)
-                    .fillMaxWidth(),
-                onClick = {
-                    cancelButtonClick()
-                }
-            ) {
-                Text(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    text = "Cancel",
-                    color = Blue,
-                    style = TextStyle(
-                        fontSize = MaterialTheme.typography.h6.fontSize,
-                        textAlign = TextAlign.Start
-                    )
-                )
+        TextButton(
+            modifier = Modifier
+                .weight(0.5f)
+                .padding(MaterialTheme.dimens.signupDimension.padding08)
+                .fillMaxWidth(),
+            onClick = {
+                cancelButtonClick()
             }
+        ) {
+            Text(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                text = "Cancel",
+                color = Blue,
+                style = TextStyle(
+                    fontSize = MaterialTheme.typography.h6.fontSize,
+                    textAlign = TextAlign.Start
+                )
+            )
         }
+
 
 
         TextButton(

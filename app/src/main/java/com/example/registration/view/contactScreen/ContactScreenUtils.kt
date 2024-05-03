@@ -60,10 +60,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.registration.R
+import com.example.registration.constants.constantModals.PersonalInformation
 import com.example.registration.ui.theme.DarkGreen
 import com.example.registration.ui.theme.White
 import com.example.registration.ui.theme.dimens
-import com.example.registration.viewModels.PersonalInformation
 import com.example.registration.viewModels.ContactViewModel
 import kotlinx.coroutines.delay
 
