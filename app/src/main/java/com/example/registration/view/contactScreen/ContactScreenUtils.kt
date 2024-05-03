@@ -405,7 +405,7 @@ fun <T> SwipeToCallContainer(
         confirmValueChange = { value ->
             when (value) {
                 DismissValue.DismissedToEnd -> {
-                   isCallStarts = true
+                    isCallStarts = true
                     true
                 }
 

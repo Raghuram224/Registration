@@ -1,7 +1,6 @@
 package com.example.registration.view.contactScreen
 
 import android.app.Activity
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,7 +23,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.registration.constants.AllScreens
-import com.example.registration.constants.constantModals.Screens
 import com.example.registration.ui.theme.White
 import com.example.registration.viewModels.ContactViewModel
 
@@ -33,7 +31,7 @@ fun ContactScreen(
     navController: NavController,
     contactViewModel: ContactViewModel,
 
-) {
+    ) {
 
     val activity = LocalContext.current as Activity
     val uiColor = contactViewModel.uiColor
@@ -41,11 +39,22 @@ fun ContactScreen(
     val userDetails by contactViewModel.userDetails.collectAsState()
     val context = LocalContext.current
 
+    val isUserIdUpdated by contactViewModel.isUserIdUpdated.collectAsState()
+    if (!isUserIdUpdated) {
+        contactViewModel.updateUserId(
+            userId = navController.previousBackStackEntry?.savedStateHandle?.get<Int>("userId")
+        )
+    }
+
 
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { navController.navigate(AllScreens.screen.editContactScreen) },
+                onClick = {
+                    navController.currentBackStackEntry?.savedStateHandle?.set("userId",contactViewModel.currentUserId)
+                    navController.navigate(AllScreens.screen.editContactScreen)
+
+                },
                 elevation = FloatingActionButtonDefaults.elevation(
                     defaultElevation = 10.dp
                 ),
@@ -65,13 +74,17 @@ fun ContactScreen(
                 .background(uiColor)
                 .padding(innerPadding)
                 .fillMaxSize(),
+            contentAlignment = Alignment.Center
         ) {
+
+
             Column(
                 modifier = Modifier
                     .fillMaxSize(),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+
                 ContactProfile(
                     modifier = Modifier
                         .weight(0.3f),
@@ -93,5 +106,26 @@ fun ContactScreen(
 
 
 }
+
+//                Box(
+//                    modifier = Modifier
+//                        .size(100.dp)
+//                        .clip(RoundedCornerShape(50))
+//                        .background(Color.Black)
+//                        .zIndex(1f)
+//                        .fillMaxWidth(),
+//                    contentAlignment = Alignment.TopCenter
+//                ) {
+//                    Image(
+//                        modifier = Modifier
+//                            .align(Alignment.Center)
+//                            .fillMaxWidth()
+//                            .size(50.dp)
+//                            .padding(vertical = MaterialTheme.dimens.signupDimension.itemVerticalPadding08)
+//                            .size(MaterialTheme.dimens.signupDimension.profileSize),
+//                        painter = painterResource(id = R.drawable.add_ic),
+//                        contentDescription = "profile",
+//                    )
+//                }
 
 

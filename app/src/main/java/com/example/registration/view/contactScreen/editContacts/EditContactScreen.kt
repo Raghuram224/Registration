@@ -105,7 +105,7 @@ fun EditContactScreen(
     editContactsViewModel: EditContactsViewmodel,
     navController: NavController,
 
-) {
+    ) {
     val activity = LocalContext.current as Activity
     val scrollState = rememberScrollState()
     val context = LocalContext.current
@@ -181,7 +181,7 @@ fun EditContactScreen(
     val focusManager = LocalFocusManager.current
 
     val keyBoardState by keyboardAsState()
-    val isDataLoaded by  editContactsViewModel.isDataLoaded.collectAsState()
+    val isDataLoaded by editContactsViewModel.isDataLoaded.collectAsState()
 
 
     //Fields color
@@ -272,11 +272,19 @@ fun EditContactScreen(
         navController.navigateUp()
 
     }
+    val isUserIdUpdated by editContactsViewModel.isUserIdUpdate.collectAsState()
 
-    if (!isDataLoaded){
-        editContactsViewModel.loadEmailAndOtherPhones()
+    if (!isUserIdUpdated) {
+        editContactsViewModel.updateUserId(
+            userId = navController.previousBackStackEntry?.savedStateHandle?.get<Int>("userId")
+        )
     }
-    Log.i("Data loaded",contactData.value.toString())
+
+
+//    if (!isDataLoaded) {
+//        editContactsViewModel.loadEmailAndOtherPhones()
+//    }
+    Log.i("Data loaded", contactData.value.toString())
 
     Scaffold(
         topBar = {

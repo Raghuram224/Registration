@@ -3,12 +3,18 @@ package com.example.registration
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.with
 import androidx.compose.runtime.remember
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.createGraph
+import androidx.navigation.navArgument
 import com.example.registration.constants.AllScreens
 import com.example.registration.constants.constantModals.Screens
 import com.example.registration.ui.theme.RegistrationTheme
@@ -37,7 +43,10 @@ class MainActivity : ComponentActivity() {
                 val navGraph = remember(navController) {
 
                     navController.createGraph(startDestination = AllScreens.screen.loginScreen) {
-                        composable(route = AllScreens.screen.loginScreen) {
+                        composable(
+                            route = AllScreens.screen.loginScreen,
+
+                            ) {
                             val loginViewModel = hiltViewModel<LoginViewModel>()
 
                             LoginScreen(
@@ -45,7 +54,15 @@ class MainActivity : ComponentActivity() {
                                 loginViewModel = loginViewModel,
                             )
                         }
-                        composable(route = AllScreens.screen.signupScreen) {
+                        composable(
+                            route = AllScreens.screen.signupScreen,
+                            enterTransition = {
+                                slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left)
+
+                            }, exitTransition = {
+                                slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right)
+                            }
+                        ) {
 
                             val signupViewModel = hiltViewModel<SignupViewModel>()
                             SignupScreen(
@@ -53,13 +70,13 @@ class MainActivity : ComponentActivity() {
                                 navController = navController,
                             )
                         }
-                        composable(route = AllScreens.screen.contactProfileScreen) {
+                        composable(route = AllScreens.screen.contactProfileScreen){
                             val contactViewModel = hiltViewModel<ContactViewModel>()
                             ContactScreen(
                                 navController = navController,
                                 contactViewModel = contactViewModel,
 
-                            )
+                                )
                         }
                         composable(route = AllScreens.screen.editContactScreen) {
                             val editContactViewModel = hiltViewModel<EditContactsViewmodel>()
@@ -68,7 +85,7 @@ class MainActivity : ComponentActivity() {
                                 editContactsViewModel = editContactViewModel,
                                 navController = navController,
 
-                            )
+                                )
                         }
 
 

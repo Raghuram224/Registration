@@ -1,5 +1,6 @@
 package com.example.registration.viewModels
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.example.registration.constants.PasswordHash
 import com.example.registration.constants.constantModals.LoginInputFields
@@ -8,8 +9,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
-
-
 
 
 @HiltViewModel
@@ -22,19 +21,7 @@ class LoginViewModel @Inject constructor(
 
     val email = _email.asStateFlow()
     val passwords = _password.asStateFlow()
-
-
-
-//    fun authenticateEmail(email: String): Boolean {
-//        localDBRepo.currentUserDetails
-//        return email == localDBRepo.authenticateUserDetails.primaryEmail
-//
-//    }
-//
-//    fun authenticatePassword(password: String): Boolean {
-//        return password == localDBRepo.authenticateUserDetails.password
-//    }
-
+    var userId = 0
     fun updateLoginData(text: String, type: LoginInputFields) {
 
         when (type) {
@@ -48,17 +35,45 @@ class LoginViewModel @Inject constructor(
         }
     }
 
-    fun authenticateEmail(email: String):Boolean{
+//    fun validateCredentials(email: String, password: String): CredentialsValidationStatus {
+//
+//        return localDBRepo.validateCredentials(
+//            email = email,
+//            password = PasswordHash.generateHash(password)
+//        )
+//    }
 
-        return localDBRepo.authenticateEmail(email)
+//    fun validateCredentials(email: String, password: String): CredentialsValidationStatus {
+//
+//        val status = when (email == currentUserDetails.primaryEmail) {
+//            true -> {
+//                if (password == currentUserDetails.password) {
+//                    CredentialsValidationStatus.ValidCredentials
+//                } else {
+//                    CredentialsValidationStatus.PasswordError
+//                }
+//            }
+//
+//            false -> {
+//                CredentialsValidationStatus.EmailError
+//            }
+//        }
+//
+//        return status
+//    }
+
+    fun authenticateUser(email: String, password: String): Boolean {
+        val tempUserId = localDBRepo.checkUserExist(
+            email = email,
+            password = PasswordHash.generateHash(password = password)
+        )
+        if (tempUserId != -1) {
+            userId = tempUserId
+            Log.i("Userid",userId.toString())
+            return true
+        }
+        return false
     }
-    fun authenticatePassword(password: String):Boolean{
-        return  localDBRepo.authenticatePassword( password = PasswordHash.generateHash(password))
-    }
-
-
-
-
 
 
 }

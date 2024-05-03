@@ -12,7 +12,7 @@ interface RegistrationDao {
     suspend fun insertSignupDetails(registrationEntity: RegistrationEntity)
 
     @Query("select * from registration_table where sid = :rowId")
-    fun getSignupDetailsFlow(rowId: Int): Flow<RegistrationEntity>
+    fun getUserDetailsFlow(rowId: Int): Flow<RegistrationEntity>
 
 
 //    @Query("select * from registration_table  order by sid limit 1")
@@ -22,7 +22,7 @@ interface RegistrationDao {
 //    suspend fun clearData()
 
     @Query("select * from registration_table where primaryEmail =:email")
-    fun getUserDetails(email: String): RegistrationEntity?
+    fun checkUserDetails(email: String): RegistrationEntity?
 
     @Query("SELECT (SELECT COUNT(*) FROM registration_table) == 0")
     suspend fun isDBEmpty(): Boolean
@@ -30,4 +30,7 @@ interface RegistrationDao {
 
     @Update
     fun updateUserDetails(registrationEntity: RegistrationEntity)
+
+    @Query("select * from registration_table where sid =:userId")
+    fun getUserDetails(userId:Int): RegistrationEntity
 }

@@ -2,7 +2,6 @@ package com.example.registration.view.loginScreen
 
 import android.util.Log
 import android.widget.Toast
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,14 +20,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.registration.R
-import com.example.registration.constants.constantModals.LoginInputFields
 import com.example.registration.constants.InputsRegex
+import com.example.registration.constants.constantModals.LoginInputFields
 import com.example.registration.ui.theme.Blue
 import com.example.registration.view.utils.CustomEmail
 import com.example.registration.view.utils.CustomHyperLink
@@ -70,12 +67,7 @@ fun LoginPortrait(
             .padding(horizontal = 16.dp)
             .fillMaxSize()
     ) {
-        Image(
-            painter = painterResource(id = R.drawable.shopping_bag_logo),
-            contentDescription = "Logo",
-            modifier = modifier
-                .fillMaxWidth()
-        )
+
 
         Text(
             text = "Login",
@@ -140,29 +132,37 @@ fun LoginPortrait(
                 if (email.matches(regex = Regex(InputsRegex.EMAIL_VALIDATION_REGEX))) {
                     if (email.isNotEmpty() && password.isNotEmpty()) {
 
-                        if (loginViewModel.authenticateEmail(email = email)) {
-
-
-
-                            isEmailError = false
-                            if (loginViewModel.authenticatePassword(password = password)) {
-                                isPasswordError = false
-                                toastText = "Login success"
-
-
-                                successNavigation()
-                            } else {
-                                isPasswordError = true
-                                toastText = "Wrong password"
-                                passwordFocusRequester.requestFocus()
-                            }
-
+//                        when(loginViewModel.validateCredentials(email = email, password = password)){
+//                            CredentialsValidationStatus.EmailError -> {
+//                                isEmailError =true
+//                                toastText ="Check your email"
+//                            }
+//                            CredentialsValidationStatus.PasswordError -> {
+//                                isPasswordError = true
+//                                toastText = "Wrong password"
+//                                passwordFocusRequester.requestFocus()
+//                            }
+//                            CredentialsValidationStatus.ValidCredentials -> {
+//                                isPasswordError = false
+//                                toastText = "Login success"
+//                                successNavigation()
+//                            }
+//                            CredentialsValidationStatus.NoDataFound -> {
+//                                emailFocusRequester.requestFocus()
+//                                isEmailError = true
+//                                isPasswordError = true
+//                                toastText = "Email or password wrong"
+//                            }
+//                        }
+                        if (loginViewModel.authenticateUser(email = email, password = password)) {
+                            isPasswordError = false
+                            toastText = "Login success"
+                            successNavigation()
                         } else {
                             emailFocusRequester.requestFocus()
                             isEmailError = true
                             isPasswordError = true
                             toastText = "Email or password wrong"
-
                         }
 
                     } else if (email.isEmpty()) {

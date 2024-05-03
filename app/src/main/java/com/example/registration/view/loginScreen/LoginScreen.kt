@@ -28,12 +28,12 @@ fun LoginScreen(
 
     LoginPortrait(
         signupNavigation = {
-
-            navController.navigate(AllScreens.screen.signupScreen)
+            navController.navigate(route = AllScreens.screen.signupScreen)
         },
         loginViewModel = loginViewModel,
         successNavigation = {
-            navController.popBackStack()
+//            navController.popBackStack()
+            navController.currentBackStackEntry?.savedStateHandle?.set("userId",loginViewModel.userId)
             navController.navigate(AllScreens.screen.contactProfileScreen)
         },
         email = email,

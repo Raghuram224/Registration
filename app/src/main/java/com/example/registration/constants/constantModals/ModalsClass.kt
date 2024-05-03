@@ -66,4 +66,10 @@ data class UserDetails(
 enum class Keyboard {
     Opened, Closed
 }
+enum class CredentialsValidationStatus {
+    EmailError,
+    PasswordError,
+    ValidCredentials,
+
+}
 

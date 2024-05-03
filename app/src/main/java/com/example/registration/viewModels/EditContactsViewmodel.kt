@@ -1,6 +1,7 @@
 package com.example.registration.viewModels
 
 import android.graphics.Bitmap
+import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -22,20 +23,39 @@ class EditContactsViewmodel @Inject constructor(
     private val localDBRepo: LocalDBRepo,
     private val permissionHandler: PermissionHandler
 ) : ViewModel() {
+
+    private var currentUserId = -1
     private val _contactData = MutableStateFlow(
-        setContactsDetails()
+        UserDetails(
+            dob = "",
+            age = "",
+            lastName = "",
+            firstName = "",
+            address = "",
+            primaryPhone = "",
+            primaryEmail = "",
+            otherPhones = null,
+            otherEmails = null,
+            website = "",
+            profileImage = null,
+            password = ""
+
+        )
     )
+    private var _isUserIdUpdated = MutableStateFlow(false)
 
     private var _profileImage = MutableStateFlow<Bitmap?>(_contactData.value.profileImage)
     private var _isDataLoaded = MutableStateFlow(false)
 
-    val contactData = _contactData.asStateFlow()
+    var contactData = _contactData.asStateFlow()
     var emailList = mutableStateListOf(_contactData.value.primaryEmail)
     var phoneList = mutableStateListOf(_contactData.value.primaryPhone)
     val profileImage = _profileImage.asStateFlow()
     val emailListColor = mutableStateListOf(false)
     val phoneListColor = mutableStateListOf(false)
     val isDataLoaded = _isDataLoaded.asStateFlow()
+
+    val isUserIdUpdate = _isUserIdUpdated.asStateFlow()
 
 
     fun convertListToString(list: List<String>, idx: Int): String? {
@@ -148,7 +168,7 @@ class EditContactsViewmodel @Inject constructor(
 
     fun updateData() {
         viewModelScope.launch {
-            localDBRepo.updateUserDetails(userDetails = _contactData.value)
+            localDBRepo.updateUserDetails(userDetails = _contactData.value, 0)
         }
     }
 
@@ -180,29 +200,35 @@ class EditContactsViewmodel @Inject constructor(
         _contactData.value.profileImage = bitmap
     }
 
-    private fun setContactsDetails(): UserDetails {
+    private fun setContactsDetails(userId: Int) {
+        contactData = MutableStateFlow(
+            localDBRepo.getUserDetails(userId = userId).let {
+                UserDetails(
+                    dob = it.dob,
+                    age = it.age,
+                    lastName = it.lastName,
+                    firstName = it.firstName,
+                    address = it.address,
+                    primaryPhone = it.primaryPhone,
+                    primaryEmail = it.primaryEmail,
+                    otherPhones = it.otherPhones,
+                    otherEmails = it.otherEmails,
+                    website = it.website,
+                    password = it.password,
+                    profileImage = it.profileImage
 
-        return localDBRepo.currentUserDetails.let {
-            UserDetails(
-                dob = it.dob,
-                age = it.age,
-                lastName = it.lastName,
-                firstName = it.firstName,
-                address = it.address,
-                primaryPhone = it.primaryPhone,
-                primaryEmail = it.primaryEmail,
-                otherPhones = it.otherPhones,
-                otherEmails = it.otherEmails,
-                website = it.website,
-                password = it.password,
-                profileImage = it.profileImage
+                )
 
-            )
-        }
+            }
+        )
+        loadEmailAndOtherPhones()
+
 
     }
 
-    fun loadEmailAndOtherPhones() {
+    private fun loadEmailAndOtherPhones() {
+        emailList[0]= contactData.value.primaryEmail
+        phoneList[0]=contactData.value.primaryPhone
         convertStringToList(contactData.value.otherEmails)?.forEach {
             if (it.isNotEmpty()) {
                 emailList.add(it)
@@ -220,7 +246,18 @@ class EditContactsViewmodel @Inject constructor(
 
         }
 
-        _isDataLoaded.value =true
+        _isDataLoaded.value = true
+    }
+
+    fun updateUserId(userId: Int?) {
+        Log.i("flow out",userId.toString())
+        if (userId != null && !_isUserIdUpdated.value) {
+            currentUserId = userId
+            _isUserIdUpdated.value = true
+            setContactsDetails(userId = userId)
+            Log.i("flow in",userId.toString())
+
+        }
     }
 
 
