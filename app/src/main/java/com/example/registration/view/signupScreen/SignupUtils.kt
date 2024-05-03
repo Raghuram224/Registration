@@ -73,6 +73,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.registration.R
+import com.example.registration.constants.constantModals.Keyboard
 import com.example.registration.ui.theme.Blue
 import com.example.registration.ui.theme.White
 import com.example.registration.ui.theme.dimens
@@ -129,6 +130,10 @@ fun UserProfile(
                     .size(100.dp)
                     .clip(RoundedCornerShape(50))
                     .background(White)
+                    .clickable {
+                        isDropDownExpanded = true
+                        chooseProfileImage()
+                    }
             ) {
                 Image(
                     modifier = Modifier
@@ -136,11 +141,7 @@ fun UserProfile(
                         .fillMaxWidth()
                         .size(50.dp)
                         .padding(vertical = MaterialTheme.dimens.signupDimension.itemVerticalPadding08)
-                        .size(MaterialTheme.dimens.signupDimension.profileSize)
-                        .clickable {
-                            isDropDownExpanded = true
-                            chooseProfileImage()
-                        },
+                        .size(MaterialTheme.dimens.signupDimension.profileSize),
                     painter = painterResource(id = R.drawable.add_ic),
                     contentDescription = "profile",
                 )
@@ -805,26 +806,7 @@ fun milliToYears(milliseconds: Long): String {
 }
 
 
-data class UserDetails(
-    val firstName: String,
-    val lastName: String,
-    val age: String,
-    val address: String,
-    val dob: String,
-    val primaryEmail: String,
-    val primaryPhone: String,
-    val otherEmails: String?,
-    val otherPhones: String?,
-    val website: String,
-    val password: String,
-    var profileImage:Bitmap?
 
-    )
-
-
-enum class Keyboard {
-    Opened, Closed
-}
 
 @Composable
 fun keyboardAsState(): State<Keyboard> {

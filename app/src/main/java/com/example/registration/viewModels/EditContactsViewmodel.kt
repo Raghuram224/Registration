@@ -17,44 +17,25 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-
-
-
-
 @HiltViewModel
-class SignupViewModel @Inject constructor(
+class EditContactsViewmodel @Inject constructor(
     private val localDBRepo: LocalDBRepo,
     private val permissionHandler: PermissionHandler
 ) : ViewModel() {
-
-    private val _signupData = MutableStateFlow(
-        UserDetails(
-            dob = "",
-            age = "",
-            lastName = "",
-            firstName = "",
-            address = "",
-            primaryPhone = "",
-            primaryEmail = "",
-            otherPhones = null,
-            otherEmails = null,
-            website = "",
-            password = "",
-            profileImage = null
-
-        )
+    private val _contactData = MutableStateFlow(
+        setContactsDetails()
     )
 
-    private var _profileImage = MutableStateFlow<Bitmap?>(_signupData.value.profileImage)
+    private var _profileImage = MutableStateFlow<Bitmap?>(_contactData.value.profileImage)
+    private var _isDataLoaded = MutableStateFlow(false)
 
-    val signupData = _signupData.asStateFlow()
-    var emailList = mutableStateListOf("")
-    var phoneList = mutableStateListOf("")
+    val contactData = _contactData.asStateFlow()
+    var emailList = mutableStateListOf(_contactData.value.primaryEmail)
+    var phoneList = mutableStateListOf(_contactData.value.primaryPhone)
     val profileImage = _profileImage.asStateFlow()
     val emailListColor = mutableStateListOf(false)
     val phoneListColor = mutableStateListOf(false)
-
-    lateinit var userDetails: UserDetails
+    val isDataLoaded = _isDataLoaded.asStateFlow()
 
 
     fun convertListToString(list: List<String>, idx: Int): String? {
@@ -69,58 +50,58 @@ class SignupViewModel @Inject constructor(
     }
 
 
-    fun updateSignupData(text: String, type: TextFieldType) {
+    fun updateContactData(text: String, type: TextFieldType) {
         when (type) {
             TextFieldType.FirstName -> {
-                _signupData.update {
+                _contactData.update {
                     it.copy(firstName = text)
                 }
             }
 
             TextFieldType.LastName -> {
-                _signupData.update {
+                _contactData.update {
                     it.copy(lastName = text)
                 }
             }
 
             TextFieldType.Age -> {
-                _signupData.update {
+                _contactData.update {
                     it.copy(age = text)
                 }
             }
 
             TextFieldType.Address -> {
-                _signupData.update {
+                _contactData.update {
                     it.copy(address = text)
                 }
             }
 
             TextFieldType.DOB -> {
-                _signupData.update {
+                _contactData.update {
                     it.copy(dob = text)
                 }
             }
 
             TextFieldType.PrimaryEmail -> {
-                _signupData.update {
+                _contactData.update {
                     it.copy(primaryEmail = text)
                 }
             }
 
             TextFieldType.PrimaryPhone -> {
-                _signupData.update {
+                _contactData.update {
                     it.copy(primaryPhone = text)
                 }
             }
 
             TextFieldType.Password -> {
-                _signupData.update {
+                _contactData.update {
                     it.copy(password = text)
                 }
             }
 
             TextFieldType.Website -> {
-                _signupData.update {
+                _contactData.update {
                     it.copy(website = text)
                 }
             }
@@ -130,41 +111,33 @@ class SignupViewModel @Inject constructor(
     fun updateOtherEmailOrPhone(text: String?, type: OtherEmailOrPhoneFields) {
         when (type) {
             OtherEmailOrPhoneFields.OtherEmail -> {
-                _signupData.update {
+                _contactData.update {
                     it.copy(otherEmails = text)
                 }
             }
 
             OtherEmailOrPhoneFields.OtherPhones -> {
-                _signupData.update {
+                _contactData.update {
                     it.copy(otherPhones = text)
                 }
             }
         }
     }
 
+
     fun checkFieldsValue(
         primaryEmail: String,
         primaryPhone: String,
         firstName: String,
         lastName: String,
-        password: String,
-        confirmPassword: String
-    ): Boolean {
+
+        ): Boolean {
 
         val validateEmail = checkValidEmail()
         return primaryEmail.isNotEmpty() && primaryPhone.isNotEmpty() &&
                 firstName.isNotEmpty() && lastName.isNotEmpty()
-                && password.isNotEmpty() && confirmPassword.isNotEmpty() && validateEmail
+                && validateEmail
 
-    }
-
-    fun checkPassword(password: String, confirmPassword: String): Boolean {
-        return password == confirmPassword
-    }
-
-    fun getSignupDetails(): UserDetails {
-        return _signupData.value
     }
 
 
@@ -173,24 +146,30 @@ class SignupViewModel @Inject constructor(
 
     }
 
-    fun insertData() {
+    fun updateData() {
         viewModelScope.launch {
-            localDBRepo.insetIntoDb(userDetails = _signupData.value)
+            localDBRepo.updateUserDetails(userDetails = _contactData.value)
         }
     }
 
     private fun checkValidEmail(): Boolean {
         var valid = false
         emailList.forEachIndexed { idx, item ->
-            if (item.matches(regex = Regex(InputsRegex.EMAIL_VALIDATION_REGEX))) {
-                valid = true
-            } else {
-                emailListColor[idx] = true
-                return false
+            if (item != null) {
+                if (item.matches(regex = Regex(InputsRegex.EMAIL_VALIDATION_REGEX))) {
+                    valid = true
+                } else {
+                    emailListColor[idx] = true
+                    return false
 
+                }
             }
         }
         return valid
+    }
+
+    private fun convertStringToList(text: String?): List<String>? {
+        return text?.split(",")
     }
 
     fun checkRequiredPermission(): Boolean {
@@ -198,48 +177,51 @@ class SignupViewModel @Inject constructor(
     }
 
     fun updateProfileImageIntoDb(bitmap: Bitmap?) {
-        _signupData.value.profileImage = bitmap
+        _contactData.value.profileImage = bitmap
     }
 
-//    private fun setContactsDetails(): UserDetails {
-//            return UserDetails(
-//                dob = "",
-//                age = "",
-//                lastName = "",
-//                firstName = "",
-//                address = "",
-//                primaryPhone = "",
-//                primaryEmail = "",
-//                otherPhones = null,
-//                otherEmails = null,
-//                website = "",
-//                password = "",
-//                profileImage = null
-//
-//            )
-//        } else {
-//
-//            return UserDetails(
-//                dob = localDBRepo.userDetails.dob,
-//                age = localDBRepo.userDetails.age,
-//                lastName = localDBRepo.userDetails.lastName,
-//                firstName = localDBRepo.userDetails.firstName,
-//                address = localDBRepo.userDetails.address,
-//                primaryPhone = localDBRepo.userDetails.primaryPhone,
-//                primaryEmail = localDBRepo.userDetails.primaryEmail,
-//                otherPhones = localDBRepo.userDetails.otherPhones,
-//                otherEmails = localDBRepo.userDetails.otherEmails,
-//                website = localDBRepo.userDetails.website,
-//                password = localDBRepo.userDetails.password,
-//                profileImage = localDBRepo.userDetails.profileImage
-//
-//            )
-//        }
-//    }
+    private fun setContactsDetails(): UserDetails {
 
-//    fun updateUIData(){
-//        localDBRepo.updateDbData()
-//    }
+        return localDBRepo.currentUserDetails.let {
+            UserDetails(
+                dob = it.dob,
+                age = it.age,
+                lastName = it.lastName,
+                firstName = it.firstName,
+                address = it.address,
+                primaryPhone = it.primaryPhone,
+                primaryEmail = it.primaryEmail,
+                otherPhones = it.otherPhones,
+                otherEmails = it.otherEmails,
+                website = it.website,
+                password = it.password,
+                profileImage = it.profileImage
+
+            )
+        }
+
+    }
+
+    fun loadEmailAndOtherPhones() {
+        convertStringToList(contactData.value.otherEmails)?.forEach {
+            if (it.isNotEmpty()) {
+                emailList.add(it)
+                emailListColor.add(false)
+
+
+            }
+
+        }
+        convertStringToList(contactData.value.otherPhones)?.forEach {
+            if (it.isNotEmpty()) {
+                phoneList.add(it)
+                phoneListColor.add(false)
+            }
+
+        }
+
+        _isDataLoaded.value =true
+    }
 
 
 }

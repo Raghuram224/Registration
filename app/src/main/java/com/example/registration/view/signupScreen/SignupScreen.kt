@@ -22,6 +22,7 @@ import androidx.camera.view.LifecycleCameraController
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -43,9 +44,12 @@ import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Camera
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -69,25 +73,29 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import com.example.registration.R
+import com.example.registration.constants.constantModals.Keyboard
+import com.example.registration.constants.constantModals.OtherEmailOrPhoneFields
+import com.example.registration.constants.constantModals.TextFieldType
 import com.example.registration.constants.InputsRegex
+import com.example.registration.constants.constantModals.Screens
 import com.example.registration.ui.theme.Blue
 import com.example.registration.ui.theme.LightGray
+import com.example.registration.ui.theme.White
 import com.example.registration.ui.theme.dimens
 import com.example.registration.view.utils.CameraPreview
-import com.example.registration.viewModels.OtherEmailOrPhoneFields
 import com.example.registration.viewModels.SignupViewModel
-import com.example.registration.viewModels.TextFieldType
 import kotlinx.coroutines.launch
 import java.util.Date
 
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
-@SuppressLint("MutableCollectionMutableState")
+@SuppressLint("MutableCollectionMutableState", "StateFlowValueCalledInComposition")
 @Composable
 fun SignupScreen(
     modifier: Modifier = Modifier,
@@ -117,7 +125,6 @@ fun SignupScreen(
     val datePickerSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val datePickerState = rememberDatePickerState()
     val cameraSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-//    val takenPicturesSheetState = rememberModalBottomSheetState()
     val showTakenPhotoSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     // camera essentials
@@ -165,14 +172,11 @@ fun SignupScreen(
 
     // UI state
     val signupData = signupViewModel.signupData.collectAsState() //Test
-//    val capturedImage by signupViewModel.capturedImage.collectAsState()
     val profileImage by signupViewModel.profileImage.collectAsState()
 
     val focusManager = LocalFocusManager.current
 
     val keyBoardState by keyboardAsState()
-
-    val isNavigatedFromContactScreen by signupViewModel.isNavigatedFromContactScreen.collectAsState()
 
 
     //Fields color
@@ -282,19 +286,20 @@ fun SignupScreen(
 
 
     BackHandler {
-
+//        navController.popBackStack(route ="SignupScreen" ,false,false)
         navController.navigateUp()
-
+//        if (isNavigatedFromContactScreen){
+//            navController.navigate("ProfileScreen"){
+//                popUpTo(0)
+//            }
+//        }else{
+//            navController.navigate("LoginScreen"){
+//                popUpTo(navController.graph.id){
+//                    inclusive = false
+//                }
+//            }
+//        }
     }
-
-    if (isNavigatedFromContactScreen) {
-        LaunchedEffect(Unit) {
-
-            signupViewModel.updateEmailAndPhoneList()
-            confirmPassword = signupViewModel.signupData.value.password
-        }
-    }
-
 
     Column(
         modifier = Modifier
@@ -562,7 +567,10 @@ fun SignupScreen(
                 CustomOutlinedInput(
                     text = signupData.value.website,
                     onTextChanged = {
-                        signupViewModel.updateSignupData(text = it, type = TextFieldType.Website)
+                        signupViewModel.updateSignupData(
+                            text = it,
+                            type = TextFieldType.Website
+                        )
                     },
                     label = "Website",
                     regex = InputsRegex.WEBSITE_REGEX_ALLOWED_PARAM
@@ -570,56 +578,135 @@ fun SignupScreen(
             }
         )
 
-        if (!isNavigatedFromContactScreen) {
-            CustomColumnCardCreator(
-                modifier = Modifier,
-                anyComposable = @Composable {
-                    CustomOutlinedPasswordInput(
-                        modifier = Modifier
-                            .focusRequester(focusRequester = passwordFocusRequester),
-                        text = signupData.value.password,
-                        onTextChanged = {
-                            signupViewModel.updateSignupData(
-                                text = it,
-                                TextFieldType.Password
-                            )
+        CustomColumnCardCreator(
+            modifier = Modifier,
+            anyComposable = @Composable {
+                CustomOutlinedPasswordInput(
+                    modifier = Modifier
+                        .focusRequester(focusRequester = passwordFocusRequester),
+                    text = signupData.value.password,
+                    onTextChanged = {
+                        signupViewModel.updateSignupData(
+                            text = it,
+                            TextFieldType.Password
+                        )
+                    },
+                    label = "Password",
+                    isError = passwordColor,
+                    regex = InputsRegex.PASSWORD_REGEX
+                )
+
+                CustomOutlinedPasswordInput(
+                    modifier = Modifier
+                        .focusRequester(focusRequester = confirmPasswordFocusRequester),
+                    text = confirmPassword,
+                    onTextChanged = { confirmPassword = it },
+                    label = "confirm password",
+                    isError = confirmPasswordColor,
+                    regex = InputsRegex.PASSWORD_REGEX
+
+
+                )
+            }
+        )
+
+        if (isDatePickerSheetOpen) {
+            ModalBottomSheet(
+                modifier = Modifier
+                    .fillMaxSize(1f),
+                onDismissRequest = { isDatePickerSheetOpen = false },
+                sheetState = datePickerSheetState,
+
+                ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                ) {
+
+                    CustomDatePicker(
+                        datePickerState = datePickerState,
+                        onDismiss = { isDatePickerSheetOpen = false },
+                        onClick = {
+
+                            signupViewModel.updateSignupData(it, TextFieldType.DOB)
                         },
-                        label = "Password",
-                        isError = passwordColor,
-                        regex = InputsRegex.PASSWORD_REGEX
+                        updateAge = {
 
-
-                    )
-
-                    CustomOutlinedPasswordInput(
-                        modifier = Modifier
-                            .focusRequester(focusRequester = confirmPasswordFocusRequester),
-                        text = confirmPassword,
-                        onTextChanged = { confirmPassword = it },
-                        label = "confirm password",
-                        isError = confirmPasswordColor,
-                        regex = InputsRegex.PASSWORD_REGEX
-
-
+                            signupViewModel.updateSignupData(it, TextFieldType.Age)
+                        }
                     )
                 }
-            )
+
+
+            }
+
         }
 
 
+        if (isCameraSheetOpen) {
+
+
+            ModalBottomSheet(
+                onDismissRequest = { isCameraSheetOpen = false },
+                sheetState = cameraSheetState,
+                modifier = Modifier
+                    .fillMaxSize()
+
+            ) {
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize(),
+                    verticalArrangement = Arrangement.SpaceBetween
+                ) {
+
+                    CameraPreview(
+                        modifier = Modifier
+                            .weight(0.9f)
+                            .fillMaxSize(),
+                        controller = cameraController
+                    )
+
+                    Row(
+                        modifier = Modifier
+                            .weight(0.1f)
+                            .fillMaxSize(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        IconButton(
+                            onClick = {
+                                takePhoto(
+                                    controller = cameraController,
+                                    mContext = context,
+                                    onPhotoTaken = {
+                                        tempImageHolder = it
+                                    }
+                                )
+                                isPhotoTaken = true
+                            },
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Camera,
+                                contentDescription = "take picture"
+                            )
+                        }
+
+                    }
+
+                }
+
+
+            }
+        }
 
         Button(
             modifier = Modifier
-                .padding(
-                    vertical = MaterialTheme.dimens.signupDimension.itemVerticalPadding08,
-                    horizontal = MaterialTheme.dimens.signupDimension.itemHorizontalPadding04
-                )
-                .fillMaxWidth(),
-            colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                .fillMaxWidth()
+                .padding(MaterialTheme.dimens.signupDimension.padding16),
+            colors = ButtonDefaults.buttonColors(
                 containerColor = Blue
             ),
             onClick = {
-
                 signupViewModel.emailListColor[primaryEmailIndex] =
                     emailList[primaryEmailIndex].isEmpty()
                 signupViewModel.phoneListColor[primaryPhoneIndex] =
@@ -680,17 +767,12 @@ fun SignupScreen(
 
                         Toast.makeText(
                             context,
-                            if (isNavigatedFromContactScreen) "Contact saved" else "Signup success",
+                            "Signup success",
                             Toast.LENGTH_SHORT
                         ).show()
 
-                        signupViewModel.updateUIData()  // Update ui data
-                        if(isNavigatedFromContactScreen){
-                            navController.navigate("ProfileScreen")
-                        }else{
-                            navController.popBackStack()
-                        }
-
+                        navController.navigateUp()
+//
 
 
                     } else if (confirmPasswordColor) {
@@ -763,111 +845,21 @@ fun SignupScreen(
                 }
 
             }
-        )
-        {
+        ) {
             Text(
-                text = if (isNavigatedFromContactScreen) "Save" else "Signup",
+                modifier = Modifier
+                    .padding(MaterialTheme.dimens.signupDimension.padding08)
+                    .fillMaxWidth(),
+                text = "Sign up",
                 style = TextStyle(
-                    color = Color.White,
-                    fontSize = MaterialTheme.dimens.signupDimension.normalFont16
+                    textAlign = TextAlign.Center,
+                    fontSize = MaterialTheme.typography.h6.fontSize,
+                    color = White
                 )
             )
         }
-
-
-
-        if (isDatePickerSheetOpen) {
-            ModalBottomSheet(
-                modifier = Modifier
-                    .fillMaxSize(1f),
-                onDismissRequest = { isDatePickerSheetOpen = false },
-                sheetState = datePickerSheetState,
-
-                ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                ) {
-
-                    CustomDatePicker(
-                        datePickerState = datePickerState,
-                        onDismiss = { isDatePickerSheetOpen = false },
-                        onClick = {
-
-                            signupViewModel.updateSignupData(it, TextFieldType.DOB)
-                        },
-                        updateAge = {
-
-                            signupViewModel.updateSignupData(it, TextFieldType.Age)
-                        }
-                    )
-                }
-
-
-            }
-
-        }
-
-
-        if (isCameraSheetOpen) {
-
-
-            ModalBottomSheet(
-                onDismissRequest = { isCameraSheetOpen = false },
-                sheetState = cameraSheetState,
-                modifier = Modifier
-                    .fillMaxSize()
-
-            ) {
-
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize(),
-                    verticalArrangement = Arrangement.SpaceBetween
-                ) {
-
-                    CameraPreview(
-                        modifier = Modifier
-                            .weight(0.9f)
-                            .fillMaxSize(),
-                        controller = cameraController
-                    )
-
-                    Row(
-                        modifier = Modifier
-                            .weight(0.1f)
-                            .fillMaxSize(),
-                        horizontalArrangement = Arrangement.SpaceEvenly
-                    ) {
-                        IconButton(
-                            onClick = {
-                                takePhoto(
-                                    controller = cameraController,
-                                    mContext = context,
-                                    onPhotoTaken = {
-                                        tempImageHolder = it
-
-                                    }
-
-                                )
-//
-                                isPhotoTaken = true
-                            },
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Camera,
-                                contentDescription = "take picture"
-                            )
-                        }
-
-                    }
-
-                }
-
-
-            }
-        }
     }
+
     Log.i("bitmap", profileImage.toString())
 
 
@@ -937,7 +929,7 @@ fun SignupScreen(
 }
 
 
-private fun takePhoto(
+fun takePhoto(
     controller: LifecycleCameraController,
     mContext: Context,
     onPhotoTaken: (bitmap: Bitmap) -> Unit,
@@ -973,6 +965,44 @@ private fun takePhoto(
     )
 }
 
+
+@Composable
+fun SignupTopBar(
+    modifier: Modifier,
+    cancelButtonClick: () -> Unit,
+    saveButtonClick: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(White),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+
+
+        TextButton(
+            modifier = Modifier
+                .weight(0.5f)
+                .padding(MaterialTheme.dimens.signupDimension.padding08)
+                .fillMaxWidth(),
+            onClick = {
+                saveButtonClick()
+            }
+        ) {
+            Text(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                text = "Sign up",
+                color = Blue,
+                style = TextStyle(
+                    fontSize = MaterialTheme.typography.h6.fontSize,
+                    textAlign = TextAlign.End
+                )
+            )
+        }
+    }
+
+}
 
 fun yearsToMillis(years: Long): Long {
     val days = years * 365
