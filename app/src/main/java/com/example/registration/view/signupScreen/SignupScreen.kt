@@ -22,7 +22,6 @@ import androidx.camera.view.LifecycleCameraController
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -48,7 +47,6 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -78,12 +76,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import com.example.registration.R
+import com.example.registration.constants.InputsRegex
+import com.example.registration.constants.Screens
 import com.example.registration.constants.constantModals.Keyboard
 import com.example.registration.constants.constantModals.OtherEmailOrPhoneFields
 import com.example.registration.constants.constantModals.TextFieldType
-import com.example.registration.constants.InputsRegex
-import com.example.registration.constants.constantModals.Screens
 import com.example.registration.ui.theme.Blue
 import com.example.registration.ui.theme.LightGray
 import com.example.registration.ui.theme.White
@@ -285,21 +284,6 @@ fun SignupScreen(
     }
 
 
-    BackHandler {
-//        navController.popBackStack(route ="SignupScreen" ,false,false)
-        navController.navigateUp()
-//        if (isNavigatedFromContactScreen){
-//            navController.navigate("ProfileScreen"){
-//                popUpTo(0)
-//            }
-//        }else{
-//            navController.navigate("LoginScreen"){
-//                popUpTo(navController.graph.id){
-//                    inclusive = false
-//                }
-//            }
-//        }
-    }
 
     Column(
         modifier = Modifier
@@ -443,17 +427,16 @@ fun SignupScreen(
                     },
                     primaryPhoneIndex = primaryPhoneIndex,
                     phoneList = phoneList,
-                    isFieldError = signupViewModel.phoneListColor,
                     removeField = {
                         if (phoneList.size > 1 && it != primaryPhoneIndex) {
                             if (primaryPhoneIndex == 1) {
                                 phoneList.removeAt(0)
-                                signupViewModel.phoneListColor.removeAt(0)
+//                                signupViewModel.phoneListColor.removeAt(0)
                                 primaryPhoneIndex = 0
                             } else {
 
-                                phoneList.removeAt(it)
-                                signupViewModel.phoneListColor.removeAt(it)
+//                                phoneList.removeAt(it)
+//                                signupViewModel.phoneListColor.removeAt(it)
                             }
 
                         }
@@ -709,8 +692,8 @@ fun SignupScreen(
             onClick = {
                 signupViewModel.emailListColor[primaryEmailIndex] =
                     emailList[primaryEmailIndex].isEmpty()
-                signupViewModel.phoneListColor[primaryPhoneIndex] =
-                    phoneList[primaryPhoneIndex].isEmpty()
+//                signupViewModel.phoneListColor[primaryPhoneIndex] =
+//                    phoneList[primaryPhoneIndex].isEmpty()
 
                 fNameColor = signupData.value.firstName.isEmpty()
                 lNameColor = signupData.value.lastName.isEmpty()
@@ -721,7 +704,6 @@ fun SignupScreen(
                 if (
                     signupViewModel.checkFieldsValue(
                         primaryEmail = emailList[primaryEmailIndex],
-                        primaryPhone = phoneList[primaryPhoneIndex],
                         firstName = signupData.value.firstName,
                         lastName = signupData.value.lastName,
                         password = signupData.value.password,
@@ -771,7 +753,11 @@ fun SignupScreen(
                             Toast.LENGTH_SHORT
                         ).show()
 
-                        navController.navigateUp()
+                        navController.navigate(Screens.LoginScreens.route){
+                            popUpTo(navController.graph.id){
+                                inclusive = true
+                            }
+                        }
 //
 
 
@@ -816,13 +802,9 @@ fun SignupScreen(
                         }
                         toastText = "Check given email is valid"
 
-                    } else if (signupViewModel.phoneListColor[primaryPhoneIndex]) {
-                        coroutineScope.launch {
-                            phoneBringIntoView.bringIntoView()
-                            phoneFocusRequester.requestFocus()
-                        }
-                        toastText = "Check phone  value"
-                    } else if (passwordColor) {
+                    }
+//
+                    else if (passwordColor) {
                         coroutineScope.launch {
                             passwordBringIntoView.bringIntoView()
                             passwordFocusRequester.requestFocus()

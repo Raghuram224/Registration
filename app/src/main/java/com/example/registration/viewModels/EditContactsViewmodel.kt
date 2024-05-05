@@ -55,7 +55,7 @@ class EditContactsViewmodel @Inject constructor(
     val phoneListColor = mutableStateListOf(false)
     val isDataLoaded = _isDataLoaded.asStateFlow()
 
-    val isUserIdUpdate = _isUserIdUpdated.asStateFlow()
+    val isUserIdUpdated = _isUserIdUpdated.asStateFlow()
 
 
     fun convertListToString(list: List<String>, idx: Int): String? {
@@ -168,7 +168,7 @@ class EditContactsViewmodel @Inject constructor(
 
     fun updateData() {
         viewModelScope.launch {
-            localDBRepo.updateUserDetails(userDetails = _contactData.value, 0)
+            localDBRepo.updateUserDetails(userDetails = _contactData.value, currentUserSID =  currentUserId)
         }
     }
 
@@ -201,26 +201,21 @@ class EditContactsViewmodel @Inject constructor(
     }
 
     private fun setContactsDetails(userId: Int) {
-        contactData = MutableStateFlow(
-            localDBRepo.getUserDetails(userId = userId).let {
-                UserDetails(
-                    dob = it.dob,
-                    age = it.age,
-                    lastName = it.lastName,
-                    firstName = it.firstName,
-                    address = it.address,
-                    primaryPhone = it.primaryPhone,
-                    primaryEmail = it.primaryEmail,
-                    otherPhones = it.otherPhones,
-                    otherEmails = it.otherEmails,
-                    website = it.website,
-                    password = it.password,
-                    profileImage = it.profileImage
+        val userDetails = localDBRepo.getUserDetails(userId = userId)
+        _contactData.value.dob = userDetails.dob
+        _contactData.value.age = userDetails.age
+        _contactData.value.lastName = userDetails.lastName
+        _contactData.value.firstName = userDetails.firstName
+        _contactData.value.address = userDetails.address
+        _contactData.value.primaryPhone = userDetails.primaryPhone
+        _contactData.value.primaryEmail = userDetails.primaryEmail
+        _contactData.value.otherPhones = userDetails.otherPhones
+        _contactData.value.otherEmails = userDetails.otherEmails
+        _contactData.value.website = userDetails.website
+        _contactData.value.profileImage = userDetails.profileImage
+        _contactData.value.password = userDetails.password
 
-                )
-
-            }
-        )
+        Log.i("contact obj",_contactData.value.toString())
         loadEmailAndOtherPhones()
 
 
@@ -229,6 +224,7 @@ class EditContactsViewmodel @Inject constructor(
     private fun loadEmailAndOtherPhones() {
         emailList[0]= contactData.value.primaryEmail
         phoneList[0]=contactData.value.primaryPhone
+        _profileImage.value = contactData.value.profileImage
         convertStringToList(contactData.value.otherEmails)?.forEach {
             if (it.isNotEmpty()) {
                 emailList.add(it)
@@ -245,8 +241,10 @@ class EditContactsViewmodel @Inject constructor(
             }
 
         }
+        Log.i("contact obj",_contactData.value.toString())
+        Log.i("contact data",_contactData.value.toString())
 
-        _isDataLoaded.value = true
+
     }
 
     fun updateUserId(userId: Int?) {

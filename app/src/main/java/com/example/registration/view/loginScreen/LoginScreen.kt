@@ -1,16 +1,15 @@
 package com.example.registration.view.loginScreen
 
-import android.content.res.Configuration
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.navigation.NavController
-import com.example.registration.constants.AllScreens
-import com.example.registration.constants.constantModals.Screens
+import com.example.registration.constants.Screens
+import com.example.registration.constants.constantModals.UserType
 import com.example.registration.viewModels.LoginViewModel
 
 @Composable
@@ -23,18 +22,32 @@ fun LoginScreen(
 ) {
 //    val configuration = LocalConfiguration.current
 
+
+    Log.i("login screen","Login")
     val email by loginViewModel.email.collectAsState()
     val password by loginViewModel.passwords.collectAsState()
 
     LoginPortrait(
         signupNavigation = {
-            navController.navigate(route = AllScreens.screen.signupScreen)
+            navController.navigate(route = Screens.SignupScreens.route)
         },
         loginViewModel = loginViewModel,
-        successNavigation = {
-//            navController.popBackStack()
+        successNavigation = {userType->
             navController.currentBackStackEntry?.savedStateHandle?.set("userId",loginViewModel.userId)
-            navController.navigate(AllScreens.screen.contactProfileScreen)
+
+
+            if (userType == UserType.Admin){
+                navController.navigate(Screens.AllContactsScreen.route)
+            }else{
+                navController.currentBackStackEntry?.savedStateHandle?.set("isAdmin",false)
+                navController.navigate(Screens.ContactScreens.route){
+//                popUpTo(navController.graph.id){
+//                    inclusive = true
+//                }
+
+                }
+            }
+
         },
         email = email,
         password = password,

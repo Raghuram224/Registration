@@ -2,6 +2,7 @@ package com.example.registration.modal
 
 import android.content.Context
 import com.example.registration.constants.PasswordHash
+import com.example.registration.constants.constantModals.ContactBasicDetails
 import com.example.registration.constants.constantModals.UserDetails
 import com.example.registration.data.localDB.LocalDB
 import com.example.registration.data.localDB.RegistrationDao
@@ -10,14 +11,11 @@ import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 class LocalDBRepo @Inject constructor(mContext: Context) {
+
+
     private val registrationDao: RegistrationDao =
         LocalDB.getInstance(context = mContext).registrationDao
 
-    /* private lateinit var currentUserEmail: String
-
-     lateinit var userDetailsFlow: Flow<RegistrationEntity>
-     lateinit var currentUserDetails: RegistrationEntity
-     private var currentUserSID: Int = 0*/
 
     suspend fun insetIntoDb(userDetails: UserDetails) {
         registrationDao.insertSignupDetails(
@@ -33,7 +31,8 @@ class LocalDBRepo @Inject constructor(mContext: Context) {
                 otherPhones = userDetails.otherPhones,
                 website = userDetails.website,
                 password = PasswordHash.generateHash(password = userDetails.password),
-                profileImage = if (userDetails.profileImage != null) userDetails.profileImage else null
+                profileImage = if (userDetails.profileImage != null) userDetails.profileImage else null,
+                isAdmin = false
 
             )
         )
@@ -55,9 +54,9 @@ class LocalDBRepo @Inject constructor(mContext: Context) {
                 otherPhones = userDetails.otherPhones,
                 website = userDetails.website,
                 password = userDetails.password,
-//                profileImage = if (userDetails.profileImage != null) userDetails.profileImage else null,
-                profileImage = userDetails.profileImage
-                )
+                profileImage = if (userDetails.profileImage != null) userDetails.profileImage else null,
+                isAdmin = false
+            )
         )
 
     }
@@ -74,10 +73,31 @@ class LocalDBRepo @Inject constructor(mContext: Context) {
         return registrationDao.getUserDetailsFlow(rowId = rowId)
     }
 
-    fun getUserDetails(userId:Int):RegistrationEntity{
+    fun getUserDetails(userId: Int): RegistrationEntity {
         return registrationDao.getUserDetails(userId = userId)
     }
 
+    fun getAllContacts(): List<ContactBasicDetails> {
+        val allContacts = mutableListOf<ContactBasicDetails>()
+        registrationDao.getAllContactsDetails().forEach { user ->
+            allContacts.add(
+                ContactBasicDetails(
+                    fName = user.firstName,
+                    lName = user.lastName,
+                    userId = user.sid,
+                    profileImage = user.profileImage
+                )
+            )
+
+        }
+        println("values"+registrationDao.getAllContactsDetails().toString())
+        return allContacts
+
+    }
+
+    fun checkIsAdmin(userId: Int): Boolean {
+        return getUserDetails(userId = userId).isAdmin
+    }
 
 
 }

@@ -3,6 +3,7 @@ package com.example.registration.view.contactScreen
 import android.Manifest
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -206,27 +207,8 @@ fun ContactProfile(
 
 
         ) {
-            if (contactDetails.profileImage != null) {
-                AsyncImage(
-                    modifier = Modifier
-                        .padding(MaterialTheme.dimens.contactDimension.padding08)
-                        .size(120.dp)
-                        .clip(RoundedCornerShape(50)),
-
-
-                    model = contactDetails.profileImage,
-                    contentDescription = "profile",
-                    contentScale = ContentScale.FillBounds,
-                )
-            } else {
-                Image(
-                    modifier = Modifier
-                        .size(120.dp)
-                        .padding(MaterialTheme.dimens.contactDimension.padding08),
-                    painter = painterResource(id = R.drawable.profile_icon_),
-                    contentDescription = "profile"
-                )
-            }
+            ProfileImageLoader(profileImage = contactDetails.profileImage)
+            
         }
 
         Column(
@@ -284,7 +266,6 @@ fun ContactItem(
 
     ) {
     var isExpanded by remember {
-
         mutableStateOf(false)
     }
     Row(
@@ -324,7 +305,7 @@ fun ContactItem(
                 )
             )
 
-            if (categoryName == "Number") {
+            if (categoryName == "Number" && itemValue.isNotEmpty()) {
                 SwipeToCallContainer(
                     modifier = Modifier,
                     item = itemValue,
@@ -468,3 +449,28 @@ fun CallerBackground(
     }
 }
 
+@Composable
+private fun ProfileImageLoader(
+    profileImage:Bitmap?,
+    modifier: Modifier =Modifier
+) {
+    if (profileImage != null) {
+        AsyncImage(
+            modifier = modifier
+                .padding(MaterialTheme.dimens.contactDimension.padding08)
+                .size(120.dp)
+                .clip(RoundedCornerShape(50)),
+            model = profileImage,
+            contentDescription = "profile",
+            contentScale = ContentScale.FillBounds,
+        )
+    } else {
+        Image(
+            modifier = modifier
+                .size(120.dp)
+                .padding(MaterialTheme.dimens.contactDimension.padding08),
+            painter = painterResource(id = R.drawable.profile_icon_),
+            contentDescription = "profile"
+        )
+    }
+}

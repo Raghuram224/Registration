@@ -2,12 +2,6 @@ package com.example.registration.constants.constantModals
 
 import android.graphics.Bitmap
 
-data class Screens(
-    val loginScreen:String = "LoginScreen",
-    val signupScreen:String = "SignupScreen",
-    val contactProfileScreen:String = "ContactProfileScreen",
-    val editContactScreen :String = "EditContactScreen"
-)
 
 data class PersonalInformation(
     var firstName: String,
@@ -28,6 +22,7 @@ enum class LoginInputFields {
     Email,
     Password,
 }
+
 enum class TextFieldType {
     FirstName,
     LastName,
@@ -46,6 +41,7 @@ enum class OtherEmailOrPhoneFields {
     OtherEmail,
     OtherPhones,
 }
+
 data class UserDetails(
     var firstName: String,
     var lastName: String,
@@ -58,7 +54,7 @@ data class UserDetails(
     var otherPhones: String?,
     var website: String,
     var password: String,
-    var profileImage:Bitmap?
+    var profileImage: Bitmap?
 
 )
 
@@ -66,10 +62,22 @@ data class UserDetails(
 enum class Keyboard {
     Opened, Closed
 }
+
 enum class CredentialsValidationStatus {
     EmailError,
     PasswordError,
     ValidCredentials,
 
 }
+enum class UserType{
+    Admin,
+    Client
+}
+
+data class ContactBasicDetails(
+    val fName: String,
+    val lName: String,
+    val userId: Int,
+    val profileImage: Bitmap?
+)
 

@@ -44,6 +44,9 @@ data class RegistrationEntity(
     val password: String,
 
     @ColumnInfo(name = "profileImage")
-    val profileImage:Bitmap?
+    val profileImage:Bitmap?,
+
+    @ColumnInfo(name = "isAdmin")
+    val isAdmin:Boolean
 
 )

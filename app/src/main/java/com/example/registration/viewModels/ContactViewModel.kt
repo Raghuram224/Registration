@@ -23,6 +23,7 @@ class ContactViewModel @Inject constructor(
 ) : ViewModel() {
     var currentUserId = -1
     private var _isUserIdUpdated = MutableStateFlow(false)
+    var isAdmin = false
 
     private var _userDetails = MutableStateFlow(
         PersonalInformation(
@@ -48,35 +49,13 @@ class ContactViewModel @Inject constructor(
 
 
     private fun convertStringToList(text: String?): List<String>? {
-        return if (text != null) {
-            text.split(",")
-        } else null
+        return text?.split(",")
     }
 
 
     fun hasPhonePermission(): Boolean {
         return permissionHandler.hasRequiredPermission(permissions = permissionHandler.phonePermissions)
     }
-
-//    private fun collectFlow() {
-//        viewModelScope.launch {
-//            localDBRepo.userDetailsFlow.collectLatest {
-//                _userDetails.value.firstName = it.firstName
-//                _userDetails.value.lastName = it.lastName
-//                _userDetails.value.age = it.age
-//                _userDetails.value.dob = it.dob
-//                _userDetails.value.primaryEmail = it.primaryEmail
-//                _userDetails.value.primaryPhone = it.primaryPhone
-//                _userDetails.value.otherEmails = convertStringToList(text = it.otherEmails)
-//                _userDetails.value.otherPhones = convertStringToList(text = it.otherPhones)
-//                _userDetails.value.address = it.address
-//                _userDetails.value.profileImage = it.profileImage
-//                _userDetails.value.website  = it.website
-//
-//            }
-//
-//        }
-//    }
 
     private fun collectFlow(userId: Int) {
         viewModelScope.launch {
@@ -104,12 +83,12 @@ class ContactViewModel @Inject constructor(
         println("contact view model cleared")
     }
 
-    fun updateUserId(userId: Int?) {
+    fun updateUserDetails(userId: Int?, isAdmin:Boolean?) {
 
-        if (userId != null && !_isUserIdUpdated.value) {
-            Log.i("flow user id not null", userId.toString())
+        if (userId != null && !_isUserIdUpdated.value && isAdmin!=null) {
             currentUserId = userId
             _isUserIdUpdated.value = true
+            this.isAdmin = isAdmin
             collectFlow(userId = userId)
         }
     }

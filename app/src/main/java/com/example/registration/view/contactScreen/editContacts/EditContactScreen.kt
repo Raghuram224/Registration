@@ -73,7 +73,6 @@ import com.example.registration.constants.constantModals.Keyboard
 import com.example.registration.constants.constantModals.OtherEmailOrPhoneFields
 import com.example.registration.constants.constantModals.TextFieldType
 import com.example.registration.constants.InputsRegex
-import com.example.registration.constants.constantModals.Screens
 import com.example.registration.ui.theme.Blue
 import com.example.registration.ui.theme.White
 import com.example.registration.ui.theme.dimens
@@ -181,7 +180,6 @@ fun EditContactScreen(
     val focusManager = LocalFocusManager.current
 
     val keyBoardState by keyboardAsState()
-    val isDataLoaded by editContactsViewModel.isDataLoaded.collectAsState()
 
 
     //Fields color
@@ -272,7 +270,7 @@ fun EditContactScreen(
         navController.navigateUp()
 
     }
-    val isUserIdUpdated by editContactsViewModel.isUserIdUpdate.collectAsState()
+    val isUserIdUpdated by editContactsViewModel.isUserIdUpdated.collectAsState()
 
     if (!isUserIdUpdated) {
         editContactsViewModel.updateUserId(
@@ -280,11 +278,6 @@ fun EditContactScreen(
         )
     }
 
-
-//    if (!isDataLoaded) {
-//        editContactsViewModel.loadEmailAndOtherPhones()
-//    }
-    Log.i("Data loaded", contactData.value.toString())
 
     Scaffold(
         topBar = {
@@ -295,8 +288,6 @@ fun EditContactScreen(
 
                     editContactsViewModel.emailListColor[primaryEmailIndex] =
                         emailList[primaryEmailIndex].isEmpty()
-                    editContactsViewModel.phoneListColor[primaryPhoneIndex] =
-                        phoneList[primaryPhoneIndex].isEmpty()
 
                     fNameColor = contactData.value.firstName.isEmpty()
                     lNameColor = contactData.value.lastName.isEmpty()
@@ -379,12 +370,6 @@ fun EditContactScreen(
                             }
                             toastText = "Check given email is valid"
 
-                        } else if (editContactsViewModel.phoneListColor[primaryPhoneIndex]) {
-                            coroutineScope.launch {
-                                phoneBringIntoView.bringIntoView()
-                                phoneFocusRequester.requestFocus()
-                            }
-                            toastText = "Check phone  value"
                         } else {
 
                             toastText = "Check fields value value"
@@ -544,7 +529,6 @@ fun EditContactScreen(
                         },
                         primaryPhoneIndex = primaryPhoneIndex,
                         phoneList = phoneList,
-                        isFieldError = editContactsViewModel.phoneListColor,
                         removeField = {
                             if (phoneList.size > 1 && it != primaryPhoneIndex) {
                                 if (primaryPhoneIndex == 1) {

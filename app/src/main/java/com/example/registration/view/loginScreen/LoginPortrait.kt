@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.registration.constants.InputsRegex
 import com.example.registration.constants.constantModals.LoginInputFields
+import com.example.registration.constants.constantModals.UserType
 import com.example.registration.ui.theme.Blue
 import com.example.registration.view.utils.CustomEmail
 import com.example.registration.view.utils.CustomHyperLink
@@ -36,7 +37,7 @@ import com.example.registration.viewModels.LoginViewModel
 fun LoginPortrait(
     modifier: Modifier = Modifier,
     signupNavigation: () -> Unit,
-    successNavigation: () -> Unit,
+    successNavigation: (UserType) -> Unit,
     loginViewModel: LoginViewModel,
     email: String,
     password: String,
@@ -157,7 +158,8 @@ fun LoginPortrait(
                         if (loginViewModel.authenticateUser(email = email, password = password)) {
                             isPasswordError = false
                             toastText = "Login success"
-                            successNavigation()
+                            val userType = loginViewModel.checkUserType(userId = loginViewModel.userId)
+                            successNavigation(userType)
                         } else {
                             emailFocusRequester.requestFocus()
                             isEmailError = true

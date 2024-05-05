@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.example.registration.constants.PasswordHash
 import com.example.registration.constants.constantModals.LoginInputFields
+import com.example.registration.constants.constantModals.UserType
 import com.example.registration.modal.LocalDBRepo
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -63,6 +64,8 @@ class LoginViewModel @Inject constructor(
 //    }
 
     fun authenticateUser(email: String, password: String): Boolean {
+        localDBRepo.getAllContacts()
+
         val tempUserId = localDBRepo.checkUserExist(
             email = email,
             password = PasswordHash.generateHash(password = password)
@@ -74,6 +77,14 @@ class LoginViewModel @Inject constructor(
         }
         return false
     }
+
+    fun checkUserType(userId:Int): UserType {
+        return if (localDBRepo.checkIsAdmin(userId = userId)) {
+            UserType.Admin
+        }else UserType.Client
+    }
+
+
 
 
 }

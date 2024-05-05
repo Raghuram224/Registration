@@ -52,7 +52,7 @@ class SignupViewModel @Inject constructor(
     var phoneList = mutableStateListOf("")
     val profileImage = _profileImage.asStateFlow()
     val emailListColor = mutableStateListOf(false)
-    val phoneListColor = mutableStateListOf(false)
+//    val phoneListColor = mutableStateListOf(false)
 
     lateinit var userDetails: UserDetails
 
@@ -145,7 +145,6 @@ class SignupViewModel @Inject constructor(
 
     fun checkFieldsValue(
         primaryEmail: String,
-        primaryPhone: String,
         firstName: String,
         lastName: String,
         password: String,
@@ -153,7 +152,7 @@ class SignupViewModel @Inject constructor(
     ): Boolean {
 
         val validateEmail = checkValidEmail()
-        return primaryEmail.isNotEmpty() && primaryPhone.isNotEmpty() &&
+        return primaryEmail.isNotEmpty()  &&
                 firstName.isNotEmpty() && lastName.isNotEmpty()
                 && password.isNotEmpty() && confirmPassword.isNotEmpty() && validateEmail
 

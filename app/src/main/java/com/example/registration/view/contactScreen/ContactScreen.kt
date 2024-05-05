@@ -22,7 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.registration.constants.AllScreens
+import com.example.registration.constants.Screens
 import com.example.registration.ui.theme.White
 import com.example.registration.viewModels.ContactViewModel
 
@@ -41,30 +41,33 @@ fun ContactScreen(
 
     val isUserIdUpdated by contactViewModel.isUserIdUpdated.collectAsState()
     if (!isUserIdUpdated) {
-        contactViewModel.updateUserId(
-            userId = navController.previousBackStackEntry?.savedStateHandle?.get<Int>("userId")
+        contactViewModel.updateUserDetails(
+            userId = navController.previousBackStackEntry?.savedStateHandle?.get<Int>("userId"),
+            isAdmin = navController.previousBackStackEntry?.savedStateHandle?.get<Boolean>("isAdmin")
         )
     }
 
 
     Scaffold(
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = {
-                    navController.currentBackStackEntry?.savedStateHandle?.set("userId",contactViewModel.currentUserId)
-                    navController.navigate(AllScreens.screen.editContactScreen)
+            if (!contactViewModel.isAdmin){
+                FloatingActionButton(
+                    onClick = {
+                        navController.currentBackStackEntry?.savedStateHandle?.set("userId",contactViewModel.currentUserId)
+                        navController.navigate(Screens.EditContactScreens.route)
 
-                },
-                elevation = FloatingActionButtonDefaults.elevation(
-                    defaultElevation = 10.dp
-                ),
-                containerColor = White
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Edit,
-                    contentDescription = "Edit",
-                    tint = uiColor
-                )
+                    },
+                    elevation = FloatingActionButtonDefaults.elevation(
+                        defaultElevation = 10.dp
+                    ),
+                    containerColor = White
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = "Edit",
+                        tint = uiColor
+                    )
+                }
             }
         },
         floatingActionButtonPosition = FabPosition.End

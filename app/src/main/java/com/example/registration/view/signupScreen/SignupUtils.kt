@@ -327,7 +327,6 @@ fun SignupPhone(
     closeButtonClick: () -> Unit,
     primaryPhoneIndex: Int,
     phoneList: MutableList<String>,
-    isFieldError: SnapshotStateList<Boolean>,
     removeField: (idx: Int) -> Unit,
     regex: String,
     phoneFocusRequester: FocusRequester
@@ -349,7 +348,6 @@ fun SignupPhone(
                 onTextChanged = { phoneList[index] = it },
                 keyBoardType = KeyboardType.Phone,
                 label = "Phone number",
-                isError = isFieldError[index],
                 regex = regex
 
             )
@@ -401,7 +399,6 @@ fun SignupPhone(
     Row(modifier = Modifier
         .clickable {
             phoneList.add("")
-            isFieldError.add(false)
         }
         .padding(MaterialTheme.dimens.signupDimension.padding08),
         verticalAlignment = Alignment.CenterVertically,

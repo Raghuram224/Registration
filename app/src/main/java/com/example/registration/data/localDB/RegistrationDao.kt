@@ -15,11 +15,8 @@ interface RegistrationDao {
     fun getUserDetailsFlow(rowId: Int): Flow<RegistrationEntity>
 
 
-//    @Query("select * from registration_table  order by sid limit 1")
-//    suspend fun getSignupDetails(): RegistrationEntity
-//
-//    @Query("delete  from registration_table")
-//    suspend fun clearData()
+    @Query("select * from registration_table")
+    fun getAllContactsDetails():List<RegistrationEntity>
 
     @Query("select * from registration_table where primaryEmail =:email")
     fun checkUserDetails(email: String): RegistrationEntity?
@@ -32,5 +29,5 @@ interface RegistrationDao {
     fun updateUserDetails(registrationEntity: RegistrationEntity)
 
     @Query("select * from registration_table where sid =:userId")
-    fun getUserDetails(userId:Int): RegistrationEntity
+    fun getUserDetails(userId: Int): RegistrationEntity
 }
