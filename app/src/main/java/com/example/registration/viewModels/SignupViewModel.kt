@@ -200,45 +200,5 @@ class SignupViewModel @Inject constructor(
         _signupData.value.profileImage = bitmap
     }
 
-//    private fun setContactsDetails(): UserDetails {
-//            return UserDetails(
-//                dob = "",
-//                age = "",
-//                lastName = "",
-//                firstName = "",
-//                address = "",
-//                primaryPhone = "",
-//                primaryEmail = "",
-//                otherPhones = null,
-//                otherEmails = null,
-//                website = "",
-//                password = "",
-//                profileImage = null
-//
-//            )
-//        } else {
-//
-//            return UserDetails(
-//                dob = localDBRepo.userDetails.dob,
-//                age = localDBRepo.userDetails.age,
-//                lastName = localDBRepo.userDetails.lastName,
-//                firstName = localDBRepo.userDetails.firstName,
-//                address = localDBRepo.userDetails.address,
-//                primaryPhone = localDBRepo.userDetails.primaryPhone,
-//                primaryEmail = localDBRepo.userDetails.primaryEmail,
-//                otherPhones = localDBRepo.userDetails.otherPhones,
-//                otherEmails = localDBRepo.userDetails.otherEmails,
-//                website = localDBRepo.userDetails.website,
-//                password = localDBRepo.userDetails.password,
-//                profileImage = localDBRepo.userDetails.profileImage
-//
-//            )
-//        }
-//    }
-
-//    fun updateUIData(){
-//        localDBRepo.updateDbData()
-//    }
-
 
 }

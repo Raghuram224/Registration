@@ -1,6 +1,7 @@
 package com.example.registration.view.contactScreen
 
 import android.app.Activity
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,7 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.registration.constants.Screens
+import com.example.registration.navigation.Screens
 import com.example.registration.ui.theme.White
 import com.example.registration.viewModels.ContactViewModel
 
@@ -40,17 +41,26 @@ fun ContactScreen(
     val context = LocalContext.current
 
     val isUserIdUpdated by contactViewModel.isUserIdUpdated.collectAsState()
-    if (!isUserIdUpdated) {
-        contactViewModel.updateUserDetails(
-            userId = navController.previousBackStackEntry?.savedStateHandle?.get<Int>("userId"),
-            isAdmin = navController.previousBackStackEntry?.savedStateHandle?.get<Boolean>("isAdmin")
-        )
-    }
+    Log.i("contact viewmodel backstack admin",contactViewModel.isAdmin.toString())
+    Log.i("contact viewmodel backstack userId",contactViewModel.currentUserId.toString())
+//    contactViewModel.
+//    Log.i("backstack userid",navController.previousBackStackEntry?.savedStateHandle?.get<Int>("userId").toString())
+//    Log.i("backstack boolean",navController.previousBackStackEntry?.savedStateHandle?.get<Boolean>("isAdmin").toString())
+//    if (!isUserIdUpdated) {
+//        contactViewModel.updateUserDetails(
+//            userId = navController.previousBackStackEntry?.savedStateHandle?.get<Int>("userId"),
+//            isAdmin = navController.previousBackStackEntry?.savedStateHandle?.get<Boolean>("isAdmin")
+//        )
+//    }
+//    Log.i("nav args admin",contactViewModel.isAdmin.toString())
 
+//    Log.i("navigation Args",navController.)
+
+    contactViewModel.collectFlow()
 
     Scaffold(
         floatingActionButton = {
-            if (!contactViewModel.isAdmin){
+            if (!contactViewModel.isAdmin!!){
                 FloatingActionButton(
                     onClick = {
                         navController.currentBackStackEntry?.savedStateHandle?.set("userId",contactViewModel.currentUserId)

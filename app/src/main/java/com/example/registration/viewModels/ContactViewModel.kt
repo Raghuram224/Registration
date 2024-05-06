@@ -1,8 +1,11 @@
 package com.example.registration.viewModels
 
 import android.util.Log
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.registration.navigation.IS_ADMIN_KEY
+import com.example.registration.navigation.USER_ID_KEY
 import com.example.registration.constants.constantModals.PersonalInformation
 import com.example.registration.modal.LocalDBRepo
 import com.example.registration.permissionHandler.PermissionHandler
@@ -20,10 +23,11 @@ import javax.inject.Inject
 class ContactViewModel @Inject constructor(
     private val localDBRepo: LocalDBRepo,
     private val permissionHandler: PermissionHandler,
+    private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
-    var currentUserId = -1
+    var currentUserId = savedStateHandle.get<Int>(USER_ID_KEY)
     private var _isUserIdUpdated = MutableStateFlow(false)
-    var isAdmin = false
+    var isAdmin = savedStateHandle.get<Boolean>(IS_ADMIN_KEY)
 
     private var _userDetails = MutableStateFlow(
         PersonalInformation(
@@ -57,23 +61,27 @@ class ContactViewModel @Inject constructor(
         return permissionHandler.hasRequiredPermission(permissions = permissionHandler.phonePermissions)
     }
 
-    private fun collectFlow(userId: Int) {
+    fun collectFlow() {
         viewModelScope.launch {
-            localDBRepo.userDetailsFlow(rowId = userId).collectLatest {
-                Log.i("flow viewmodel userid", userId.toString())
-                Log.i("flow viewmodel", it.toString())
+            currentUserId?.let {
+                localDBRepo.userDetailsFlow(rowId = it).collectLatest {
+                    Log.i("flow viewmodel userid", currentUserId.toString())
+                    Log.i("flow viewmodel", it.toString())
 
-                _userDetails.value.firstName = it.firstName
-                _userDetails.value.lastName = it.lastName
-                _userDetails.value.age = it.age
-                _userDetails.value.dob = it.dob
-                _userDetails.value.primaryEmail = it.primaryEmail
-                _userDetails.value.primaryPhone = it.primaryPhone
-                _userDetails.value.otherEmails = convertStringToList(text = it.otherEmails)
-                _userDetails.value.otherPhones = convertStringToList(text = it.otherPhones)
-                _userDetails.value.address = it.address
-                _userDetails.value.profileImage = it.profileImage
-                _userDetails.value.website = it.website
+                    _userDetails.value.apply {
+                        firstName = it.firstName
+                        lastName = it.lastName
+                        age = it.age
+                        dob = it.dob
+                        primaryEmail = it.primaryEmail
+                        primaryPhone = it.primaryPhone
+                        otherEmails = convertStringToList(text = it.otherEmails)
+                        otherPhones = convertStringToList(text = it.otherPhones)
+                        address = it.address
+                        profileImage = it.profileImage
+                        website = it.website
+                    }
+                }
             }
         }
     }
@@ -83,15 +91,15 @@ class ContactViewModel @Inject constructor(
         println("contact view model cleared")
     }
 
-    fun updateUserDetails(userId: Int?, isAdmin:Boolean?) {
-
-        if (userId != null && !_isUserIdUpdated.value && isAdmin!=null) {
-            currentUserId = userId
-            _isUserIdUpdated.value = true
-            this.isAdmin = isAdmin
-            collectFlow(userId = userId)
-        }
-    }
+//    fun updateUserDetails(userId: Int?, isAdmin: Boolean?) {
+//
+//        if (userId != null && !_isUserIdUpdated.value && isAdmin != null) {
+//            currentUserId = userId
+//            _isUserIdUpdated.value = true
+//            this.isAdmin = isAdmin
+//            collectFlow(userId = userId)
+//        }
+//    }
 
 
 }

@@ -266,10 +266,10 @@ fun EditContactScreen(
     }
 
 
-    BackHandler {
-        navController.navigateUp()
-
-    }
+//    BackHandler {
+//        navController.navigateUp()
+//
+//    }
     val isUserIdUpdated by editContactsViewModel.isUserIdUpdated.collectAsState()
 
     if (!isUserIdUpdated) {

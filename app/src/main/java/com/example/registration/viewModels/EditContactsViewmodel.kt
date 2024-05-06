@@ -175,13 +175,13 @@ class EditContactsViewmodel @Inject constructor(
     private fun checkValidEmail(): Boolean {
         var valid = false
         emailList.forEachIndexed { idx, item ->
+
             if (item != null) {
                 if (item.matches(regex = Regex(InputsRegex.EMAIL_VALIDATION_REGEX))) {
                     valid = true
                 } else {
                     emailListColor[idx] = true
                     return false
-
                 }
             }
         }
@@ -202,18 +202,22 @@ class EditContactsViewmodel @Inject constructor(
 
     private fun setContactsDetails(userId: Int) {
         val userDetails = localDBRepo.getUserDetails(userId = userId)
-        _contactData.value.dob = userDetails.dob
-        _contactData.value.age = userDetails.age
-        _contactData.value.lastName = userDetails.lastName
-        _contactData.value.firstName = userDetails.firstName
-        _contactData.value.address = userDetails.address
-        _contactData.value.primaryPhone = userDetails.primaryPhone
-        _contactData.value.primaryEmail = userDetails.primaryEmail
-        _contactData.value.otherPhones = userDetails.otherPhones
-        _contactData.value.otherEmails = userDetails.otherEmails
-        _contactData.value.website = userDetails.website
-        _contactData.value.profileImage = userDetails.profileImage
-        _contactData.value.password = userDetails.password
+
+        _contactData.value.apply {
+            dob = userDetails.dob
+            age = userDetails.age
+            lastName = userDetails.lastName
+            firstName = userDetails.firstName
+            address = userDetails.address
+            primaryPhone = userDetails.primaryPhone
+            primaryEmail = userDetails.primaryEmail
+            otherPhones = userDetails.otherPhones
+            otherEmails = userDetails.otherEmails
+            website = userDetails.website
+            profileImage = userDetails.profileImage
+            password = userDetails.password
+        }
+
 
         Log.i("contact obj",_contactData.value.toString())
         loadEmailAndOtherPhones()

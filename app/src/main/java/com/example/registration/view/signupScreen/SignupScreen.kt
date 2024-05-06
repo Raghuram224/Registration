@@ -11,7 +11,6 @@ import android.os.Build
 import android.util.Log
 import android.view.Gravity
 import android.widget.Toast
-import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -76,10 +75,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import com.example.registration.R
 import com.example.registration.constants.InputsRegex
-import com.example.registration.constants.Screens
+import com.example.registration.navigation.Screens
 import com.example.registration.constants.constantModals.Keyboard
 import com.example.registration.constants.constantModals.OtherEmailOrPhoneFields
 import com.example.registration.constants.constantModals.TextFieldType

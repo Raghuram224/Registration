@@ -8,7 +8,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.navigation.NavController
-import com.example.registration.constants.Screens
+import com.example.registration.navigation.Screens
 import com.example.registration.constants.constantModals.UserType
 import com.example.registration.viewModels.LoginViewModel
 
@@ -39,11 +39,28 @@ fun LoginScreen(
             if (userType == UserType.Admin){
                 navController.navigate(Screens.AllContactsScreen.route)
             }else{
-                navController.currentBackStackEntry?.savedStateHandle?.set("isAdmin",false)
-                navController.navigate(Screens.ContactScreens.route){
-//                popUpTo(navController.graph.id){
-//                    inclusive = true
-//                }
+//                navController.currentBackStackEntry?.savedStateHandle?.set("isAdmin",false)
+//                navController.currentBackStackEntry?.savedStateHandle?.set("userId",loginViewModel.userId)
+//                navController.navigate(Screens.ContactScreens.route+"/${false}/${loginViewModel.userId}")
+
+//                navController.navigate(Screens.ContactScreens.route)
+                Log.i("Backstack set",loginViewModel.userId.toString())
+                navController.navigate(
+                    Screens.ContactScreens.passArguments(
+                    isAdmin = false,
+                    userId = loginViewModel.userId
+                )){
+
+//                   popUpTo(Screens.LoginScreens.route){
+//                       inclusive =true
+//                   }
+//                    navController.currentDestination?.let {
+//
+//                        popUpTo(it.id){
+//                            inclusive = true
+//                        }
+//
+//                    }
 
                 }
             }

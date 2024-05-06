@@ -16,13 +16,13 @@ interface RegistrationDao {
 
 
     @Query("select * from registration_table")
-    fun getAllContactsDetails():List<RegistrationEntity>
+    fun getAllContactsDetails(): List<RegistrationEntity>
 
     @Query("select * from registration_table where primaryEmail =:email")
     fun checkUserDetails(email: String): RegistrationEntity?
 
     @Query("SELECT (SELECT COUNT(*) FROM registration_table) == 0")
-    suspend fun isDBEmpty(): Boolean
+    fun isDBEmpty(): Boolean
 
 
     @Update
