@@ -24,7 +24,6 @@ fun AllContactsScreen(
         modifier = Modifier
             .fillMaxSize()
             .padding(MaterialTheme.dimens.contactDimension.padding16),
-        contentPadding = PaddingValues(MaterialTheme.dimens.allContactsDimension.padding16)
     ) {
         items(allContactsViewModel.getAllContacts()) { contact ->
             ContactCard(

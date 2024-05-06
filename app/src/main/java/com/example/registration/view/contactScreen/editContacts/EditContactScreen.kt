@@ -270,14 +270,15 @@ fun EditContactScreen(
 //        navController.navigateUp()
 //
 //    }
-    val isUserIdUpdated by editContactsViewModel.isUserIdUpdated.collectAsState()
+//    val isUserIdUpdated by editContactsViewModel.isUserIdUpdated.collectAsState()
 
-    if (!isUserIdUpdated) {
-        editContactsViewModel.updateUserId(
-            userId = navController.previousBackStackEntry?.savedStateHandle?.get<Int>("userId")
-        )
-    }
+//    if (!isUserIdUpdated) {
+//        editContactsViewModel.updateUserId(
+//            userId = navController.previousBackStackEntry?.savedStateHandle?.get<Int>("userId")
+//        )
+//    }
 
+    editContactsViewModel.setContactsDetails(userId = editContactsViewModel.currentUserId)
 
     Scaffold(
         topBar = {

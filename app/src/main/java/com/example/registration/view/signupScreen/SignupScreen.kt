@@ -298,8 +298,6 @@ fun SignupScreen(
 
             },
             imageBitmap = profileImage,
-//            selectedImageType = selectedImageType,
-//            selectedCameraImage = capturedImage,
             isProfileSelected = isProfileSelected,
             openCamera = {
 
@@ -752,11 +750,8 @@ fun SignupScreen(
                         ).show()
 
                         navController.navigate(Screens.LoginScreens.route){
-                            popUpTo(navController.graph.id){
-                                inclusive = true
-                            }
+                            navController.popBackStack()
                         }
-//
 
 
                     } else if (confirmPasswordColor) {

@@ -10,7 +10,6 @@ import javax.inject.Inject
 @HiltViewModel
 class AllContactsViewModel @Inject constructor(
     private val localDBRepo: LocalDBRepo,
-    private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
 

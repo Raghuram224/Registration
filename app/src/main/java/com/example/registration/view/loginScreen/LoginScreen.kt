@@ -19,11 +19,11 @@ fun LoginScreen(
     navController: NavController,
     loginViewModel: LoginViewModel,
 
-) {
+    ) {
 //    val configuration = LocalConfiguration.current
 
 
-    Log.i("login screen","Login")
+    Log.i("login screen", "Login")
     val email by loginViewModel.email.collectAsState()
     val password by loginViewModel.passwords.collectAsState()
 
@@ -32,35 +32,26 @@ fun LoginScreen(
             navController.navigate(route = Screens.SignupScreens.route)
         },
         loginViewModel = loginViewModel,
-        successNavigation = {userType->
-            navController.currentBackStackEntry?.savedStateHandle?.set("userId",loginViewModel.userId)
+        successNavigation = { userType ->
+            navController.currentBackStackEntry?.savedStateHandle?.set(
+                "userId",
+                loginViewModel.userId
+            )
 
 
-            if (userType == UserType.Admin){
-                navController.navigate(Screens.AllContactsScreen.route)
-            }else{
-//                navController.currentBackStackEntry?.savedStateHandle?.set("isAdmin",false)
-//                navController.currentBackStackEntry?.savedStateHandle?.set("userId",loginViewModel.userId)
-//                navController.navigate(Screens.ContactScreens.route+"/${false}/${loginViewModel.userId}")
-
-//                navController.navigate(Screens.ContactScreens.route)
-                Log.i("Backstack set",loginViewModel.userId.toString())
+            if (userType == UserType.Admin) {
+                navController.navigate(Screens.AllContactsScreen.route) {
+                    navController.popBackStack()
+                }
+            } else {
+                Log.i("Backstack set", loginViewModel.userId.toString())
                 navController.navigate(
                     Screens.ContactScreens.passArguments(
-                    isAdmin = false,
-                    userId = loginViewModel.userId
-                )){
-
-//                   popUpTo(Screens.LoginScreens.route){
-//                       inclusive =true
-//                   }
-//                    navController.currentDestination?.let {
-//
-//                        popUpTo(it.id){
-//                            inclusive = true
-//                        }
-//
-//                    }
+                        isAdmin = false,
+                        userId = loginViewModel.userId
+                    )
+                ) {
+                    navController.popBackStack()
 
                 }
             }

@@ -12,6 +12,10 @@ sealed class Screens(val route: String) {
             return "ContactScreen/$userId/$isAdmin"
         }
     }
-    data object EditContactScreens : Screens(route = "EditContactScreen/{$USER_ID_KEY")
+    data object EditContactScreens : Screens(route = "EditContactScreen/{$USER_ID_KEY}"){
+        fun passArgumentUserID(userId: Int):String{
+            return  "EditContactScreen/$userId"
+        }
+    }
     data object AllContactsScreen : Screens(route = "AllContactsScreen")
 }

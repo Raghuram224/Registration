@@ -3,6 +3,7 @@ package com.example.registration.viewModels
 import android.graphics.Bitmap
 import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.registration.constants.constantModals.OtherEmailOrPhoneFields
@@ -10,6 +11,7 @@ import com.example.registration.constants.constantModals.TextFieldType
 import com.example.registration.constants.constantModals.UserDetails
 import com.example.registration.constants.InputsRegex
 import com.example.registration.modal.LocalDBRepo
+import com.example.registration.navigation.USER_ID_KEY
 import com.example.registration.permissionHandler.PermissionHandler
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,10 +23,11 @@ import javax.inject.Inject
 @HiltViewModel
 class EditContactsViewmodel @Inject constructor(
     private val localDBRepo: LocalDBRepo,
-    private val permissionHandler: PermissionHandler
+    private val permissionHandler: PermissionHandler,
+    private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private var currentUserId = -1
+    val currentUserId = savedStateHandle.get<Int>(USER_ID_KEY)?:-1
     private val _contactData = MutableStateFlow(
         UserDetails(
             dob = "",
@@ -53,9 +56,6 @@ class EditContactsViewmodel @Inject constructor(
     val profileImage = _profileImage.asStateFlow()
     val emailListColor = mutableStateListOf(false)
     val phoneListColor = mutableStateListOf(false)
-    val isDataLoaded = _isDataLoaded.asStateFlow()
-
-    val isUserIdUpdated = _isUserIdUpdated.asStateFlow()
 
 
     fun convertListToString(list: List<String>, idx: Int): String? {
@@ -200,7 +200,7 @@ class EditContactsViewmodel @Inject constructor(
         _contactData.value.profileImage = bitmap
     }
 
-    private fun setContactsDetails(userId: Int) {
+    fun setContactsDetails(userId: Int) {
         val userDetails = localDBRepo.getUserDetails(userId = userId)
 
         _contactData.value.apply {
@@ -251,16 +251,6 @@ class EditContactsViewmodel @Inject constructor(
 
     }
 
-    fun updateUserId(userId: Int?) {
-        Log.i("flow out",userId.toString())
-        if (userId != null && !_isUserIdUpdated.value) {
-            currentUserId = userId
-            _isUserIdUpdated.value = true
-            setContactsDetails(userId = userId)
-            Log.i("flow in",userId.toString())
-
-        }
-    }
 
 
 }

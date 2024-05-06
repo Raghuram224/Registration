@@ -25,8 +25,8 @@ class ContactViewModel @Inject constructor(
     private val permissionHandler: PermissionHandler,
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
-    var currentUserId = savedStateHandle.get<Int>(USER_ID_KEY)
-    private var _isUserIdUpdated = MutableStateFlow(false)
+
+    var currentUserId = savedStateHandle.get<Int>(USER_ID_KEY)?:-1
     var isAdmin = savedStateHandle.get<Boolean>(IS_ADMIN_KEY)
 
     private var _userDetails = MutableStateFlow(
@@ -49,7 +49,7 @@ class ContactViewModel @Inject constructor(
     private val _uiColor = listOf(DarkGreen, RedBG, Blue).random()
     val uiColor = _uiColor
     val userDetails = _userDetails.asStateFlow()
-    val isUserIdUpdated = _isUserIdUpdated.asStateFlow()
+//    val isUserIdUpdated = _isUserIdUpdated.asStateFlow()
 
 
     private fun convertStringToList(text: String?): List<String>? {

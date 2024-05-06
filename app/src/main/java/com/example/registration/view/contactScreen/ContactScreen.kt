@@ -40,31 +40,23 @@ fun ContactScreen(
     val userDetails by contactViewModel.userDetails.collectAsState()
     val context = LocalContext.current
 
-    val isUserIdUpdated by contactViewModel.isUserIdUpdated.collectAsState()
-    Log.i("contact viewmodel backstack admin",contactViewModel.isAdmin.toString())
-    Log.i("contact viewmodel backstack userId",contactViewModel.currentUserId.toString())
-//    contactViewModel.
-//    Log.i("backstack userid",navController.previousBackStackEntry?.savedStateHandle?.get<Int>("userId").toString())
-//    Log.i("backstack boolean",navController.previousBackStackEntry?.savedStateHandle?.get<Boolean>("isAdmin").toString())
-//    if (!isUserIdUpdated) {
-//        contactViewModel.updateUserDetails(
-//            userId = navController.previousBackStackEntry?.savedStateHandle?.get<Int>("userId"),
-//            isAdmin = navController.previousBackStackEntry?.savedStateHandle?.get<Boolean>("isAdmin")
-//        )
-//    }
-//    Log.i("nav args admin",contactViewModel.isAdmin.toString())
 
-//    Log.i("navigation Args",navController.)
+    Log.i("contact viewmodel backstack admin", contactViewModel.isAdmin.toString())
+    Log.i("contact viewmodel backstack userId", contactViewModel.currentUserId.toString())
 
     contactViewModel.collectFlow()
 
     Scaffold(
         floatingActionButton = {
-            if (!contactViewModel.isAdmin!!){
+            if (!contactViewModel.isAdmin!!) {
                 FloatingActionButton(
                     onClick = {
-                        navController.currentBackStackEntry?.savedStateHandle?.set("userId",contactViewModel.currentUserId)
-                        navController.navigate(Screens.EditContactScreens.route)
+
+                        navController.navigate(
+                            Screens.EditContactScreens.passArgumentUserID(
+                                userId = contactViewModel.currentUserId
+                            )
+                        )
 
                     },
                     elevation = FloatingActionButtonDefaults.elevation(

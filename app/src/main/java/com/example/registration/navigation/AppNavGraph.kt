@@ -78,6 +78,12 @@ fun AppNavGraph(
         }
         composable(
             route = Screens.EditContactScreens.route,
+            arguments = listOf(
+                navArgument(USER_ID_KEY) {
+                    type = NavType.IntType
+                },
+
+            ),
             enterTransition = {
                 slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left)
 
