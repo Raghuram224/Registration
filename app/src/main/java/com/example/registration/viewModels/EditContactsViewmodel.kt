@@ -1,14 +1,20 @@
 package com.example.registration.viewModels
 
 import android.graphics.Bitmap
+import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.registration.constants.constantModals.OtherEmailOrPhoneFields
 import com.example.registration.constants.constantModals.TextFieldType
 import com.example.registration.constants.constantModals.UserDetails
 import com.example.registration.constants.InputsRegex
+import com.example.registration.constants.constantModals.EditFieldsColorType
+import com.example.registration.constants.constantModals.FieldsColor
+import com.example.registration.constants.constantModals.SignupFieldsColorType
 import com.example.registration.modal.LocalDBRepo
+import com.example.registration.navigation.USER_ID_KEY
 import com.example.registration.permissionHandler.PermissionHandler
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,22 +26,47 @@ import javax.inject.Inject
 @HiltViewModel
 class EditContactsViewmodel @Inject constructor(
     private val localDBRepo: LocalDBRepo,
-    private val permissionHandler: PermissionHandler
+    private val permissionHandler: PermissionHandler,
+    private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
+
+    private val currentUserId = savedStateHandle.get<Int>(USER_ID_KEY) ?: -1
     private val _contactData = MutableStateFlow(
-        setContactsDetails()
+        UserDetails(
+            dob = "",
+            age = "",
+            lastName = "",
+            firstName = "",
+            address = "",
+            primaryPhone = "",
+            primaryEmail = "",
+            otherPhones = null,
+            otherEmails = null,
+            website = "",
+            profileImage = null,
+            password = ""
+
+        )
+    )
+    private val _fieldsColor = MutableStateFlow(
+        FieldsColor(
+            fNameColor = false,
+            lNameColor = false,
+            passwordColor = false,
+            confirmPasswordColor = false
+        )
     )
 
-    private var _profileImage = MutableStateFlow<Bitmap?>(_contactData.value.profileImage)
-    private var _isDataLoaded = MutableStateFlow(false)
 
-    val contactData = _contactData.asStateFlow()
+    private var _profileImage = MutableStateFlow<Bitmap?>(_contactData.value.profileImage)
+
+    var contactData = _contactData.asStateFlow()
     var emailList = mutableStateListOf(_contactData.value.primaryEmail)
     var phoneList = mutableStateListOf(_contactData.value.primaryPhone)
     val profileImage = _profileImage.asStateFlow()
     val emailListColor = mutableStateListOf(false)
     val phoneListColor = mutableStateListOf(false)
-    val isDataLoaded = _isDataLoaded.asStateFlow()
+    val fieldsColor = _fieldsColor.asStateFlow()
 
 
     fun convertListToString(list: List<String>, idx: Int): String? {
@@ -127,14 +158,13 @@ class EditContactsViewmodel @Inject constructor(
 
     fun checkFieldsValue(
         primaryEmail: String,
-        primaryPhone: String,
         firstName: String,
         lastName: String,
 
         ): Boolean {
 
         val validateEmail = checkValidEmail()
-        return primaryEmail.isNotEmpty() && primaryPhone.isNotEmpty() &&
+        return primaryEmail.isNotEmpty() &&
                 firstName.isNotEmpty() && lastName.isNotEmpty()
                 && validateEmail
 
@@ -148,25 +178,24 @@ class EditContactsViewmodel @Inject constructor(
 
     fun updateData() {
         viewModelScope.launch {
-            localDBRepo.updateUserDetails(userDetails = _contactData.value)
+            localDBRepo.updateUserDetails(
+                userDetails = _contactData.value,
+                currentUserSID = currentUserId
+            )
         }
     }
+
 
     private fun checkValidEmail(): Boolean {
-        var valid = false
         emailList.forEachIndexed { idx, item ->
-            if (item != null) {
-                if (item.matches(regex = Regex(InputsRegex.EMAIL_VALIDATION_REGEX))) {
-                    valid = true
-                } else {
-                    emailListColor[idx] = true
-                    return false
-
-                }
+            if (!item.matches(regex = Regex(InputsRegex.EMAIL_VALIDATION_REGEX))) {
+                emailListColor[idx] = true
+                return false
             }
         }
-        return valid
+        return true
     }
+
 
     private fun convertStringToList(text: String?): List<String>? {
         return text?.split(",")
@@ -180,29 +209,35 @@ class EditContactsViewmodel @Inject constructor(
         _contactData.value.profileImage = bitmap
     }
 
-    private fun setContactsDetails(): UserDetails {
+    fun setContactsDetails() {
+        val userDetails = localDBRepo.getUserDetails(userId = currentUserId)
 
-        return localDBRepo.currentUserDetails.let {
-            UserDetails(
-                dob = it.dob,
-                age = it.age,
-                lastName = it.lastName,
-                firstName = it.firstName,
-                address = it.address,
-                primaryPhone = it.primaryPhone,
-                primaryEmail = it.primaryEmail,
-                otherPhones = it.otherPhones,
-                otherEmails = it.otherEmails,
-                website = it.website,
-                password = it.password,
-                profileImage = it.profileImage
-
-            )
+        _contactData.value.apply {
+            dob = userDetails.dob
+            age = userDetails.age
+            lastName = userDetails.lastName
+            firstName = userDetails.firstName
+            address = userDetails.address
+            primaryPhone = userDetails.primaryPhone
+            primaryEmail = userDetails.primaryEmail
+            otherPhones = userDetails.otherPhones
+            otherEmails = userDetails.otherEmails
+            website = userDetails.website
+            profileImage = userDetails.profileImage
+            password = userDetails.password
         }
+
+
+        Log.i("contact obj", _contactData.value.toString())
+        loadEmailAndOtherPhones()
+
 
     }
 
-    fun loadEmailAndOtherPhones() {
+    private fun loadEmailAndOtherPhones() {
+        emailList[0] = contactData.value.primaryEmail
+        phoneList[0] = contactData.value.primaryPhone
+        _profileImage.value = contactData.value.profileImage
         convertStringToList(contactData.value.otherEmails)?.forEach {
             if (it.isNotEmpty()) {
                 emailList.add(it)
@@ -219,8 +254,24 @@ class EditContactsViewmodel @Inject constructor(
             }
 
         }
+        Log.i("contact obj", _contactData.value.toString())
+        Log.i("contact data", _contactData.value.toString())
 
-        _isDataLoaded.value =true
+
+    }
+
+    fun updateEditContactsFieldsColor(isValid: Boolean, type: EditFieldsColorType) {
+        when (type) {
+            EditFieldsColorType.FName -> {
+                _fieldsColor.value.fNameColor = isValid
+            }
+
+            EditFieldsColorType.LName -> {
+                _fieldsColor.value.lNameColor = isValid
+            }
+
+
+        }
     }
 
 

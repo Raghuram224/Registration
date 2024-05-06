@@ -2,13 +2,18 @@ package com.example.registration.viewModels
 
 import android.graphics.Bitmap
 import androidx.compose.runtime.mutableStateListOf
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.registration.constants.constantModals.OtherEmailOrPhoneFields
 import com.example.registration.constants.constantModals.TextFieldType
 import com.example.registration.constants.constantModals.UserDetails
 import com.example.registration.constants.InputsRegex
+import com.example.registration.constants.constantModals.FieldsColor
+import com.example.registration.constants.constantModals.SignupFieldsColorType
 import com.example.registration.modal.LocalDBRepo
+import com.example.registration.navigation.NAVIGATED_FROM
+import com.example.registration.navigation.USER_ID_KEY
 import com.example.registration.permissionHandler.PermissionHandler
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,16 +23,18 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 
-
-
-
 @HiltViewModel
 class SignupViewModel @Inject constructor(
     private val localDBRepo: LocalDBRepo,
-    private val permissionHandler: PermissionHandler
+    private val permissionHandler: PermissionHandler,
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private val _signupData = MutableStateFlow(
+    val currentUserId = savedStateHandle.get<Int>(USER_ID_KEY)?:-1
+    val navigatedFrom = savedStateHandle.get<String>(NAVIGATED_FROM)
+
+
+    private var _signupData = MutableStateFlow(
         UserDetails(
             dob = "",
             age = "",
@@ -45,6 +52,15 @@ class SignupViewModel @Inject constructor(
         )
     )
 
+    private val _fieldsColor = MutableStateFlow(
+        FieldsColor(
+            fNameColor = false,
+            lNameColor = false,
+            passwordColor = false,
+            confirmPasswordColor = false
+        )
+    )
+
     private var _profileImage = MutableStateFlow<Bitmap?>(_signupData.value.profileImage)
 
     val signupData = _signupData.asStateFlow()
@@ -52,7 +68,7 @@ class SignupViewModel @Inject constructor(
     var phoneList = mutableStateListOf("")
     val profileImage = _profileImage.asStateFlow()
     val emailListColor = mutableStateListOf(false)
-    val phoneListColor = mutableStateListOf(false)
+    val fieldsColor = _fieldsColor.asStateFlow()
 
     lateinit var userDetails: UserDetails
 
@@ -145,17 +161,16 @@ class SignupViewModel @Inject constructor(
 
     fun checkFieldsValue(
         primaryEmail: String,
-        primaryPhone: String,
         firstName: String,
         lastName: String,
         password: String,
         confirmPassword: String
     ): Boolean {
 
-        val validateEmail = checkValidEmail()
-        return primaryEmail.isNotEmpty() && primaryPhone.isNotEmpty() &&
+
+        return primaryEmail.isNotEmpty() &&
                 firstName.isNotEmpty() && lastName.isNotEmpty()
-                && password.isNotEmpty() && confirmPassword.isNotEmpty() && validateEmail
+                && password.isNotEmpty() && confirmPassword.isNotEmpty() && checkValidEmail()
 
     }
 
@@ -180,17 +195,13 @@ class SignupViewModel @Inject constructor(
     }
 
     private fun checkValidEmail(): Boolean {
-        var valid = false
         emailList.forEachIndexed { idx, item ->
-            if (item.matches(regex = Regex(InputsRegex.EMAIL_VALIDATION_REGEX))) {
-                valid = true
-            } else {
+            if (!item.matches(regex = Regex(InputsRegex.EMAIL_VALIDATION_REGEX))) {
                 emailListColor[idx] = true
                 return false
-
             }
         }
-        return valid
+        return true
     }
 
     fun checkRequiredPermission(): Boolean {
@@ -201,45 +212,47 @@ class SignupViewModel @Inject constructor(
         _signupData.value.profileImage = bitmap
     }
 
-//    private fun setContactsDetails(): UserDetails {
-//            return UserDetails(
-//                dob = "",
-//                age = "",
-//                lastName = "",
-//                firstName = "",
-//                address = "",
-//                primaryPhone = "",
-//                primaryEmail = "",
-//                otherPhones = null,
-//                otherEmails = null,
-//                website = "",
-//                password = "",
-//                profileImage = null
-//
-//            )
-//        } else {
-//
-//            return UserDetails(
-//                dob = localDBRepo.userDetails.dob,
-//                age = localDBRepo.userDetails.age,
-//                lastName = localDBRepo.userDetails.lastName,
-//                firstName = localDBRepo.userDetails.firstName,
-//                address = localDBRepo.userDetails.address,
-//                primaryPhone = localDBRepo.userDetails.primaryPhone,
-//                primaryEmail = localDBRepo.userDetails.primaryEmail,
-//                otherPhones = localDBRepo.userDetails.otherPhones,
-//                otherEmails = localDBRepo.userDetails.otherEmails,
-//                website = localDBRepo.userDetails.website,
-//                password = localDBRepo.userDetails.password,
-//                profileImage = localDBRepo.userDetails.profileImage
-//
-//            )
-//        }
-//    }
+    fun updateFieldsColor(isValid: Boolean, type: SignupFieldsColorType) {
+        when (type) {
+            SignupFieldsColorType.FName -> {
+                _fieldsColor.value.fNameColor = isValid
+            }
 
-//    fun updateUIData(){
-//        localDBRepo.updateDbData()
-//    }
+            SignupFieldsColorType.LName -> {
+                _fieldsColor.value.lNameColor = isValid
+            }
+
+            SignupFieldsColorType.Password -> {
+                _fieldsColor.value.passwordColor = isValid
+            }
+
+            SignupFieldsColorType.ConfirmPassword -> {
+                _fieldsColor.value.confirmPasswordColor = isValid
+            }
+        }
+    }
+
+    fun setupUserDetails(){
+        val userDetails = localDBRepo.getUserDetails(userId = currentUserId)
+
+        userDetails.let {
+            _signupData.value.apply {
+                dob = it.dob
+                age = it.age
+                lastName = it.lastName
+                firstName = it.firstName
+                address = it.address
+                primaryPhone = it.primaryPhone
+                primaryEmail = it.primaryEmail
+                otherPhones = it.otherPhones
+                otherEmails = it.otherEmails
+                website = it.website
+                password = it.password
+                profileImage = it.profileImage
+            }
+        }
+
+    }
 
 
 }

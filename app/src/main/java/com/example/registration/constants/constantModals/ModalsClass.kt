@@ -2,12 +2,6 @@ package com.example.registration.constants.constantModals
 
 import android.graphics.Bitmap
 
-data class Screens(
-    val loginScreen:String = "LoginScreen",
-    val signupScreen:String = "SignupScreen",
-    val contactProfileScreen:String = "ContactProfileScreen",
-    val editContactScreen :String = "EditContactScreen"
-)
 
 data class PersonalInformation(
     var firstName: String,
@@ -28,6 +22,7 @@ enum class LoginInputFields {
     Email,
     Password,
 }
+
 enum class TextFieldType {
     FirstName,
     LastName,
@@ -46,6 +41,7 @@ enum class OtherEmailOrPhoneFields {
     OtherEmail,
     OtherPhones,
 }
+
 data class UserDetails(
     var firstName: String,
     var lastName: String,
@@ -58,7 +54,7 @@ data class UserDetails(
     var otherPhones: String?,
     var website: String,
     var password: String,
-    var profileImage:Bitmap?
+    var profileImage: Bitmap?
 
 )
 
@@ -67,3 +63,38 @@ enum class Keyboard {
     Opened, Closed
 }
 
+enum class CredentialsValidationStatus {
+    EmailError,
+    PasswordError,
+    ValidCredentials,
+
+}
+
+enum class UserType {
+    Admin,
+    Client
+}
+enum class SignupFieldsColorType{
+    FName,
+    LName,
+    Password,
+    ConfirmPassword
+}
+enum class EditFieldsColorType{
+    FName,
+    LName,
+}
+data class ContactBasicDetails(
+    val fName: String,
+    val lName: String,
+    val userId: Int,
+    val profileImage: Bitmap?
+)
+
+data class FieldsColor(
+    var fNameColor: Boolean,
+    var lNameColor: Boolean,
+    var passwordColor: Boolean,
+    var confirmPasswordColor: Boolean,
+
+    )

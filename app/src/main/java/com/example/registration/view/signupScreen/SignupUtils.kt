@@ -70,6 +70,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.registration.R
@@ -327,10 +328,9 @@ fun SignupPhone(
     closeButtonClick: () -> Unit,
     primaryPhoneIndex: Int,
     phoneList: MutableList<String>,
-    isFieldError: SnapshotStateList<Boolean>,
     removeField: (idx: Int) -> Unit,
     regex: String,
-    phoneFocusRequester: FocusRequester
+
 ) {
 
     phoneList.forEachIndexed { index, key ->
@@ -341,7 +341,6 @@ fun SignupPhone(
         ) {
             CustomTextField(
                 modifier = Modifier
-                    .focusRequester(focusRequester = phoneFocusRequester)
                     .weight(0.9f)
                     .fillMaxWidth(),
                 itemNo = (index + 1).toString(),
@@ -349,7 +348,6 @@ fun SignupPhone(
                 onTextChanged = { phoneList[index] = it },
                 keyBoardType = KeyboardType.Phone,
                 label = "Phone number",
-                isError = isFieldError[index],
                 regex = regex
 
             )
@@ -401,7 +399,6 @@ fun SignupPhone(
     Row(modifier = Modifier
         .clickable {
             phoneList.add("")
-            isFieldError.add(false)
         }
         .padding(MaterialTheme.dimens.signupDimension.padding08),
         verticalAlignment = Alignment.CenterVertically,
@@ -841,4 +838,66 @@ fun convertUriToBitmapAboveAndroidP(uri: Uri, activity: Activity): Bitmap {
 
 fun convertUriToBitmapBelowAndroidP(uri: Uri, activity: Activity): Bitmap {
     return MediaStore.Images.Media.getBitmap(activity.contentResolver, uri)
+}
+
+@Composable
+fun ContactsTopBar(
+    modifier: Modifier,
+    cancelButtonClick: () -> Unit,
+    saveButtonClick: () -> Unit,
+    isSaveButtonEnabled:Boolean=false,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(White),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        TextButton(
+            modifier = Modifier
+                .weight(0.5f)
+                .padding(MaterialTheme.dimens.signupDimension.padding08)
+                .fillMaxWidth(),
+            onClick = {
+                cancelButtonClick()
+            }
+        ) {
+            androidx.compose.material.Text(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                text = "Cancel",
+                color = Blue,
+                style = TextStyle(
+                    fontSize = MaterialTheme.typography.h6.fontSize,
+                    textAlign = TextAlign.Start
+                )
+            )
+        }
+
+
+
+        if (isSaveButtonEnabled){
+            TextButton(
+                modifier = Modifier
+                    .weight(0.5f)
+                    .padding(MaterialTheme.dimens.signupDimension.padding08)
+                    .fillMaxWidth(),
+                onClick = {
+                    saveButtonClick()
+                }
+            ) {
+                androidx.compose.material.Text(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    text = "Save",
+                    color = Blue,
+                    style = TextStyle(
+                        fontSize = MaterialTheme.typography.h6.fontSize,
+                        textAlign = TextAlign.End
+                    )
+                )
+            }
+        }
+    }
+
 }

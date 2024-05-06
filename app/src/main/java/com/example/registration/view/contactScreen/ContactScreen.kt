@@ -1,7 +1,7 @@
 package com.example.registration.view.contactScreen
 
 import android.app.Activity
-import androidx.activity.compose.BackHandler
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,8 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.registration.constants.AllScreens
-import com.example.registration.constants.constantModals.Screens
+import com.example.registration.navigation.Screens
 import com.example.registration.ui.theme.White
 import com.example.registration.viewModels.ContactViewModel
 
@@ -33,7 +32,7 @@ fun ContactScreen(
     navController: NavController,
     contactViewModel: ContactViewModel,
 
-) {
+    ) {
 
     val activity = LocalContext.current as Activity
     val uiColor = contactViewModel.uiColor
@@ -42,20 +41,35 @@ fun ContactScreen(
     val context = LocalContext.current
 
 
+    Log.i("contact viewmodel backstack admin", contactViewModel.isAdmin.toString())
+    Log.i("contact viewmodel backstack userId", contactViewModel.currentUserId.toString())
+
+    contactViewModel.collectFlow()
+
     Scaffold(
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = { navController.navigate(AllScreens.screen.editContactScreen) },
-                elevation = FloatingActionButtonDefaults.elevation(
-                    defaultElevation = 10.dp
-                ),
-                containerColor = White
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Edit,
-                    contentDescription = "Edit",
-                    tint = uiColor
-                )
+            if (!contactViewModel.isAdmin!!) {
+                FloatingActionButton(
+                    onClick = {
+
+                        navController.navigate(
+                            Screens.EditContactScreens.passArgumentUserID(
+                                userId = contactViewModel.currentUserId
+                            )
+                        )
+
+                    },
+                    elevation = FloatingActionButtonDefaults.elevation(
+                        defaultElevation = 10.dp
+                    ),
+                    containerColor = White
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = "Edit",
+                        tint = uiColor
+                    )
+                }
             }
         },
         floatingActionButtonPosition = FabPosition.End
@@ -65,13 +79,17 @@ fun ContactScreen(
                 .background(uiColor)
                 .padding(innerPadding)
                 .fillMaxSize(),
+            contentAlignment = Alignment.Center
         ) {
+
+
             Column(
                 modifier = Modifier
                     .fillMaxSize(),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+
                 ContactProfile(
                     modifier = Modifier
                         .weight(0.3f),
@@ -93,5 +111,26 @@ fun ContactScreen(
 
 
 }
+
+//                Box(
+//                    modifier = Modifier
+//                        .size(100.dp)
+//                        .clip(RoundedCornerShape(50))
+//                        .background(Color.Black)
+//                        .zIndex(1f)
+//                        .fillMaxWidth(),
+//                    contentAlignment = Alignment.TopCenter
+//                ) {
+//                    Image(
+//                        modifier = Modifier
+//                            .align(Alignment.Center)
+//                            .fillMaxWidth()
+//                            .size(50.dp)
+//                            .padding(vertical = MaterialTheme.dimens.signupDimension.itemVerticalPadding08)
+//                            .size(MaterialTheme.dimens.signupDimension.profileSize),
+//                        painter = painterResource(id = R.drawable.add_ic),
+//                        contentDescription = "profile",
+//                    )
+//                }
 
 
