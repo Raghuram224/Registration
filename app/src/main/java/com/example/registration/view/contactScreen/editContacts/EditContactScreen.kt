@@ -9,7 +9,6 @@ import android.os.Build
 import android.util.Log
 import android.view.Gravity
 import android.widget.Toast
-import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -34,14 +33,12 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Divider
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Camera
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -63,9 +60,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.registration.R
@@ -73,14 +68,15 @@ import com.example.registration.constants.constantModals.Keyboard
 import com.example.registration.constants.constantModals.OtherEmailOrPhoneFields
 import com.example.registration.constants.constantModals.TextFieldType
 import com.example.registration.constants.InputsRegex
-import com.example.registration.ui.theme.Blue
-import com.example.registration.ui.theme.White
+import com.example.registration.constants.constantModals.EditFieldsColorType
+import com.example.registration.constants.constantModals.SignupFieldsColorType
 import com.example.registration.ui.theme.dimens
 import com.example.registration.view.signupScreen.CustomColumnCardCreator
 import com.example.registration.view.signupScreen.CustomDatePicker
 import com.example.registration.view.signupScreen.CustomOutlinedInput
 import com.example.registration.view.signupScreen.CustomRowCardCreator
 import com.example.registration.view.signupScreen.DatePickerBar
+import com.example.registration.view.signupScreen.ContactsTopBar
 import com.example.registration.view.signupScreen.SignupEmail
 import com.example.registration.view.signupScreen.SignupPhone
 import com.example.registration.view.signupScreen.UserProfile
@@ -180,24 +176,12 @@ fun EditContactScreen(
     val focusManager = LocalFocusManager.current
 
     val keyBoardState by keyboardAsState()
+    val fieldsColor by editContactsViewModel.fieldsColor.collectAsState()
 
-
-    //Fields color
-    var fNameColor by remember {
-        mutableStateOf(false)
-    }
-    var lNameColor by remember {
-        mutableStateOf(false)
-    }
-
-    val addressColor by remember {
-        mutableStateOf(false)
-    }
 
     var isAgeFocused by remember {
         mutableStateOf(false)
     }
-
 
     var isPrimaryEmailSelected by remember {
         mutableStateOf(true)
@@ -228,7 +212,6 @@ fun EditContactScreen(
     val emailList = editContactsViewModel.emailList
     val phoneList = editContactsViewModel.phoneList
 
-
     val coroutineScope = rememberCoroutineScope()
 
     // bring intoView View Requester
@@ -239,9 +222,7 @@ fun EditContactScreen(
 
         BringIntoViewRequester()
     }
-    val phoneBringIntoView = remember {
-        BringIntoViewRequester()
-    }
+
 
 
     //focus requesters
@@ -257,48 +238,35 @@ fun EditContactScreen(
     val emailFocusRequester = remember {
         FocusRequester()
     }
-    val phoneFocusRequester = remember {
-        FocusRequester()
-    }
+
 
     var tempImageHolder by rememberSaveable {
         mutableStateOf<Bitmap?>(null)
     }
 
+    LaunchedEffect(Unit) {
+        editContactsViewModel.setContactsDetails()
 
-//    BackHandler {
-//        navController.navigateUp()
-//
-//    }
-//    val isUserIdUpdated by editContactsViewModel.isUserIdUpdated.collectAsState()
+    }
 
-//    if (!isUserIdUpdated) {
-//        editContactsViewModel.updateUserId(
-//            userId = navController.previousBackStackEntry?.savedStateHandle?.get<Int>("userId")
-//        )
-//    }
-
-    editContactsViewModel.setContactsDetails(userId = editContactsViewModel.currentUserId)
 
     Scaffold(
         topBar = {
-            EditContactsTopBar(
+            ContactsTopBar(
                 modifier = Modifier,
+                isSaveButtonEnabled = true,
                 cancelButtonClick = { navController.navigateUp() },
                 saveButtonClick = {
 
                     editContactsViewModel.emailListColor[primaryEmailIndex] =
                         emailList[primaryEmailIndex].isEmpty()
 
-                    fNameColor = contactData.value.firstName.isEmpty()
-                    lNameColor = contactData.value.lastName.isEmpty()
-
-
+                    editContactsViewModel.updateEditContactsFieldsColor( isValid =  contactData.value.firstName.isEmpty(),EditFieldsColorType.FName)
+                    editContactsViewModel.updateEditContactsFieldsColor( isValid =  contactData.value.lastName.isEmpty(),EditFieldsColorType.LName)
 
                     if (
                         editContactsViewModel.checkFieldsValue(
                             primaryEmail = emailList[primaryEmailIndex],
-                            primaryPhone = phoneList[primaryPhoneIndex],
                             firstName = contactData.value.firstName,
                             lastName = contactData.value.lastName,
 
@@ -342,7 +310,6 @@ fun EditContactScreen(
                             Toast.LENGTH_SHORT
                         ).show()
 
-//                        editContactsViewModel.updateUIData()  // Update ui data
 
                         navController.navigateUp()
 
@@ -352,14 +319,14 @@ fun EditContactScreen(
                         val toastText: String
 
 
-                        if (fNameColor) {
+                        if (fieldsColor.fNameColor) {
                             coroutineScope.launch {
                                 namesBringIntoView.bringIntoView()
                                 fNameFocusRequester.requestFocus()
                             }
                             toastText = "Check First name value"
 
-                        } else if (lNameColor) {
+                        } else if (fieldsColor.lNameColor) {
                             coroutineScope.launch {
                                 lNameFocusRequester.requestFocus()
                             }
@@ -447,7 +414,7 @@ fun EditContactScreen(
 
                         },
                         label = "First name",
-                        isError = fNameColor,
+                        isError = fieldsColor.fNameColor,
                         regex = InputsRegex.NAME_REGEX,
                     )
 
@@ -461,7 +428,7 @@ fun EditContactScreen(
                             editContactsViewModel.updateContactData(it, TextFieldType.LastName)
                         },
                         label = "Last name",
-                        isError = lNameColor,
+                        isError = fieldsColor.lNameColor,
                         regex = InputsRegex.NAME_REGEX
 
                     )
@@ -516,9 +483,7 @@ fun EditContactScreen(
                 modifier = Modifier,
                 anyComposable = @Composable {
                     SignupPhone(
-                        modifier = Modifier
-                            .bringIntoViewRequester(phoneBringIntoView)
-                            .focusRequester(focusRequester = phoneFocusRequester),
+                        modifier = Modifier,
                         selectPhone = {
                             primaryPhoneIndex = it
                             isPrimaryPhoneSelected = true
@@ -545,7 +510,7 @@ fun EditContactScreen(
                             }
                         },
                         regex = InputsRegex.PHONE_NUMBER_REGEX,
-                        phoneFocusRequester = phoneFocusRequester
+
 
 
                     )
@@ -645,7 +610,6 @@ fun EditContactScreen(
                         label = "Enter your address",
                         minLines = 3,
                         maxLines = 5,
-                        isError = addressColor,
                         regex = InputsRegex.ALLOW_ANY_REGEX
                     )
                 }
@@ -828,61 +792,3 @@ fun EditContactScreen(
 }
 
 
-@Composable
-fun EditContactsTopBar(
-    modifier: Modifier,
-    cancelButtonClick: () -> Unit,
-    saveButtonClick: () -> Unit,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(White),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        TextButton(
-            modifier = Modifier
-                .weight(0.5f)
-                .padding(MaterialTheme.dimens.signupDimension.padding08)
-                .fillMaxWidth(),
-            onClick = {
-                cancelButtonClick()
-            }
-        ) {
-            Text(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                text = "Cancel",
-                color = Blue,
-                style = TextStyle(
-                    fontSize = MaterialTheme.typography.h6.fontSize,
-                    textAlign = TextAlign.Start
-                )
-            )
-        }
-
-
-
-        TextButton(
-            modifier = Modifier
-                .weight(0.5f)
-                .padding(MaterialTheme.dimens.signupDimension.padding08)
-                .fillMaxWidth(),
-            onClick = {
-                saveButtonClick()
-            }
-        ) {
-            Text(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                text = "Save",
-                color = Blue,
-                style = TextStyle(
-                    fontSize = MaterialTheme.typography.h6.fontSize,
-                    textAlign = TextAlign.End
-                )
-            )
-        }
-    }
-
-}

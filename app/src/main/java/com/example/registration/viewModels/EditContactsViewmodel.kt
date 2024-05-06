@@ -10,6 +10,9 @@ import com.example.registration.constants.constantModals.OtherEmailOrPhoneFields
 import com.example.registration.constants.constantModals.TextFieldType
 import com.example.registration.constants.constantModals.UserDetails
 import com.example.registration.constants.InputsRegex
+import com.example.registration.constants.constantModals.EditFieldsColorType
+import com.example.registration.constants.constantModals.FieldsColor
+import com.example.registration.constants.constantModals.SignupFieldsColorType
 import com.example.registration.modal.LocalDBRepo
 import com.example.registration.navigation.USER_ID_KEY
 import com.example.registration.permissionHandler.PermissionHandler
@@ -27,7 +30,7 @@ class EditContactsViewmodel @Inject constructor(
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    val currentUserId = savedStateHandle.get<Int>(USER_ID_KEY)?:-1
+    private val currentUserId = savedStateHandle.get<Int>(USER_ID_KEY)?:-1
     private val _contactData = MutableStateFlow(
         UserDetails(
             dob = "",
@@ -45,10 +48,17 @@ class EditContactsViewmodel @Inject constructor(
 
         )
     )
-    private var _isUserIdUpdated = MutableStateFlow(false)
+    private val _fieldsColor = MutableStateFlow(
+        FieldsColor(
+            fNameColor = false,
+            lNameColor = false,
+            passwordColor = false,
+            confirmPasswordColor = false
+        )
+    )
+
 
     private var _profileImage = MutableStateFlow<Bitmap?>(_contactData.value.profileImage)
-    private var _isDataLoaded = MutableStateFlow(false)
 
     var contactData = _contactData.asStateFlow()
     var emailList = mutableStateListOf(_contactData.value.primaryEmail)
@@ -56,6 +66,7 @@ class EditContactsViewmodel @Inject constructor(
     val profileImage = _profileImage.asStateFlow()
     val emailListColor = mutableStateListOf(false)
     val phoneListColor = mutableStateListOf(false)
+    val fieldsColor =_fieldsColor.asStateFlow()
 
 
     fun convertListToString(list: List<String>, idx: Int): String? {
@@ -147,14 +158,13 @@ class EditContactsViewmodel @Inject constructor(
 
     fun checkFieldsValue(
         primaryEmail: String,
-        primaryPhone: String,
         firstName: String,
         lastName: String,
 
         ): Boolean {
 
         val validateEmail = checkValidEmail()
-        return primaryEmail.isNotEmpty() && primaryPhone.isNotEmpty() &&
+        return primaryEmail.isNotEmpty()  &&
                 firstName.isNotEmpty() && lastName.isNotEmpty()
                 && validateEmail
 
@@ -175,18 +185,16 @@ class EditContactsViewmodel @Inject constructor(
     private fun checkValidEmail(): Boolean {
         var valid = false
         emailList.forEachIndexed { idx, item ->
-
-            if (item != null) {
-                if (item.matches(regex = Regex(InputsRegex.EMAIL_VALIDATION_REGEX))) {
-                    valid = true
-                } else {
-                    emailListColor[idx] = true
-                    return false
-                }
+            if (item.matches(regex = Regex(InputsRegex.EMAIL_VALIDATION_REGEX))) {
+                valid = true
+            } else {
+                emailListColor[idx] = true
+                return false
             }
         }
         return valid
     }
+
 
     private fun convertStringToList(text: String?): List<String>? {
         return text?.split(",")
@@ -200,8 +208,8 @@ class EditContactsViewmodel @Inject constructor(
         _contactData.value.profileImage = bitmap
     }
 
-    fun setContactsDetails(userId: Int) {
-        val userDetails = localDBRepo.getUserDetails(userId = userId)
+    fun setContactsDetails() {
+        val userDetails = localDBRepo.getUserDetails(userId = currentUserId)
 
         _contactData.value.apply {
             dob = userDetails.dob
@@ -249,6 +257,19 @@ class EditContactsViewmodel @Inject constructor(
         Log.i("contact data",_contactData.value.toString())
 
 
+    }
+    fun updateEditContactsFieldsColor(isValid: Boolean, type: EditFieldsColorType) {
+        when (type) {
+            EditFieldsColorType.FName -> {
+                _fieldsColor.value.fNameColor = isValid
+            }
+
+            EditFieldsColorType.LName -> {
+                _fieldsColor.value.lNameColor = isValid
+            }
+
+
+        }
     }
 
 

@@ -69,11 +69,21 @@ enum class CredentialsValidationStatus {
     ValidCredentials,
 
 }
-enum class UserType{
+
+enum class UserType {
     Admin,
     Client
 }
-
+enum class SignupFieldsColorType{
+    FName,
+    LName,
+    Password,
+    ConfirmPassword
+}
+enum class EditFieldsColorType{
+    FName,
+    LName,
+}
 data class ContactBasicDetails(
     val fName: String,
     val lName: String,
@@ -81,3 +91,10 @@ data class ContactBasicDetails(
     val profileImage: Bitmap?
 )
 
+data class FieldsColor(
+    var fNameColor: Boolean,
+    var lNameColor: Boolean,
+    var passwordColor: Boolean,
+    var confirmPasswordColor: Boolean,
+
+    )

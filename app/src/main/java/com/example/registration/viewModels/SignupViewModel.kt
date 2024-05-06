@@ -8,6 +8,8 @@ import com.example.registration.constants.constantModals.OtherEmailOrPhoneFields
 import com.example.registration.constants.constantModals.TextFieldType
 import com.example.registration.constants.constantModals.UserDetails
 import com.example.registration.constants.InputsRegex
+import com.example.registration.constants.constantModals.FieldsColor
+import com.example.registration.constants.constantModals.SignupFieldsColorType
 import com.example.registration.modal.LocalDBRepo
 import com.example.registration.permissionHandler.PermissionHandler
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -16,9 +18,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-
-
-
 
 
 @HiltViewModel
@@ -45,6 +44,15 @@ class SignupViewModel @Inject constructor(
         )
     )
 
+    private val _fieldsColor = MutableStateFlow(
+        FieldsColor(
+            fNameColor = false,
+            lNameColor = false,
+            passwordColor = false,
+            confirmPasswordColor = false
+        )
+    )
+
     private var _profileImage = MutableStateFlow<Bitmap?>(_signupData.value.profileImage)
 
     val signupData = _signupData.asStateFlow()
@@ -52,7 +60,7 @@ class SignupViewModel @Inject constructor(
     var phoneList = mutableStateListOf("")
     val profileImage = _profileImage.asStateFlow()
     val emailListColor = mutableStateListOf(false)
-//    val phoneListColor = mutableStateListOf(false)
+    val fieldsColor = _fieldsColor.asStateFlow()
 
     lateinit var userDetails: UserDetails
 
@@ -152,7 +160,7 @@ class SignupViewModel @Inject constructor(
     ): Boolean {
 
         val validateEmail = checkValidEmail()
-        return primaryEmail.isNotEmpty()  &&
+        return primaryEmail.isNotEmpty() &&
                 firstName.isNotEmpty() && lastName.isNotEmpty()
                 && password.isNotEmpty() && confirmPassword.isNotEmpty() && validateEmail
 
@@ -198,6 +206,26 @@ class SignupViewModel @Inject constructor(
 
     fun updateProfileImageIntoDb(bitmap: Bitmap?) {
         _signupData.value.profileImage = bitmap
+    }
+
+    fun updateFieldsColor(isValid: Boolean, type: SignupFieldsColorType) {
+        when (type) {
+            SignupFieldsColorType.FName -> {
+                _fieldsColor.value.fNameColor = isValid
+            }
+
+            SignupFieldsColorType.LName -> {
+                _fieldsColor.value.lNameColor = isValid
+            }
+
+            SignupFieldsColorType.Password -> {
+                _fieldsColor.value.passwordColor = isValid
+            }
+
+            SignupFieldsColorType.ConfirmPassword -> {
+                _fieldsColor.value.confirmPasswordColor = isValid
+            }
+        }
     }
 
 
