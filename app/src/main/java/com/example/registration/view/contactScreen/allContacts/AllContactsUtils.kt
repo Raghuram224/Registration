@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
@@ -59,16 +61,13 @@ fun ContactCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             ContactImageLoader(
-                modifier = Modifier
-                    .weight(0.2f)
-                    .size(65.dp),
+                modifier = Modifier,
                 profileImage = contact.profileImage
             )
 
             Column(
                 modifier = Modifier
-                    .weight(0.7f)
-                    .fillMaxWidth(),
+                    .weight(1f),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.Start,
             ) {
@@ -103,15 +102,17 @@ fun ContactImageLoader(
     modifier: Modifier = Modifier
 ) {
     if (profileImage != null) {
-        AsyncImage(
-            modifier = modifier
+        Box(modifier = modifier){
+            AsyncImage(
+                modifier = Modifier
                 .padding(MaterialTheme.dimens.contactDimension.padding08)
-                .size(150.dp)
-                .clip(RoundedCornerShape(100)),
-            model = profileImage,
-            contentDescription = "profile",
-            contentScale = ContentScale.FillBounds,
-        )
+                    .size(150.dp)
+                    .clip(CircleShape),
+                model = profileImage,
+                contentDescription = "profile",
+                contentScale = ContentScale.Crop,
+            )
+        }
     } else {
         Image(
             modifier = modifier

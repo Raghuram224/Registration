@@ -29,7 +29,10 @@ fun LoginScreen(
 
     LoginPortrait(
         signupNavigation = {
-            navController.navigate(route = Screens.SignupScreens.route)
+            navController.navigate(route = Screens.SignupScreens.passArgumentsSignup(
+                userId = -1,
+                from = "login"
+            ))
         },
         loginViewModel = loginViewModel,
         successNavigation = { userType ->
@@ -44,7 +47,7 @@ fun LoginScreen(
                     navController.popBackStack()
                 }
             } else {
-                Log.i("Backstack set", loginViewModel.userId.toString())
+
                 navController.navigate(
                     Screens.ContactScreens.passArguments(
                         isAdmin = false,

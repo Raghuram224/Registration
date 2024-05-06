@@ -17,18 +17,20 @@ abstract class LocalDB:RoomDatabase() {
         private var INSTANCE: LocalDB?=null
 
         fun getInstance(context: Context): LocalDB {
-            var tempInstance = INSTANCE
-            if (tempInstance==null){
-                tempInstance= Room.databaseBuilder(
-                    context.applicationContext,
-                    LocalDB::class.java,
-                    "Registration_Database"
-                ).allowMainThreadQueries().fallbackToDestructiveMigration().build()
+            synchronized(this){
+                var tempInstance = INSTANCE
+                if (tempInstance==null){
+                    tempInstance= Room.databaseBuilder(
+                        context.applicationContext,
+                        LocalDB::class.java,
+                        "Registration_Database"
+                    ).allowMainThreadQueries().fallbackToDestructiveMigration().build()
+                }
+
+                INSTANCE = tempInstance
+
+                return tempInstance
             }
-
-            INSTANCE = tempInstance
-
-            return tempInstance
         }
     }
 }

@@ -30,7 +30,7 @@ class EditContactsViewmodel @Inject constructor(
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private val currentUserId = savedStateHandle.get<Int>(USER_ID_KEY)?:-1
+    private val currentUserId = savedStateHandle.get<Int>(USER_ID_KEY) ?: -1
     private val _contactData = MutableStateFlow(
         UserDetails(
             dob = "",
@@ -66,7 +66,7 @@ class EditContactsViewmodel @Inject constructor(
     val profileImage = _profileImage.asStateFlow()
     val emailListColor = mutableStateListOf(false)
     val phoneListColor = mutableStateListOf(false)
-    val fieldsColor =_fieldsColor.asStateFlow()
+    val fieldsColor = _fieldsColor.asStateFlow()
 
 
     fun convertListToString(list: List<String>, idx: Int): String? {
@@ -164,7 +164,7 @@ class EditContactsViewmodel @Inject constructor(
         ): Boolean {
 
         val validateEmail = checkValidEmail()
-        return primaryEmail.isNotEmpty()  &&
+        return primaryEmail.isNotEmpty() &&
                 firstName.isNotEmpty() && lastName.isNotEmpty()
                 && validateEmail
 
@@ -178,21 +178,22 @@ class EditContactsViewmodel @Inject constructor(
 
     fun updateData() {
         viewModelScope.launch {
-            localDBRepo.updateUserDetails(userDetails = _contactData.value, currentUserSID =  currentUserId)
+            localDBRepo.updateUserDetails(
+                userDetails = _contactData.value,
+                currentUserSID = currentUserId
+            )
         }
     }
 
+
     private fun checkValidEmail(): Boolean {
-        var valid = false
         emailList.forEachIndexed { idx, item ->
-            if (item.matches(regex = Regex(InputsRegex.EMAIL_VALIDATION_REGEX))) {
-                valid = true
-            } else {
+            if (!item.matches(regex = Regex(InputsRegex.EMAIL_VALIDATION_REGEX))) {
                 emailListColor[idx] = true
                 return false
             }
         }
-        return valid
+        return true
     }
 
 
@@ -227,15 +228,15 @@ class EditContactsViewmodel @Inject constructor(
         }
 
 
-        Log.i("contact obj",_contactData.value.toString())
+        Log.i("contact obj", _contactData.value.toString())
         loadEmailAndOtherPhones()
 
 
     }
 
     private fun loadEmailAndOtherPhones() {
-        emailList[0]= contactData.value.primaryEmail
-        phoneList[0]=contactData.value.primaryPhone
+        emailList[0] = contactData.value.primaryEmail
+        phoneList[0] = contactData.value.primaryPhone
         _profileImage.value = contactData.value.profileImage
         convertStringToList(contactData.value.otherEmails)?.forEach {
             if (it.isNotEmpty()) {
@@ -253,11 +254,12 @@ class EditContactsViewmodel @Inject constructor(
             }
 
         }
-        Log.i("contact obj",_contactData.value.toString())
-        Log.i("contact data",_contactData.value.toString())
+        Log.i("contact obj", _contactData.value.toString())
+        Log.i("contact data", _contactData.value.toString())
 
 
     }
+
     fun updateEditContactsFieldsColor(isValid: Boolean, type: EditFieldsColorType) {
         when (type) {
             EditFieldsColorType.FName -> {
@@ -271,7 +273,6 @@ class EditContactsViewmodel @Inject constructor(
 
         }
     }
-
 
 
 }

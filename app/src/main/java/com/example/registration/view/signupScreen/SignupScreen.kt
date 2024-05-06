@@ -264,7 +264,8 @@ fun SignupScreen(
         mutableStateOf<Bitmap?>(null)
     }
 
-
+    Log.i("userId sign",signupViewModel.currentUserId.toString())
+    Log.i("userId nav sign ",signupViewModel.navigatedFrom.toString())
 
     Scaffold(
         topBar = {

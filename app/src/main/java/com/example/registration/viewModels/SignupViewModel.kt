@@ -2,6 +2,7 @@ package com.example.registration.viewModels
 
 import android.graphics.Bitmap
 import androidx.compose.runtime.mutableStateListOf
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.registration.constants.constantModals.OtherEmailOrPhoneFields
@@ -11,6 +12,8 @@ import com.example.registration.constants.InputsRegex
 import com.example.registration.constants.constantModals.FieldsColor
 import com.example.registration.constants.constantModals.SignupFieldsColorType
 import com.example.registration.modal.LocalDBRepo
+import com.example.registration.navigation.NAVIGATED_FROM
+import com.example.registration.navigation.USER_ID_KEY
 import com.example.registration.permissionHandler.PermissionHandler
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,10 +26,15 @@ import javax.inject.Inject
 @HiltViewModel
 class SignupViewModel @Inject constructor(
     private val localDBRepo: LocalDBRepo,
-    private val permissionHandler: PermissionHandler
+    private val permissionHandler: PermissionHandler,
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private val _signupData = MutableStateFlow(
+    val currentUserId = savedStateHandle.get<Int>(USER_ID_KEY)?:-1
+    val navigatedFrom = savedStateHandle.get<String>(NAVIGATED_FROM)
+
+
+    private var _signupData = MutableStateFlow(
         UserDetails(
             dob = "",
             age = "",
@@ -159,10 +167,10 @@ class SignupViewModel @Inject constructor(
         confirmPassword: String
     ): Boolean {
 
-        val validateEmail = checkValidEmail()
+
         return primaryEmail.isNotEmpty() &&
                 firstName.isNotEmpty() && lastName.isNotEmpty()
-                && password.isNotEmpty() && confirmPassword.isNotEmpty() && validateEmail
+                && password.isNotEmpty() && confirmPassword.isNotEmpty() && checkValidEmail()
 
     }
 
@@ -187,17 +195,13 @@ class SignupViewModel @Inject constructor(
     }
 
     private fun checkValidEmail(): Boolean {
-        var valid = false
         emailList.forEachIndexed { idx, item ->
-            if (item.matches(regex = Regex(InputsRegex.EMAIL_VALIDATION_REGEX))) {
-                valid = true
-            } else {
+            if (!item.matches(regex = Regex(InputsRegex.EMAIL_VALIDATION_REGEX))) {
                 emailListColor[idx] = true
                 return false
-
             }
         }
-        return valid
+        return true
     }
 
     fun checkRequiredPermission(): Boolean {
@@ -226,6 +230,28 @@ class SignupViewModel @Inject constructor(
                 _fieldsColor.value.confirmPasswordColor = isValid
             }
         }
+    }
+
+    fun setupUserDetails(){
+        val userDetails = localDBRepo.getUserDetails(userId = currentUserId)
+
+        userDetails.let {
+            _signupData.value.apply {
+                dob = it.dob
+                age = it.age
+                lastName = it.lastName
+                firstName = it.firstName
+                address = it.address
+                primaryPhone = it.primaryPhone
+                primaryEmail = it.primaryEmail
+                otherPhones = it.otherPhones
+                otherEmails = it.otherEmails
+                website = it.website
+                password = it.password
+                profileImage = it.profileImage
+            }
+        }
+
     }
 
 

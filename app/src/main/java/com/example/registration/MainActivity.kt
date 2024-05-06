@@ -17,9 +17,9 @@ class MainActivity : ComponentActivity() {
         setContent {
             RegistrationTheme {
                 // A surface container using the 'background' color from the theme
-                val navController = rememberNavController()
 
-                AppNavGraph(navController = navController)
+
+                AppNavGraph()
             }
         }
 

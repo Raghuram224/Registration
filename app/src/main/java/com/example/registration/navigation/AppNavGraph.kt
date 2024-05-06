@@ -8,6 +8,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.registration.view.contactScreen.ContactScreen
 import com.example.registration.view.contactScreen.allContacts.AllContactsScreen
@@ -21,9 +22,10 @@ import com.example.registration.viewModels.LoginViewModel
 import com.example.registration.viewModels.SignupViewModel
 
 @Composable
-fun AppNavGraph(
-    navController: NavHostController
-) {
+fun AppNavGraph() {
+
+    val navController = rememberNavController()
+
     NavHost(navController = navController, startDestination = Screens.LoginScreens.route) {
         composable(
             route = Screens.LoginScreens.route,
@@ -38,6 +40,14 @@ fun AppNavGraph(
         }
         composable(
             route = Screens.SignupScreens.route,
+            arguments = listOf(
+                navArgument(USER_ID_KEY) {
+                    type = NavType.IntType
+                },
+                navArgument(NAVIGATED_FROM) {
+                    type = NavType.StringType
+                }
+            ),
             enterTransition = {
                 slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left)
 
