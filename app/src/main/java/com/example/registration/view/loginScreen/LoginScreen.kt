@@ -1,6 +1,5 @@
 package com.example.registration.view.loginScreen
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -8,8 +7,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.navigation.NavController
-import com.example.registration.navigation.Screens
 import com.example.registration.constants.constantModals.UserType
+import com.example.registration.navigation.Screens
 import com.example.registration.viewModels.LoginViewModel
 
 @Composable
@@ -20,28 +19,18 @@ fun LoginScreen(
     loginViewModel: LoginViewModel,
 
     ) {
-//    val configuration = LocalConfiguration.current
 
-
-    Log.i("login screen", "Login")
     val email by loginViewModel.email.collectAsState()
     val password by loginViewModel.passwords.collectAsState()
 
     LoginPortrait(
         signupNavigation = {
-            navController.navigate(route = Screens.SignupScreens.passArgumentsSignup(
-                userId = -1,
-                from = "login"
-            ))
+            navController.navigate(
+                route = Screens.SignupScreens.passArgumentsSignup(userId = -1)
+            )
         },
         loginViewModel = loginViewModel,
         successNavigation = { userType ->
-            navController.currentBackStackEntry?.savedStateHandle?.set(
-                "userId",
-                loginViewModel.userId
-            )
-
-
             if (userType == UserType.Admin) {
                 navController.navigate(Screens.AllContactsScreen.route) {
                     navController.popBackStack()
@@ -54,7 +43,8 @@ fun LoginScreen(
                         userId = loginViewModel.userId
                     )
                 ) {
-                    navController.popBackStack()
+                    navController.currentDestination?.id?.let { navController.popBackStack(it,inclusive = true) }
+
 
                 }
             }

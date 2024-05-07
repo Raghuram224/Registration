@@ -59,7 +59,7 @@ data class UserDetails(
 )
 
 
-enum class Keyboard {
+enum class KeyboardStatus {
     Opened, Closed
 }
 

@@ -27,7 +27,7 @@ class ContactViewModel @Inject constructor(
 ) : ViewModel() {
 
     var currentUserId = savedStateHandle.get<Int>(USER_ID_KEY)?:-1
-    var isAdmin = savedStateHandle.get<Boolean>(IS_ADMIN_KEY)
+    var isAdmin = savedStateHandle.get<Boolean>(IS_ADMIN_KEY)?:false
 
     private var _userDetails = MutableStateFlow(
         PersonalInformation(

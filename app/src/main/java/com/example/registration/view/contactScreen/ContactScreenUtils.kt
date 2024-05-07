@@ -22,7 +22,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.icons.Icons
@@ -55,6 +57,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -76,6 +79,8 @@ fun ContactDetails(
     contactViewModel: ContactViewModel,
     context: Context
 ) {
+    val scrollState = rememberScrollState()
+
     var hasPhonePermission by remember {
         mutableStateOf(false)
     }
@@ -106,6 +111,7 @@ fun ContactDetails(
                     horizontal = MaterialTheme.dimens.contactDimension.padding16,
                     vertical = MaterialTheme.dimens.contactDimension.padding08
                 )
+                .verticalScroll(scrollState)
                 .fillMaxSize()
 
 
@@ -123,7 +129,7 @@ fun ContactDetails(
             ContactItem(
                 modifier = Modifier,
                 icon = Icons.Default.Phone,
-                categoryName = "Number",
+                categoryName = stringResource(id = R.string.number),
                 itemValue = contactDetails.primaryPhone,
                 itemList = contactDetails.otherPhones,
                 tintColor = uiColor,
@@ -140,7 +146,7 @@ fun ContactDetails(
             ContactItem(
                 modifier = Modifier,
                 icon = Icons.Default.Email,
-                categoryName = "Email",
+                categoryName = stringResource(id = R.string.email),
                 itemValue = contactDetails.primaryEmail,
                 itemList = contactDetails.otherEmails,
                 tintColor = uiColor,
@@ -150,7 +156,7 @@ fun ContactDetails(
             ContactItem(
                 modifier = Modifier,
                 icon = Icons.Default.CalendarMonth,
-                categoryName = "Birthday",
+                categoryName = stringResource(id = R.string.birthday),
                 itemValue = contactDetails.dob,
                 tintColor = uiColor,
                 context = context
@@ -159,7 +165,7 @@ fun ContactDetails(
             ContactItem(
                 modifier = Modifier,
                 icon = Icons.Default.LocationOn,
-                categoryName = "Address",
+                categoryName = stringResource(id = R.string.address),
                 itemValue = contactDetails.address,
                 tintColor = uiColor,
                 context = context
@@ -168,7 +174,7 @@ fun ContactDetails(
             ContactItem(
                 modifier = Modifier,
                 icon = Icons.Default.Web,
-                categoryName = "Website",
+                categoryName = stringResource(id = R.string.website),
                 itemValue = contactDetails.website,
                 tintColor = uiColor,
                 context = context
@@ -281,7 +287,7 @@ fun ContactItem(
         IconButton(onClick = { /*TODO*/ }) {
             Icon(
                 imageVector = icon,
-                contentDescription = "icon",
+                contentDescription = stringResource(id = R.string.icon),
                 tint = tintColor
             )
         }
@@ -305,7 +311,7 @@ fun ContactItem(
                 )
             )
 
-            if (categoryName == "Number" && itemValue.isNotEmpty()) {
+            if (categoryName == stringResource(id = R.string.number) && itemValue.isNotEmpty()) {
                 SwipeToCallContainer(
                     modifier = Modifier,
                     item = itemValue,
@@ -361,7 +367,7 @@ fun ContactItem(
                 Icon(
                     tint = tintColor,
                     imageVector = if (isExpanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
-                    contentDescription = "Drop down"
+                    contentDescription = stringResource(id = R.string.drop_down)
                 )
             }
         }
@@ -443,7 +449,7 @@ fun CallerBackground(
     ) {
         Icon(
             imageVector = Icons.Default.Phone,
-            contentDescription = "Call",
+            contentDescription = stringResource(id = R.string.call),
             tint = White
         )
     }
@@ -461,7 +467,7 @@ private fun ProfileImageLoader(
                 .size(120.dp)
                 .clip(RoundedCornerShape(50)),
             model = profileImage,
-            contentDescription = "profile",
+            contentDescription = stringResource(id = R.string.profile),
             contentScale = ContentScale.FillBounds,
         )
     } else {
@@ -470,7 +476,7 @@ private fun ProfileImageLoader(
                 .size(120.dp)
                 .padding(MaterialTheme.dimens.contactDimension.padding08),
             painter = painterResource(id = R.drawable.profile_icon_),
-            contentDescription = "profile"
+            contentDescription = stringResource(id = R.string.profile)
         )
     }
 }

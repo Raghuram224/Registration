@@ -40,7 +40,6 @@ fun ContactCard(
 ) {
     Card(
         modifier = Modifier
-            .height(IntrinsicSize.Min)
             .fillMaxWidth()
             .padding(
                 horizontal = MaterialTheme.dimens.allContactsDimension.padding04,
@@ -106,17 +105,17 @@ fun ContactImageLoader(
             AsyncImage(
                 modifier = Modifier
                 .padding(MaterialTheme.dimens.contactDimension.padding08)
-                    .size(150.dp)
+                    .size(50.dp)
                     .clip(CircleShape),
                 model = profileImage,
                 contentDescription = "profile",
-                contentScale = ContentScale.Crop,
+                contentScale = ContentScale.FillBounds,
             )
         }
     } else {
         Image(
             modifier = modifier
-                .size(150.dp)
+                .size(60.dp)
                 .padding(MaterialTheme.dimens.contactDimension.padding08),
             painter = painterResource(id = R.drawable.profile_icon_),
             contentDescription = "profile"

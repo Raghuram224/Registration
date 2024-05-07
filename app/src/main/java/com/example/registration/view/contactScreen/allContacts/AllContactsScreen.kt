@@ -1,6 +1,5 @@
 package com.example.registration.view.contactScreen.allContacts
 
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -25,7 +24,7 @@ fun AllContactsScreen(
             .fillMaxSize()
             .padding(MaterialTheme.dimens.contactDimension.padding16),
     ) {
-        items(allContactsViewModel.getAllContacts()) { contact ->
+        items(allContactsViewModel.allContacts) { contact ->
             ContactCard(
                 contact = contact,
                 contactDetailsNavigation = { userId ->
