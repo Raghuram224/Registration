@@ -1,5 +1,6 @@
 package com.example.registration.view.loginScreen
 
+import android.content.Context
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
@@ -20,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -32,12 +34,13 @@ import com.example.registration.view.utils.CustomEmail
 import com.example.registration.view.utils.CustomHyperLink
 import com.example.registration.view.utils.CustomPassword
 import com.example.registration.viewModels.LoginViewModel
+import com.example.registration.R
 
 @Composable
 fun LoginPortrait(
     modifier: Modifier = Modifier,
     signupNavigation: () -> Unit,
-    successNavigation: (UserType) -> Unit,
+    successNavigation: (Boolean) -> Unit,
     loginViewModel: LoginViewModel,
     email: String,
     password: String,
@@ -71,7 +74,7 @@ fun LoginPortrait(
 
 
         Text(
-            text = "Login",
+            text = stringResource(id = R.string.login),
             fontWeight = FontWeight.Bold,
             fontSize = 28.sp,
             modifier = Modifier
@@ -82,7 +85,7 @@ fun LoginPortrait(
         )
 
         Text(
-            text = "Login to continue using the app",
+            text = stringResource(id = R.string.login_to_continue_using_the_app),
             color = Color.Black.copy(alpha = 0.5f),
             fontWeight = FontWeight.Medium,
             fontSize = 16.sp,
@@ -103,7 +106,6 @@ fun LoginPortrait(
 
                     loginViewModel.updateLoginData(text = it, type = LoginInputFields.Email)
                 }
-//                Log.i("inputs",it)
             },
             isEmailError = isEmailError,
             focusRequester = emailFocusRequester
@@ -129,42 +131,20 @@ fun LoginPortrait(
                 .fillMaxWidth(),
             onClick = {
 
-                var toastText = "Invalid credentials"
                 if (email.matches(regex = Regex(InputsRegex.EMAIL_VALIDATION_REGEX))) {
                     if (email.isNotEmpty() && password.isNotEmpty()) {
 
-//                        when(loginViewModel.validateCredentials(email = email, password = password)){
-//                            CredentialsValidationStatus.EmailError -> {
-//                                isEmailError =true
-//                                toastText ="Check your email"
-//                            }
-//                            CredentialsValidationStatus.PasswordError -> {
-//                                isPasswordError = true
-//                                toastText = "Wrong password"
-//                                passwordFocusRequester.requestFocus()
-//                            }
-//                            CredentialsValidationStatus.ValidCredentials -> {
-//                                isPasswordError = false
-//                                toastText = "Login success"
-//                                successNavigation()
-//                            }
-//                            CredentialsValidationStatus.NoDataFound -> {
-//                                emailFocusRequester.requestFocus()
-//                                isEmailError = true
-//                                isPasswordError = true
-//                                toastText = "Email or password wrong"
-//                            }
-//                        }
                         if (loginViewModel.authenticateUser(email = email, password = password)) {
                             isPasswordError = false
-                            toastText = "Login success"
-                            val userType = loginViewModel.checkUserType(userId = loginViewModel.userId)
+                            createToast(context, R.string.login_success)
+                            val userType =
+                                loginViewModel.checkUserType(userId = loginViewModel.userId)
                             successNavigation(userType)
                         } else {
                             emailFocusRequester.requestFocus()
                             isEmailError = true
                             isPasswordError = true
-                            toastText = "Email or password wrong"
+                            createToast(context, R.string.email_or_password_wrong)
                         }
 
                     } else if (email.isEmpty()) {
@@ -181,10 +161,8 @@ fun LoginPortrait(
                 } else {
                     emailFocusRequester.requestFocus()
                     isEmailError = true
-                    toastText = "check given email is valid"
+                    createToast(context, message = R.string.check_your_credentials)
                 }
-
-                Toast.makeText(context, toastText, Toast.LENGTH_SHORT).show()
 
 
             },
@@ -194,7 +172,7 @@ fun LoginPortrait(
 
         ) {
             Text(
-                text = "Login",
+                text = stringResource(id = R.string.login),
                 fontSize = 20.sp,
                 modifier = Modifier
                     .padding(horizontal = 4.dp, vertical = 8.dp)
@@ -205,12 +183,16 @@ fun LoginPortrait(
         }
 
         CustomHyperLink(
-            fullText = "Don't have an account ",
-            linkText = "Sign up",
+            fullText = stringResource(id = R.string.dont_have_an_account),
+            linkText = stringResource(id = R.string.sign_up),
             signupNavigation = signupNavigation
         )
 
 
     }
 
+}
+
+fun createToast(context: Context, message: Int) {
+    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
 }

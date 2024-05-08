@@ -1,10 +1,11 @@
 package com.example.registration.navigation
 
+import TestScreen
+import android.util.Log
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -12,12 +13,10 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.registration.view.contactScreen.ContactScreen
 import com.example.registration.view.contactScreen.allContacts.AllContactsScreen
-import com.example.registration.view.contactScreen.editContacts.EditContactScreen
 import com.example.registration.view.loginScreen.LoginScreen
 import com.example.registration.view.signupScreen.SignupScreen
 import com.example.registration.viewModels.AllContactsViewModel
 import com.example.registration.viewModels.ContactViewModel
-import com.example.registration.viewModels.EditContactsViewmodel
 import com.example.registration.viewModels.LoginViewModel
 import com.example.registration.viewModels.SignupViewModel
 
@@ -42,16 +41,17 @@ fun AppNavGraph() {
             route = Screens.SignupScreens.route,
             arguments = listOf(
                 navArgument(USER_ID_KEY) {
-                    type = NavType.IntType
-                },
-                navArgument(NAVIGATED_FROM) {
                     type = NavType.StringType
-                }
-            ),
+                    defaultValue =null
+                    nullable =true
+                },
+
+                ),
             enterTransition = {
                 slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left)
 
-            }, exitTransition = {
+            },
+            exitTransition = {
                 slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right)
             }
         ) {
@@ -66,10 +66,15 @@ fun AppNavGraph() {
             route = Screens.ContactScreens.route,
             arguments = listOf(
                 navArgument(USER_ID_KEY) {
-                    type = NavType.IntType
+                    type = NavType.StringType
+                    defaultValue = null
+                    nullable = true
+
                 },
                 navArgument(IS_ADMIN_KEY) {
                     type = NavType.BoolType
+                    defaultValue = false
+
                 }
             ),
             enterTransition = {
@@ -83,29 +88,6 @@ fun AppNavGraph() {
             ContactScreen(
                 navController = navController,
                 contactViewModel = contactViewModel,
-
-                )
-        }
-        composable(
-            route = Screens.EditContactScreens.route,
-            arguments = listOf(
-                navArgument(USER_ID_KEY) {
-                    type = NavType.IntType
-                },
-
-            ),
-            enterTransition = {
-                slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left)
-
-            }, exitTransition = {
-                slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right)
-            }
-        ) {
-            val editContactViewModel = hiltViewModel<EditContactsViewmodel>()
-
-            EditContactScreen(
-                editContactsViewModel = editContactViewModel,
-                navController = navController,
 
                 )
         }
@@ -125,6 +107,29 @@ fun AppNavGraph() {
                 modifier = Modifier,
                 allContactsViewModel = allContactsViewModel,
                 navController = navController
+            )
+        }
+
+        composable(
+            route = Screens.TestScreen.route,
+            arguments = listOf(
+                navArgument(TEST_KEY) {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                },
+
+                ),
+            enterTransition = {
+                slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left)
+
+            }, exitTransition = {
+                slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right)
+            }
+        ) {
+
+            TestScreen(
+                navController = navController,
             )
         }
     }

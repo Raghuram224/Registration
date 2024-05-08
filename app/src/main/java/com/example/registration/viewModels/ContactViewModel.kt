@@ -26,7 +26,7 @@ class ContactViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    var currentUserId = savedStateHandle.get<Int>(USER_ID_KEY)?:-1
+    var currentUserId = savedStateHandle.get<String>(USER_ID_KEY)
     var isAdmin = savedStateHandle.get<Boolean>(IS_ADMIN_KEY)
 
     private var _userDetails = MutableStateFlow(
@@ -64,7 +64,7 @@ class ContactViewModel @Inject constructor(
     fun collectFlow() {
         viewModelScope.launch {
             currentUserId?.let {
-                localDBRepo.userDetailsFlow(rowId = it).collectLatest {
+                localDBRepo.userDetailsFlow(rowId = it.toInt()).collectLatest {
                     Log.i("flow viewmodel userid", currentUserId.toString())
                     Log.i("flow viewmodel", it.toString())
 

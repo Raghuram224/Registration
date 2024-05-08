@@ -36,18 +36,17 @@ import com.example.registration.ui.theme.dimens
 @Composable
 fun ContactCard(
     contact: ContactBasicDetails,
-    contactDetailsNavigation: (userId: Int) -> Unit
+    contactDetailsNavigation: (userId: String) -> Unit
 ) {
     Card(
         modifier = Modifier
-            .height(IntrinsicSize.Min)
             .fillMaxWidth()
             .padding(
                 horizontal = MaterialTheme.dimens.allContactsDimension.padding04,
                 vertical = MaterialTheme.dimens.allContactsDimension.padding08
             )
             .clickable {
-                contactDetailsNavigation(contact.userId)
+                contactDetailsNavigation(contact.userId.toString())
             },
         elevation = CardDefaults.cardElevation(
             defaultElevation = MaterialTheme.dimens.allContactsDimension.cardElevation10
@@ -106,17 +105,17 @@ fun ContactImageLoader(
             AsyncImage(
                 modifier = Modifier
                 .padding(MaterialTheme.dimens.contactDimension.padding08)
-                    .size(150.dp)
+                    .size(50.dp)
                     .clip(CircleShape),
                 model = profileImage,
                 contentDescription = "profile",
-                contentScale = ContentScale.Crop,
+                contentScale = ContentScale.FillBounds,
             )
         }
     } else {
         Image(
             modifier = modifier
-                .size(150.dp)
+                .size(60.dp)
                 .padding(MaterialTheme.dimens.contactDimension.padding08),
             painter = painterResource(id = R.drawable.profile_icon_),
             contentDescription = "profile"

@@ -64,6 +64,7 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -74,7 +75,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.registration.R
-import com.example.registration.constants.constantModals.Keyboard
+import com.example.registration.constants.constantModals.KeyboardStatus
 import com.example.registration.ui.theme.Blue
 import com.example.registration.ui.theme.White
 import com.example.registration.ui.theme.dimens
@@ -122,7 +123,7 @@ fun UserProfile(
                         chooseProfileImage()
                     },
                 model = imageBitmap,
-                contentDescription = "profile",
+                contentDescription = stringResource(id = R.string.profile),
                 contentScale = ContentScale.Crop,
             )
         } else {
@@ -144,7 +145,7 @@ fun UserProfile(
                         .padding(vertical = MaterialTheme.dimens.signupDimension.itemVerticalPadding08)
                         .size(MaterialTheme.dimens.signupDimension.profileSize),
                     painter = painterResource(id = R.drawable.add_ic),
-                    contentDescription = "profile",
+                    contentDescription = stringResource(id = R.string.profile),
                 )
             }
         }
@@ -167,7 +168,7 @@ fun UserProfile(
             DropdownMenuItem(modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.CenterHorizontally),
-                text = { Text(text = "Camera") },
+                text = { Text(text = stringResource(id = R.string.camera)) },
                 onClick = {
                     openCamera()
                     isDropDownExpanded = false
@@ -178,7 +179,7 @@ fun UserProfile(
             DropdownMenuItem(modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.CenterHorizontally),
-                text = { Text(text = "Gallery") },
+                text = { Text(text = stringResource(id = R.string.gallery)) },
                 onClick = {
                     openGallery()
                     isDropDownExpanded = false
@@ -186,12 +187,12 @@ fun UserProfile(
                 leadingIcon = {
                     Image(imageVector = Icons.Default.Photo, contentDescription = "Gallery")
                 })
-            if (isProfileSelected || imageBitmap!=null) {
+            if (isProfileSelected || imageBitmap != null) {
 
                 DropdownMenuItem(modifier = Modifier
                     .fillMaxWidth()
                     .align(Alignment.CenterHorizontally),
-                    text = { Text(text = "Remove") },
+                    text = { Text(text = stringResource(id = R.string.remove)) },
                     onClick = {
                         removeProfile()
                         isDropDownExpanded = false
@@ -203,21 +204,7 @@ fun UserProfile(
             }
         }
     }
-
-
-//
-//        Text(
-//            modifier = Modifier
-//                .padding(MaterialTheme.dimens.signupDimension.padding04)
-//                .fillMaxWidth(),
-//            text = "Profile",
-//            style = TextStyle(
-//                fontSize = MaterialTheme.dimens.signupDimension.normalFont16,
-//                textAlign = TextAlign.Center
-//            )
-//        )
-
-
+    
 }
 
 
@@ -254,7 +241,7 @@ fun SignupEmail(
                 text = emailList[index],
                 onTextChanged = { emailList[index] = it },
                 keyBoardType = KeyboardType.Email,
-                label = "Email",
+                label = stringResource(id = R.string.email),
                 isError = isFieldError[index],
                 regex = regex,
             )
@@ -266,7 +253,7 @@ fun SignupEmail(
                             .weight(0.1f)
                             .size(20.dp),
                         painter = painterResource(id = R.drawable.primary_ic),
-                        contentDescription = "primary email",
+                        contentDescription = stringResource(id = R.string.primary_email),
                     )
                 }
 
@@ -281,7 +268,7 @@ fun SignupEmail(
                             closeButtonClick()
                         },
                     painter = painterResource(id = R.drawable.close_ic),
-                    contentDescription = "non primary"
+                    contentDescription = stringResource(id = R.string.primary_email)
                 )
 
             }
@@ -293,7 +280,7 @@ fun SignupEmail(
                     onClick = { removeField(index) }) {
                     Image(
                         painter = painterResource(id = R.drawable.minus_ic),
-                        contentDescription = "remove field"
+                        contentDescription = stringResource(id = R.string.remove_field)
                     )
                 }
             }
@@ -314,7 +301,7 @@ fun SignupEmail(
             painter = painterResource(id = R.drawable.add_ic),
             contentDescription = ""
         )
-        Text(text = "Add an email")
+        Text(text = stringResource(id = R.string.add_an_email))
     }
 
 
@@ -331,7 +318,7 @@ fun SignupPhone(
     removeField: (idx: Int) -> Unit,
     regex: String,
 
-) {
+    ) {
 
     phoneList.forEachIndexed { index, key ->
         Row(
@@ -347,7 +334,7 @@ fun SignupPhone(
                 text = phoneList[index],
                 onTextChanged = { phoneList[index] = it },
                 keyBoardType = KeyboardType.Phone,
-                label = "Phone number",
+                label = stringResource(id = R.string.phone_number),
                 regex = regex
 
             )
@@ -358,7 +345,7 @@ fun SignupPhone(
                             .weight(0.1f)
                             .size(20.dp),
                         painter = painterResource(id = R.drawable.primary_ic),
-                        contentDescription = "primary email",
+                        contentDescription = stringResource(id = R.string.phone_number),
                         colorFilter = ColorFilter.tint(Blue)
                     )
                 }
@@ -375,7 +362,7 @@ fun SignupPhone(
                             closeButtonClick()
                         },
                     painter = painterResource(id = R.drawable.close_ic),
-                    contentDescription = "close",
+                    contentDescription = stringResource(id = R.string.close),
                     colorFilter = ColorFilter.tint(Blue)
                 )
 
@@ -388,7 +375,7 @@ fun SignupPhone(
                     onClick = { removeField(index) }) {
                     Image(
                         painter = painterResource(id = R.drawable.minus_ic),
-                        contentDescription = "remove field"
+                        contentDescription = stringResource(id = R.string.remove_field)
                     )
                 }
             }
@@ -408,7 +395,7 @@ fun SignupPhone(
             painter = painterResource(id = R.drawable.add_ic),
             contentDescription = ""
         )
-        Text(text = "Add an phone")
+        Text(text = stringResource(id = R.string.add_phone))
     }
 
 }
@@ -431,11 +418,11 @@ fun CustomOutlinedInput(
     updateFocusChangeValue: () -> Unit = {},
     readOnly: Boolean = false,
     textColor: Color = Blue,
-    focusedIndicatorColor:Color = Blue,
-    unfocusedIndicatorColor:Color = Color.Black.copy(alpha = 0.1f),
+    focusedIndicatorColor: Color = Blue,
+    unfocusedIndicatorColor: Color = Color.Black.copy(alpha = 0.1f),
 
 
-) {
+    ) {
 
     TextField(
         modifier = modifier
@@ -474,7 +461,7 @@ fun CustomOutlinedInput(
             disabledTextColor = Color.Transparent,
             backgroundColor = Color.Transparent,
             focusedIndicatorColor = focusedIndicatorColor,
-            unfocusedIndicatorColor =unfocusedIndicatorColor,
+            unfocusedIndicatorColor = unfocusedIndicatorColor,
             disabledIndicatorColor = Color.Transparent,
             cursorColor = Blue
 
@@ -594,7 +581,7 @@ fun CustomOutlinedPasswordInput(
                         passwordVisible = !passwordVisible
                     },
                 painter = painterResource(id = image),
-                contentDescription = "password",
+                contentDescription = stringResource(id = R.string.password),
                 colorFilter = ColorFilter.tint(Blue),
             )
 
@@ -618,7 +605,10 @@ fun CustomOutlinedPasswordInput(
 
 @Composable
 fun DatePickerBar(
-    text: String, onClick: () -> Unit, selectedDate: String, modifier: Modifier = Modifier
+    text: String,
+    onClick: () -> Unit,
+    selectedDate: String,
+    modifier: Modifier = Modifier
 ) {
     Column(
         modifier = modifier
@@ -641,7 +631,7 @@ fun DatePickerBar(
         ) {
             Text(
                 modifier = Modifier.padding(MaterialTheme.dimens.signupDimension.padding04),
-                text = text,
+                text = text.toString(),
                 style = TextStyle(
                     color = Color.Black.copy(alpha = 0.3f),
                     fontSize = MaterialTheme.dimens.signupDimension.normalFont16,
@@ -652,7 +642,7 @@ fun DatePickerBar(
             Image(
                 modifier = Modifier.size(20.dp),
                 painter = painterResource(id = R.drawable.calendar_ic),
-                contentDescription = "Calendar"
+                contentDescription = stringResource(id = R.string.calendar)
             )
 
 
@@ -705,7 +695,7 @@ fun CustomDatePicker(
             horizontalArrangement = Arrangement.End
         ) {
             TextButton(onClick = { onDismiss() }) {
-                Text(text = "Cancel")
+                Text(text = stringResource(id = R.string.cancel))
             }
             TextButton(onClick = {
 
@@ -718,7 +708,7 @@ fun CustomDatePicker(
                 onDismiss()
 
             }) {
-                Text(text = "Confirm")
+                Text(text = stringResource(id = R.string.confirm))
             }
         }
     }
@@ -803,11 +793,9 @@ fun milliToYears(milliseconds: Long): String {
 }
 
 
-
-
 @Composable
-fun keyboardAsState(): State<Keyboard> {
-    val keyboardState = remember { mutableStateOf(Keyboard.Closed) }
+fun keyboardAsState(): State<KeyboardStatus> {
+    val keyboardStatusState = remember { mutableStateOf(KeyboardStatus.Closed) }
     val currentView = LocalView.current
     DisposableEffect(currentView) {
         val listener = ViewTreeObserver.OnGlobalLayoutListener {
@@ -816,8 +804,8 @@ fun keyboardAsState(): State<Keyboard> {
             val screenHeight = currentView.rootView.height
             val keyboardHeight = screenHeight - rect.bottom
 
-            keyboardState.value =
-                if (keyboardHeight > screenHeight * 0.15) Keyboard.Opened else Keyboard.Closed
+            keyboardStatusState.value =
+                if (keyboardHeight > screenHeight * 0.15) KeyboardStatus.Opened else KeyboardStatus.Closed
         }
         currentView.viewTreeObserver.addOnGlobalLayoutListener(listener)
         onDispose {
@@ -826,7 +814,7 @@ fun keyboardAsState(): State<Keyboard> {
     }
 
 
-    return keyboardState
+    return keyboardStatusState
 }
 
 
@@ -844,9 +832,18 @@ fun convertUriToBitmapBelowAndroidP(uri: Uri, activity: Activity): Bitmap {
 fun ContactsTopBar(
     modifier: Modifier,
     cancelButtonClick: () -> Unit,
-    saveButtonClick: () -> Unit,
-    isSaveButtonEnabled:Boolean=false,
+    saveButtonClick:  () -> Unit,
 ) {
+
+    var shouldInvokeSaveButton by rememberSaveable {
+        mutableStateOf(false)
+    }
+
+    if(shouldInvokeSaveButton){
+        saveButtonClick.invoke()
+        shouldInvokeSaveButton = false
+    }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -865,7 +862,7 @@ fun ContactsTopBar(
             androidx.compose.material.Text(
                 modifier = Modifier
                     .fillMaxWidth(),
-                text = "Cancel",
+                text = stringResource(id = R.string.cancel),
                 color = Blue,
                 style = TextStyle(
                     fontSize = MaterialTheme.typography.h6.fontSize,
@@ -876,27 +873,26 @@ fun ContactsTopBar(
 
 
 
-        if (isSaveButtonEnabled){
-            TextButton(
-                modifier = Modifier
-                    .weight(0.5f)
-                    .padding(MaterialTheme.dimens.signupDimension.padding08)
-                    .fillMaxWidth(),
-                onClick = {
-                    saveButtonClick()
-                }
-            ) {
-                androidx.compose.material.Text(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    text = "Save",
-                    color = Blue,
-                    style = TextStyle(
-                        fontSize = MaterialTheme.typography.h6.fontSize,
-                        textAlign = TextAlign.End
-                    )
-                )
+        TextButton(
+            modifier = Modifier
+                .weight(0.5f)
+                .padding(MaterialTheme.dimens.signupDimension.padding08)
+                .fillMaxWidth(),
+            onClick = {
+                saveButtonClick()
             }
+        ) {
+            androidx.compose.material.Text(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                text = stringResource(id = R.string.confirm),
+                color = Blue,
+                style = TextStyle(
+                    fontSize = MaterialTheme.typography.h6.fontSize,
+                    textAlign = TextAlign.End
+                )
+            )
+
         }
     }
 

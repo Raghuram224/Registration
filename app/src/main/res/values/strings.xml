@@ -4,4 +4,61 @@
     <string name="LoginScreen">LoginScreen</string>
     <string name="SignupScreen">SignupScreen</string>
     <string name="ContactScreen">ContactScreen</string>
+    <string name="contact_saved">Contact saved</string>
+    <string name="check_first_name_value">Check First name value</string>
+    <string name="signup_success">Signup success</string>
+    <string name="check_your_password_is_same">check your password is same</string>
+    <string name="check_confirm_password_value">Check confirm password value</string>
+    <string name="check_your_credentials">check your credentials</string>
+    <string name="check_last_name_value">Check last name value</string>
+    <string name="check_given_email_is_valid">Check given email is valid</string>
+    <string name="check_password_value">Check password value</string>
+    <string name="first_name">First name</string>
+    <string name="last_name">Last name</string>
+    <string name="age">Age</string>
+    <string name="pick_your_date_of_birth">Pick your date of birth</string>
+    <string name="enter_your_address">Enter your address</string>
+    <string name="website">Website</string>
+    <string name="password">Password</string>
+    <string name="confirm_password">Confirm password</string>
+    <string name="profile">profile</string>
+    <string name="close">close</string>
+    <string name="accepted">accepted</string>
+    <string name="camera">Camera</string>
+    <string name="gallery">Gallery</string>
+    <string name="remove">Remove</string>
+    <string name="email">Email</string>
+    <string name="primary_email">Primary email</string>
+    <string name="Non_primary">non primary</string>
+    <string name="remove_field">remove field</string>
+    <string name="add_an_email">Add an email</string>
+    <string name="phone_number">Phone number</string>
+    <string name="calendar">Calendar</string>
+    <string name="cancel">Cancel</string>
+    <string name="confirm">Confirm</string>
+    <string name="save">Save</string>
+    <string name="add_phone">Add an phone</string>
+    <string name="login">Login</string>
+    <string name="login_to_continue_using_the_app">Login to continue using the app</string>
+    <string name="invalid_credentials">Invalid credentials</string>
+    <string name="login_success">Login success</string>
+    <string name="email_or_password_wrong">Email or password wrong</string>
+    <string name="dont_have_an_account">Don\'t have an account </string>
+    <string name="edit">Edit</string>
+    <string name="icon">icon</string>
+    <string name="number">Number</string>
+    <string name="drop_down">Drop down</string>
+    <string name="call">Call</string>
+    <string name="birthday">Birthday</string>
+    <string name="address">Address</string>
+
+
+
+
+
+
+
+
+
+
 </resources>

@@ -38,16 +38,12 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Divider
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Camera
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -69,23 +65,17 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import com.example.registration.R
 import com.example.registration.constants.InputsRegex
-import com.example.registration.constants.constantModals.SignupFieldsColorType
-import com.example.registration.navigation.Screens
-import com.example.registration.constants.constantModals.Keyboard
-import com.example.registration.constants.constantModals.OtherEmailOrPhoneFields
+import com.example.registration.constants.constantModals.KeyboardStatus
 import com.example.registration.constants.constantModals.TextFieldType
-import com.example.registration.ui.theme.Blue
+import com.example.registration.navigation.Screens
 import com.example.registration.ui.theme.LightGray
-import com.example.registration.ui.theme.White
 import com.example.registration.ui.theme.dimens
 import com.example.registration.view.utils.CameraPreview
 import com.example.registration.viewModels.SignupViewModel
@@ -94,7 +84,9 @@ import java.util.Date
 
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
-@SuppressLint("MutableCollectionMutableState", "StateFlowValueCalledInComposition")
+@SuppressLint("MutableCollectionMutableState", "StateFlowValueCalledInComposition",
+    "CoroutineCreationDuringComposition"
+)
 @Composable
 fun SignupScreen(
     modifier: Modifier = Modifier,
@@ -251,9 +243,7 @@ fun SignupScreen(
     val emailFocusRequester = remember {
         FocusRequester()
     }
-//    val phoneFocusRequester = remember {
-//        FocusRequester()
-//    }
+
     val passwordFocusRequester = remember {
         FocusRequester()
     }
@@ -264,19 +254,121 @@ fun SignupScreen(
         mutableStateOf<Bitmap?>(null)
     }
 
-    Log.i("userId sign",signupViewModel.currentUserId.toString())
-    Log.i("userId nav sign ",signupViewModel.navigatedFrom.toString())
+    Log.i("signup back user",signupViewModel.currentUserId.toString())
+
+    LaunchedEffect(Unit) {
+        if (signupViewModel.currentUserId != null) {
+            signupViewModel.setContactsDetails()
+            confirmPassword = signupData.value.password
+        }
+    }
 
     Scaffold(
         topBar = {
             ContactsTopBar(
                 modifier = Modifier,
                 cancelButtonClick = {
-                    navController.navigate(Screens.LoginScreens.route) {
-                        navController.popBackStack()
+                    if (signupViewModel.currentUserId != null) {
+                        navController.navigateUp()
+
+                    } else {
+                        navController.navigate(Screens.LoginScreens.route) {
+                            navController.popBackStack()
+                        }
                     }
                 },
-                saveButtonClick = { }
+                saveButtonClick = {
+
+                    signupViewModel.updateRequiredFieldsColor(
+                        primaryEmailIndex = primaryEmailIndex,
+                        confirmPassword = confirmPassword
+                    )
+
+                    if (
+                        signupViewModel.checkFieldsValue(
+                            primaryEmail = emailList[primaryEmailIndex],
+                            firstName = signupData.value.firstName,
+                            lastName = signupData.value.lastName,
+                            password = signupData.value.password,
+                            confirmPassword = confirmPassword
+                        )
+                    ) {
+                        if (signupViewModel.checkPassword(
+                                password = signupData.value.password,
+                                confirmPassword = confirmPassword
+                            )
+                        ) {
+
+                            signupViewModel.updateFieldsValuesToUserDetails(
+                                primaryEmailIndex = primaryEmailIndex,
+                                primaryPhoneIndex = primaryPhoneIndex
+                            )
+                            signupViewModel.updateProfileImageIntoUserDetails(bitmap = profileImage)
+
+                            if (signupViewModel.currentUserId !=null) {
+                                createToast(context=context, message = R.string.contact_saved, keyboardStatus =keyBoardState)
+
+                                signupViewModel.updateDBData()
+                                navController.navigateUp()
+
+                            } else {
+                               createToast(context,R.string.signup_success,keyBoardState)
+                                signupViewModel.insertData()
+                                navController.navigate(Screens.LoginScreens.route) {
+                                    navController.popBackStack()
+                                }
+
+                            }
+                        } else if (fieldsColor.confirmPasswordColor) {
+                            createToast(context,R.string.check_your_password_is_same,keyBoardState)
+                        } else {
+                            createToast(context,R.string.check_your_credentials,keyBoardState)
+                        }
+
+
+                    } else {
+
+                        if (fieldsColor.fNameColor) {
+                            coroutineScope.launch {
+                                namesBringIntoView.bringIntoView()
+                                fNameFocusRequester.requestFocus()
+                            }
+
+                           createToast(context,R.string.check_first_name_value,keyBoardState)
+
+                        } else if (fieldsColor.lNameColor) {
+                            coroutineScope.launch {
+                                lNameFocusRequester.requestFocus()
+                            }
+                            createToast(context,R.string.check_last_name_value,keyBoardState)
+                        } else if (signupViewModel.emailListColor[primaryEmailIndex]) {
+                            coroutineScope.launch {
+                                emailBringIntoView.bringIntoView()
+                                emailFocusRequester.requestFocus()
+                            }
+                            createToast(context,R.string.check_given_email_is_valid,keyBoardState)
+
+                        }
+                        else if (fieldsColor.passwordColor) {
+                            coroutineScope.launch {
+                                passwordBringIntoView.bringIntoView()
+                                passwordFocusRequester.requestFocus()
+                            }
+                            createToast(context,R.string.check_password_value,keyBoardState)
+                        } else {
+                           if (signupViewModel.currentUserId!=null){
+                               coroutineScope.launch {
+                                   confirmPasswordBringIntoView.bringIntoView()
+                                   confirmPasswordFocusRequester.requestFocus()
+                               }
+                               createToast(context,R.string.check_confirm_password_value,keyBoardState)
+                           }
+                        }
+
+                    }
+
+                }
+
             )
         }
     ) { innerPadding ->
@@ -334,10 +426,10 @@ fun SignupScreen(
                         text = signupData.value.firstName,
                         onTextChanged = {
 
-                            signupViewModel.updateSignupData(it, TextFieldType.FirstName)
+                            signupViewModel.updateUserData(it, TextFieldType.FirstName)
 
                         },
-                        label = "First name",
+                        label = stringResource(id = R.string.first_name),
                         isError = fieldsColor.fNameColor,
                         regex = InputsRegex.NAME_REGEX,
                     )
@@ -349,9 +441,9 @@ fun SignupScreen(
                         text = signupData.value.lastName,
                         onTextChanged = {
 
-                            signupViewModel.updateSignupData(it, TextFieldType.LastName)
+                            signupViewModel.updateUserData(it, TextFieldType.LastName)
                         },
-                        label = "Last name",
+                        label = stringResource(id = R.string.last_name),
                         isError = fieldsColor.lNameColor,
                         regex = InputsRegex.NAME_REGEX
 
@@ -431,17 +523,17 @@ fun SignupScreen(
                         regex = InputsRegex.PHONE_NUMBER_REGEX,
 
 
-                    )
+                        )
                 }
             )
 
 
             LaunchedEffect(key1 = keyBoardState) {
-                if (keyBoardState == Keyboard.Closed && isAgeFocused) {
+                if (keyBoardState == KeyboardStatus.Closed && isAgeFocused) {
                     focusManager.clearFocus()
 
-                    if (signupData.value.age != null && signupData.value.age.isNotEmpty()) {
-                        signupViewModel.updateSignupData(
+                    if (signupData.value.age.isNotEmpty()) {
+                        signupViewModel.updateUserData(
                             text = convertMillisToDate(
                                 Date().time.minus(
                                     yearsToMillis(signupData.value.age.toLong())
@@ -450,7 +542,7 @@ fun SignupScreen(
                             TextFieldType.DOB,
                         )
                     } else {
-                        signupViewModel.updateSignupData("0", TextFieldType.Age)
+                        signupViewModel.updateUserData("0", TextFieldType.Age)
                     }
 
                 }
@@ -463,20 +555,20 @@ fun SignupScreen(
                         modifier = Modifier
                             .weight(0.4f)
                             .focusRequester(focusRequester = ageFocusRequester),
-                        text = if (signupData.value.age != null) signupData.value.age else "0",
+                        text = signupData.value.age.ifEmpty { "0" },
                         onTextChanged = {
 
-                            signupViewModel.updateSignupData(it, TextFieldType.Age)
+                            signupViewModel.updateUserData(it, TextFieldType.Age)
                         },
-                        label = "Age",
+                        label = stringResource(id = R.string.age),
                         keyBoardType = KeyboardType.Phone,
                         focusChanged = { state ->
                             isAgeFocused = state.isFocused
                         },
                         regex = InputsRegex.AGE_REGEX,
                         updateFocusChangeValue = {
-                            if (signupData.value.age != null && signupData.value.age.isNotEmpty()) {
-                                signupViewModel.updateSignupData(
+                            if (signupData.value.age.isNotEmpty()) {
+                                signupViewModel.updateUserData(
                                     text = convertMillisToDate(
                                         Date().time.minus(
                                             yearsToMillis(signupData.value.age.toLong())
@@ -485,7 +577,7 @@ fun SignupScreen(
                                     TextFieldType.DOB,
                                 )
                             } else {
-                                signupViewModel.updateSignupData("0", TextFieldType.Age)
+                                signupViewModel.updateUserData("0", TextFieldType.Age)
                             }
                         }
 
@@ -505,7 +597,7 @@ fun SignupScreen(
                             .fillMaxWidth()
                             .wrapContentSize()
                             .weight(0.4f),
-                        text = "Pick your date of birth",
+                        text = stringResource(id = R.string.pick_your_date_of_birth),
                         onClick = { isDatePickerSheetOpen = true },
                         selectedDate = signupData.value.dob,
                     )
@@ -520,9 +612,9 @@ fun SignupScreen(
                         text = signupData.value.address,
                         onTextChanged = {
 
-                            signupViewModel.updateSignupData(text = it, TextFieldType.Address)
+                            signupViewModel.updateUserData(text = it, TextFieldType.Address)
                         },
-                        label = "Enter your address",
+                        label = stringResource(id =  R.string.enter_your_address),
                         minLines = 3,
                         maxLines = 5,
                         regex = InputsRegex.ALLOW_ANY_REGEX
@@ -535,48 +627,50 @@ fun SignupScreen(
                     CustomOutlinedInput(
                         text = signupData.value.website,
                         onTextChanged = {
-                            signupViewModel.updateSignupData(
+                            signupViewModel.updateUserData(
                                 text = it,
                                 type = TextFieldType.Website
                             )
                         },
-                        label = "Website",
+                        label = stringResource(id = R.string.website),
                         regex = InputsRegex.WEBSITE_REGEX_ALLOWED_PARAM
                     )
                 }
             )
 
-            CustomColumnCardCreator(
-                modifier = Modifier,
-                anyComposable = {
-                    CustomOutlinedPasswordInput(
-                        modifier = Modifier
-                            .focusRequester(focusRequester = passwordFocusRequester),
-                        text = signupData.value.password,
-                        onTextChanged = {
-                            signupViewModel.updateSignupData(
-                                text = it,
-                                TextFieldType.Password
-                            )
-                        },
-                        label = "Password",
-                        isError = fieldsColor.passwordColor,
-                        regex = InputsRegex.PASSWORD_REGEX
-                    )
+            if (signupViewModel.currentUserId == null) {
+                CustomColumnCardCreator(
+                    modifier = Modifier,
+                    anyComposable = {
+                        CustomOutlinedPasswordInput(
+                            modifier = Modifier
+                                .focusRequester(focusRequester = passwordFocusRequester),
+                            text = signupData.value.password,
+                            onTextChanged = {
+                                signupViewModel.updateUserData(
+                                    text = it,
+                                    TextFieldType.Password
+                                )
+                            },
+                            label = stringResource(id = R.string.password),
+                            isError = fieldsColor.passwordColor,
+                            regex = InputsRegex.PASSWORD_REGEX
+                        )
 
-                    CustomOutlinedPasswordInput(
-                        modifier = Modifier
-                            .focusRequester(focusRequester = confirmPasswordFocusRequester),
-                        text = confirmPassword,
-                        onTextChanged = { confirmPassword = it },
-                        label = "confirm password",
-                        isError = fieldsColor.confirmPasswordColor,
-                        regex = InputsRegex.PASSWORD_REGEX
+                        CustomOutlinedPasswordInput(
+                            modifier = Modifier
+                                .focusRequester(focusRequester = confirmPasswordFocusRequester),
+                            text = confirmPassword,
+                            onTextChanged = { confirmPassword = it },
+                            label = stringResource(id = R.string.confirm_password),
+                            isError = fieldsColor.confirmPasswordColor,
+                            regex = InputsRegex.PASSWORD_REGEX
 
 
-                    )
-                }
-            )
+                        )
+                    }
+                )
+            }
 
             if (isDatePickerSheetOpen) {
                 ModalBottomSheet(
@@ -596,11 +690,11 @@ fun SignupScreen(
                             onDismiss = { isDatePickerSheetOpen = false },
                             onClick = {
 
-                                signupViewModel.updateSignupData(it, TextFieldType.DOB)
+                                signupViewModel.updateUserData(it, TextFieldType.DOB)
                             },
                             updateAge = {
 
-                                signupViewModel.updateSignupData(it, TextFieldType.Age)
+                                signupViewModel.updateUserData(it, TextFieldType.Age)
                             }
                         )
                     }
@@ -667,158 +761,7 @@ fun SignupScreen(
                 }
             }
 
-            Button(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(MaterialTheme.dimens.signupDimension.padding16),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Blue
-                ),
-                onClick = {
-                    signupViewModel.emailListColor[primaryEmailIndex] =
-                        emailList[primaryEmailIndex].isEmpty()
 
-                    signupViewModel.updateFieldsColor(isValid = signupData.value.firstName.isEmpty(),SignupFieldsColorType.FName)
-                    signupViewModel.updateFieldsColor(isValid = signupData.value.lastName.isEmpty(),SignupFieldsColorType.LName)
-                    signupViewModel.updateFieldsColor(isValid = signupData.value.password.isEmpty(),SignupFieldsColorType.Password)
-                    signupViewModel.updateFieldsColor(isValid = confirmPassword.isEmpty(),SignupFieldsColorType.ConfirmPassword)
-
-                    if (
-                        signupViewModel.checkFieldsValue(
-                            primaryEmail = emailList[primaryEmailIndex],
-                            firstName = signupData.value.firstName,
-                            lastName = signupData.value.lastName,
-                            password = signupData.value.password,
-                            confirmPassword = confirmPassword
-                        )
-
-                    ) {
-                        if (signupViewModel.checkPassword(
-                                password = signupData.value.password,
-                                confirmPassword = confirmPassword
-                            )
-                        ) {
-                            val otherEmails = signupViewModel.convertListToString(
-                                list = emailList,
-                                idx = primaryEmailIndex
-                            )
-                            val otherPhones = signupViewModel.convertListToString(
-                                list = phoneList,
-                                idx = primaryPhoneIndex
-                            )
-
-                            signupViewModel.updateOtherEmailOrPhone(
-                                text = otherEmails,
-                                OtherEmailOrPhoneFields.OtherEmail
-                            )
-                            signupViewModel.updateOtherEmailOrPhone(
-                                text = otherPhones,
-                                OtherEmailOrPhoneFields.OtherPhones
-                            )
-
-                            signupViewModel.updateSignupData(
-                                text = emailList[primaryEmailIndex],
-                                TextFieldType.PrimaryEmail
-                            )
-                            signupViewModel.updateSignupData(
-                                text = phoneList[primaryPhoneIndex],
-                                TextFieldType.PrimaryPhone
-                            )
-                            signupViewModel.updateProfileImageIntoDb(bitmap = profileImage)
-
-                            signupViewModel.userDetails = signupViewModel.getSignupDetails()
-                            signupViewModel.insertData()
-
-                            Toast.makeText(
-                                context,
-                                "Signup success",
-                                Toast.LENGTH_SHORT
-                            ).show()
-
-                            navController.navigate(Screens.LoginScreens.route) {
-                                navController.popBackStack()
-                            }
-
-
-                        } else if (fieldsColor.confirmPasswordColor) {
-                            Toast.makeText(
-                                context,
-                                "check your password is same",
-                                Toast.LENGTH_SHORT
-                            )
-                                .show()
-                        } else {
-                            Toast.makeText(
-                                context,
-                                "check your credentials",
-                                Toast.LENGTH_SHORT
-                            )
-                                .show()
-                        }
-
-
-                    } else {
-
-                        val toastText: String
-
-
-                        if (fieldsColor.fNameColor) {
-                            coroutineScope.launch {
-                                namesBringIntoView.bringIntoView()
-                                fNameFocusRequester.requestFocus()
-                            }
-                            toastText = "Check First name value"
-
-                        } else if (fieldsColor.lNameColor) {
-                            coroutineScope.launch {
-                                lNameFocusRequester.requestFocus()
-                            }
-                            toastText = "Check last name value"
-                        } else if (signupViewModel.emailListColor[primaryEmailIndex]) {
-                            coroutineScope.launch {
-                                emailBringIntoView.bringIntoView()
-                                emailFocusRequester.requestFocus()
-                            }
-                            toastText = "Check given email is valid"
-
-                        }
-//
-                        else if (fieldsColor.passwordColor) {
-                            coroutineScope.launch {
-                                passwordBringIntoView.bringIntoView()
-                                passwordFocusRequester.requestFocus()
-                            }
-                            toastText = "Check password value"
-                        } else {
-                            coroutineScope.launch {
-                                confirmPasswordBringIntoView.bringIntoView()
-                                confirmPasswordFocusRequester.requestFocus()
-                            }
-                            toastText = "Check confirm password value"
-                        }
-
-                        val toast = Toast.makeText(context, toastText, Toast.LENGTH_SHORT)
-                        if (keyBoardState == Keyboard.Opened) {
-                            toast.setGravity(Gravity.CENTER, 0, 0)
-                        }
-                        toast.show()
-
-                    }
-
-                }
-            ) {
-                Text(
-                    modifier = Modifier
-                        .padding(MaterialTheme.dimens.signupDimension.padding08)
-                        .fillMaxWidth(),
-                    text = "Sign up",
-                    style = TextStyle(
-                        textAlign = TextAlign.Center,
-                        fontSize = MaterialTheme.typography.h6.fontSize,
-                        color = White
-                    )
-                )
-            }
         }
     }
 
@@ -844,7 +787,7 @@ fun SignupScreen(
                             .fillMaxSize()
                             .size(MaterialTheme.dimens.signupDimension.profileSize),
                         bitmap = tempImageHolder!!.asImageBitmap(),
-                        contentDescription = "profile",
+                        contentDescription = stringResource(id = R.string.profile),
                         contentScale = ContentScale.FillBounds
                     )
                     Row(
@@ -861,7 +804,7 @@ fun SignupScreen(
                         }) {
                             Image(
                                 painter = painterResource(id = R.drawable.close_camera_ic),
-                                contentDescription = "close"
+                                contentDescription = stringResource(id = R.string.close)
                             )
                         }
 
@@ -875,7 +818,7 @@ fun SignupScreen(
                         }) {
                             Image(
                                 painter = painterResource(id = R.drawable.tick_ic),
-                                contentDescription = "accepted"
+                                contentDescription = stringResource(id = R.string.accepted)
                             )
                         }
 
@@ -889,7 +832,6 @@ fun SignupScreen(
 
 
 }
-
 
 fun takePhoto(
     controller: LifecycleCameraController,
@@ -927,43 +869,12 @@ fun takePhoto(
     )
 }
 
-
-@Composable
-fun SignupTopBar(
-    modifier: Modifier,
-    cancelButtonClick: () -> Unit,
-    saveButtonClick: () -> Unit,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(White),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-
-
-        TextButton(
-            modifier = Modifier
-                .weight(0.5f)
-                .padding(MaterialTheme.dimens.signupDimension.padding08)
-                .fillMaxWidth(),
-            onClick = {
-                saveButtonClick()
-            }
-        ) {
-            Text(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                text = "Sign up",
-                color = Blue,
-                style = TextStyle(
-                    fontSize = MaterialTheme.typography.h6.fontSize,
-                    textAlign = TextAlign.End
-                )
-            )
+private fun createToast(context: Context, message:Int,keyboardStatus: KeyboardStatus){
+    Toast.makeText(context, message, Toast.LENGTH_SHORT).apply {
+        if (keyboardStatus == KeyboardStatus.Opened) {
+            setGravity(Gravity.CENTER, 0, 0)
         }
-    }
-
+    }.show()
 }
 
 fun yearsToMillis(years: Long): Long {
@@ -971,51 +882,6 @@ fun yearsToMillis(years: Long): Long {
     val hours = days * 24
     val minutes = hours * 60
     val seconds = minutes * 60
-    val milliseconds = seconds * 1000
-    return milliseconds
+    return seconds * 1000
 }
 
-@Preview(
-    showSystemUi = true
-)
-@Composable
-private fun PreviewSignUp() {
-//    SignupScreen()
-}
-
-
-//@SuppressLint("StateFlowValueCalledInComposition")
-//@Composable
-//fun SignupScreenTest(modifier: Modifier = Modifier) {
-//
-//    val dynamicTextFieldsDetails = hashMapOf(0 to "")
-//
-//    val dynamicTFD: SnapshotStateMap<Int, String> = remember {
-//        mutableStateMapOf()
-//    }
-//
-//    var textFieldsValue by remember {
-//        mutableStateOf("")
-//    }
-//    Log.i("hash", dynamicTFD.size.toString())
-//    Column {
-//        LazyColumn {
-//            itemsIndexed(dynamicTFD.keys.toList()) { index, key ->
-//                Log.i("hash", " index : $index key $key value ${dynamicTFD[key]}")
-//                Item(key, dynamicTFD[key].toString(), { dynamicTFD[key] = it })
-//            }
-//
-//
-//        }
-//
-//        Button(
-//            onClick = {
-//                val key = if (dynamicTFD.isEmpty()) 0 else dynamicTFD.size
-//                dynamicTFD.put(key = key, value = key.toString())
-//            }
-//        ) {
-//
-//        }
-//    }
-//
-//}

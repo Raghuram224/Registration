@@ -11,10 +11,18 @@ import javax.inject.Inject
 class AllContactsViewModel @Inject constructor(
     private val localDBRepo: LocalDBRepo,
 ) : ViewModel() {
+    val allContacts  = mutableListOf<ContactBasicDetails>()
+    init {
+        getAllContacts()
+    }
+    private fun getAllContacts() {
+        val tempContacts = localDBRepo.getAllContacts()
 
-
-    fun getAllContacts(): List<ContactBasicDetails> {
-        return localDBRepo.getAllContacts()
+        tempContacts.forEach {
+            allContacts.add(it)
+        }.also {
+            println(it)
+        }
     }
 
 }
