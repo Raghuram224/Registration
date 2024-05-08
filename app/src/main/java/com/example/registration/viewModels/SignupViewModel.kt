@@ -29,7 +29,7 @@ class SignupViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    val currentUserId = savedStateHandle.get<Int>(USER_ID_KEY) ?: -1
+    val currentUserId = savedStateHandle.get<String>(USER_ID_KEY)
 
     private var _userDetails = MutableStateFlow(
         UserDetails(
@@ -216,24 +216,26 @@ class SignupViewModel @Inject constructor(
     }
 
     fun setContactsDetails() {
-        val userDetails = localDBRepo.getUserDetails(userId = currentUserId)
+        if (currentUserId!=null){
+            val userDetails = localDBRepo.getUserDetails(userId = currentUserId.toInt())
 
-        _userDetails.value.apply {
-            dob = userDetails.dob
-            age = userDetails.age
-            lastName = userDetails.lastName
-            firstName = userDetails.firstName
-            address = userDetails.address
-            primaryPhone = userDetails.primaryPhone
-            primaryEmail = userDetails.primaryEmail
-            otherPhones = userDetails.otherPhones
-            otherEmails = userDetails.otherEmails
-            website = userDetails.website
-            profileImage = userDetails.profileImage
-            password = userDetails.password
+            _userDetails.value.apply {
+                dob = userDetails.dob
+                age = userDetails.age
+                lastName = userDetails.lastName
+                firstName = userDetails.firstName
+                address = userDetails.address
+                primaryPhone = userDetails.primaryPhone
+                primaryEmail = userDetails.primaryEmail
+                otherPhones = userDetails.otherPhones
+                otherEmails = userDetails.otherEmails
+                website = userDetails.website
+                profileImage = userDetails.profileImage
+                password = userDetails.password
+            }
+
+            loadEmailAndOtherPhones()
         }
-
-        loadEmailAndOtherPhones()
 
 
     }
@@ -267,10 +269,12 @@ class SignupViewModel @Inject constructor(
 
     fun updateDBData() {
         viewModelScope.launch {
-            localDBRepo.updateUserDetails(
-                userDetails = _userDetails.value,
-                currentUserSID = currentUserId
-            )
+            if (currentUserId!=null){
+                localDBRepo.updateUserDetails(
+                    userDetails = _userDetails.value,
+                    currentUserSID = currentUserId.toInt()
+                )
+            }
         }
     }
 

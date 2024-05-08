@@ -61,12 +61,12 @@ class LocalDBRepo @Inject constructor(mContext: Context) {
 
     }
 
-    fun checkUserExist(email: String, password: String): Int {
+    fun checkUserExist(email: String, password: String): String? {
         val userDetails = registrationDao.checkUserDetails(email = email)
         if (userDetails != null) {
-            if (email == userDetails.primaryEmail && password == userDetails.password) return userDetails.sid
+            if (email == userDetails.primaryEmail && password == userDetails.password) return userDetails.sid.toString()
         }
-        return -1
+        return null
     }
 
     fun userDetailsFlow(rowId: Int): Flow<RegistrationEntity> {

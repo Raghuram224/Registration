@@ -1,5 +1,7 @@
 package com.example.registration.navigation
 
+import TestScreen
+import android.util.Log
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -39,14 +41,17 @@ fun AppNavGraph() {
             route = Screens.SignupScreens.route,
             arguments = listOf(
                 navArgument(USER_ID_KEY) {
-                    type = NavType.IntType
+                    type = NavType.StringType
+                    defaultValue =null
+                    nullable =true
                 },
 
-            ),
+                ),
             enterTransition = {
                 slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left)
 
-            }, exitTransition = {
+            },
+            exitTransition = {
                 slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right)
             }
         ) {
@@ -61,12 +66,15 @@ fun AppNavGraph() {
             route = Screens.ContactScreens.route,
             arguments = listOf(
                 navArgument(USER_ID_KEY) {
-                    type = NavType.IntType
+                    type = NavType.StringType
+                    defaultValue = null
+                    nullable = true
 
                 },
                 navArgument(IS_ADMIN_KEY) {
                     type = NavType.BoolType
                     defaultValue = false
+
                 }
             ),
             enterTransition = {
@@ -83,29 +91,6 @@ fun AppNavGraph() {
 
                 )
         }
-//        composable(
-//            route = Screens.EditContactScreens.route,
-//            arguments = listOf(
-//                navArgument(USER_ID_KEY) {
-//                    type = NavType.IntType
-//                },
-//
-//            ),
-//            enterTransition = {
-//                slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left)
-//
-//            }, exitTransition = {
-//                slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right)
-//            }
-//        ) {
-//            val editContactViewModel = hiltViewModel<EditContactsViewmodel>()
-//
-//            EditContactScreen(
-//                editContactsViewModel = editContactViewModel,
-//                navController = navController,
-//
-//                )
-//        }
         composable(
             route = Screens.AllContactsScreen.route,
 
@@ -122,6 +107,29 @@ fun AppNavGraph() {
                 modifier = Modifier,
                 allContactsViewModel = allContactsViewModel,
                 navController = navController
+            )
+        }
+
+        composable(
+            route = Screens.TestScreen.route,
+            arguments = listOf(
+                navArgument(TEST_KEY) {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                },
+
+                ),
+            enterTransition = {
+                slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left)
+
+            }, exitTransition = {
+                slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right)
+            }
+        ) {
+
+            TestScreen(
+                navController = navController,
             )
         }
     }

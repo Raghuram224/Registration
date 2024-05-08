@@ -254,10 +254,10 @@ fun SignupScreen(
         mutableStateOf<Bitmap?>(null)
     }
 
-
+    Log.i("signup back user",signupViewModel.currentUserId.toString())
 
     LaunchedEffect(Unit) {
-        if (signupViewModel.currentUserId != -1) {
+        if (signupViewModel.currentUserId != null) {
             signupViewModel.setContactsDetails()
             confirmPassword = signupData.value.password
         }
@@ -268,7 +268,7 @@ fun SignupScreen(
             ContactsTopBar(
                 modifier = Modifier,
                 cancelButtonClick = {
-                    if (signupViewModel.currentUserId != -1) {
+                    if (signupViewModel.currentUserId != null) {
                         navController.navigateUp()
 
                     } else {
@@ -305,7 +305,7 @@ fun SignupScreen(
                             )
                             signupViewModel.updateProfileImageIntoUserDetails(bitmap = profileImage)
 
-                            if (signupViewModel.currentUserId != -1) {
+                            if (signupViewModel.currentUserId !=null) {
                                 createToast(context=context, message = R.string.contact_saved, keyboardStatus =keyBoardState)
 
                                 signupViewModel.updateDBData()
@@ -356,7 +356,7 @@ fun SignupScreen(
                             }
                             createToast(context,R.string.check_password_value,keyBoardState)
                         } else {
-                           if (signupViewModel.currentUserId!=-1){
+                           if (signupViewModel.currentUserId!=null){
                                coroutineScope.launch {
                                    confirmPasswordBringIntoView.bringIntoView()
                                    confirmPasswordFocusRequester.requestFocus()
@@ -638,7 +638,7 @@ fun SignupScreen(
                 }
             )
 
-            if (signupViewModel.currentUserId == -1) {
+            if (signupViewModel.currentUserId == null) {
                 CustomColumnCardCreator(
                     modifier = Modifier,
                     anyComposable = {

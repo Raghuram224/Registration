@@ -25,28 +25,26 @@ fun LoginScreen(
 
     LoginPortrait(
         signupNavigation = {
-            navController.navigate(
-                route = Screens.SignupScreens.passArgumentsSignup(userId = -1)
-            )
+            navController.navigate(route = Screens.SignupScreens.route)
+
         },
         loginViewModel = loginViewModel,
-        successNavigation = { userType ->
-            if (userType == UserType.Admin) {
+        successNavigation = { isAdmin ->
+            if (isAdmin) {
                 navController.navigate(Screens.AllContactsScreen.route) {
-                    navController.popBackStack()
+                    navController.currentDestination?.id?.let { navController.popBackStack(it,inclusive = true) }
                 }
             } else {
 
                 navController.navigate(
                     Screens.ContactScreens.passArguments(
-                        isAdmin = false,
-                        userId = loginViewModel.userId
+                        userId = loginViewModel.userId,
                     )
                 ) {
+
                     navController.currentDestination?.id?.let { navController.popBackStack(it,inclusive = true) }
-
-
                 }
+
             }
 
         },

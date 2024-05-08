@@ -20,6 +20,8 @@ class AllContactsViewModel @Inject constructor(
 
         tempContacts.forEach {
             allContacts.add(it)
+        }.also {
+            println(it)
         }
     }
 

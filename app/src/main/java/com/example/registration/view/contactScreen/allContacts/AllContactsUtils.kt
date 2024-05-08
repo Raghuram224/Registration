@@ -36,7 +36,7 @@ import com.example.registration.ui.theme.dimens
 @Composable
 fun ContactCard(
     contact: ContactBasicDetails,
-    contactDetailsNavigation: (userId: Int) -> Unit
+    contactDetailsNavigation: (userId: String) -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -46,7 +46,7 @@ fun ContactCard(
                 vertical = MaterialTheme.dimens.allContactsDimension.padding08
             )
             .clickable {
-                contactDetailsNavigation(contact.userId)
+                contactDetailsNavigation(contact.userId.toString())
             },
         elevation = CardDefaults.cardElevation(
             defaultElevation = MaterialTheme.dimens.allContactsDimension.cardElevation10

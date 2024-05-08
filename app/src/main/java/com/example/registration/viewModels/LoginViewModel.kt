@@ -22,7 +22,7 @@ class LoginViewModel @Inject constructor(
 
     val email = _email.asStateFlow()
     val passwords = _password.asStateFlow()
-    var userId = 0
+    var userId:String? = null
     fun updateLoginData(text: String, type: LoginInputFields) {
 
         when (type) {
@@ -36,32 +36,6 @@ class LoginViewModel @Inject constructor(
         }
     }
 
-//    fun validateCredentials(email: String, password: String): CredentialsValidationStatus {
-//
-//        return localDBRepo.validateCredentials(
-//            email = email,
-//            password = PasswordHash.generateHash(password)
-//        )
-//    }
-
-//    fun validateCredentials(email: String, password: String): CredentialsValidationStatus {
-//
-//        val status = when (email == currentUserDetails.primaryEmail) {
-//            true -> {
-//                if (password == currentUserDetails.password) {
-//                    CredentialsValidationStatus.ValidCredentials
-//                } else {
-//                    CredentialsValidationStatus.PasswordError
-//                }
-//            }
-//
-//            false -> {
-//                CredentialsValidationStatus.EmailError
-//            }
-//        }
-//
-//        return status
-//    }
 
     fun authenticateUser(email: String, password: String): Boolean {
         localDBRepo.getAllContacts()
@@ -70,7 +44,7 @@ class LoginViewModel @Inject constructor(
             email = email,
             password = PasswordHash.generateHash(password = password)
         )
-        if (tempUserId != -1) {
+        if (tempUserId != null) {
             userId = tempUserId
             Log.i("Userid",userId.toString())
             return true
@@ -78,10 +52,11 @@ class LoginViewModel @Inject constructor(
         return false
     }
 
-    fun checkUserType(userId:Int): UserType {
-        return if (localDBRepo.checkIsAdmin(userId = userId)) {
-            UserType.Admin
-        }else UserType.Client
+    fun checkUserType(userId:String?): Boolean {
+        return if (userId != null) {
+            localDBRepo.checkIsAdmin(userId = userId.toInt())
+        }else false
+
     }
 
 

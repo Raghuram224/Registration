@@ -40,7 +40,7 @@ import com.example.registration.R
 fun LoginPortrait(
     modifier: Modifier = Modifier,
     signupNavigation: () -> Unit,
-    successNavigation: (UserType) -> Unit,
+    successNavigation: (Boolean) -> Unit,
     loginViewModel: LoginViewModel,
     email: String,
     password: String,

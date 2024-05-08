@@ -28,6 +28,7 @@ import com.example.registration.navigation.Screens
 import com.example.registration.ui.theme.White
 import com.example.registration.viewModels.ContactViewModel
 import com.example.registration.R
+
 @Composable
 fun ContactScreen(
     navController: NavController,
@@ -49,29 +50,32 @@ fun ContactScreen(
 
     Scaffold(
         floatingActionButton = {
-            if (!contactViewModel.isAdmin) {
-                FloatingActionButton(
-                    onClick = {
-
-                        navController.navigate(
-                            Screens.SignupScreens.passArgumentsSignup(
-                                userId = contactViewModel.currentUserId
+            contactViewModel.isAdmin?.let { isAdmin ->
+                if (!isAdmin) {
+                    FloatingActionButton(
+                        onClick = {
+                            navController.navigate(
+                                Screens.SignupScreens.passArgumentsSignup(
+                                    userId = contactViewModel.currentUserId
+                                )
                             )
-                        )
 
-                    },
-                    elevation = FloatingActionButtonDefaults.elevation(
-                        defaultElevation = 10.dp
-                    ),
-                    containerColor = White
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Edit,
-                        contentDescription = stringResource(id = R.string.edit),
-                        tint = uiColor
-                    )
+
+                        },
+                        elevation = FloatingActionButtonDefaults.elevation(
+                            defaultElevation = 10.dp
+                        ),
+                        containerColor = White
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = stringResource(id = R.string.edit),
+                            tint = uiColor
+                        )
+                    }
                 }
             }
+
         },
         floatingActionButtonPosition = FabPosition.End
     ) { innerPadding ->
