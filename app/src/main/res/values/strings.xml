@@ -1,10 +1,11 @@
 <resources>
     <string name="app_name">Registration</string>
-    <string name="sign_up"><a href="www.google.com">Sign up</a></string>
+    <string name="sign_up"><a href="www.google.com"> Sign up</a></string>
     <string name="LoginScreen">LoginScreen</string>
     <string name="SignupScreen">SignupScreen</string>
     <string name="ContactScreen">ContactScreen</string>
     <string name="contact_saved">Contact saved</string>
+    <string name="contact_updated">Contact updated</string>
     <string name="check_first_name_value">Check First name value</string>
     <string name="signup_success">Signup success</string>
     <string name="check_your_password_is_same">check your password is same</string>
@@ -51,6 +52,7 @@
     <string name="call">Call</string>
     <string name="birthday">Birthday</string>
     <string name="address">Address</string>
+    <string name="email_is_already_used">Email is already used</string>
 
 
 

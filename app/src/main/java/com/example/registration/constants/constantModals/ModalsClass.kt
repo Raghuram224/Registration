@@ -23,6 +23,11 @@ enum class LoginInputFields {
     Password,
 }
 
+enum class InputListTypes{
+    Email,
+    Phone
+}
+
 enum class TextFieldType {
     FirstName,
     LastName,
@@ -63,27 +68,14 @@ enum class KeyboardStatus {
     Opened, Closed
 }
 
-enum class CredentialsValidationStatus {
-    EmailError,
-    PasswordError,
-    ValidCredentials,
 
-}
-
-enum class UserType {
-    Admin,
-    Client
-}
 enum class SignupFieldsColorType{
     FName,
     LName,
     Password,
     ConfirmPassword
 }
-enum class EditFieldsColorType{
-    FName,
-    LName,
-}
+
 data class ContactBasicDetails(
     val fName: String,
     val lName: String,

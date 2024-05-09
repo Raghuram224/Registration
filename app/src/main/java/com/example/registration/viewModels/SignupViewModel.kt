@@ -1,6 +1,7 @@
 package com.example.registration.viewModels
 
 import android.graphics.Bitmap
+import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -10,6 +11,7 @@ import com.example.registration.constants.constantModals.TextFieldType
 import com.example.registration.constants.constantModals.UserDetails
 import com.example.registration.constants.InputsRegex
 import com.example.registration.constants.constantModals.FieldsColor
+import com.example.registration.constants.constantModals.InputListTypes
 import com.example.registration.constants.constantModals.SignupFieldsColorType
 import com.example.registration.modal.LocalDBRepo
 import com.example.registration.navigation.USER_ID_KEY
@@ -30,6 +32,10 @@ class SignupViewModel @Inject constructor(
 ) : ViewModel() {
 
     val currentUserId = savedStateHandle.get<String>(USER_ID_KEY)
+    val numberOfEmailAndPhonesAllowed = 4
+
+    private val _tempEmailList = mutableStateListOf<String>("")
+    private val _tempPhoneList = mutableStateListOf<String>("")
 
     private var _userDetails = MutableStateFlow(
         UserDetails(
@@ -67,6 +73,8 @@ class SignupViewModel @Inject constructor(
     val emailListColor = mutableStateListOf(false)
     val fieldsColor = _fieldsColor.asStateFlow()
 
+    val tempEmailList: List<String> = _tempEmailList
+    val tempPhoneList: List<String> = _tempPhoneList
 
 
     private fun convertListToString(list: List<String>, idx: Int): String? {
@@ -77,7 +85,7 @@ class SignupViewModel @Inject constructor(
             }
 
         }
-        return if (str.isNotEmpty()) str else null
+        return str.ifEmpty { null }
     }
 
 
@@ -155,6 +163,48 @@ class SignupViewModel @Inject constructor(
         }
     }
 
+    fun updateEmailOrPhoneList(text: String, idx: Int, type: InputListTypes) {
+        when (type) {
+            InputListTypes.Email -> {
+                _tempEmailList[idx] = text
+            }
+
+            InputListTypes.Phone -> {
+                _tempPhoneList[idx] = text
+            }
+        }
+    }
+
+    fun addFieldsOfEmailOrPhoneList(type: InputListTypes) {
+        Log.i("fields email ${tempEmailList.size}", tempEmailList.toList().toString())
+
+        when (type) {
+            InputListTypes.Email -> {
+                _tempEmailList.add("")
+            }
+
+            InputListTypes.Phone -> {
+                _tempPhoneList.add("")
+            }
+        }
+
+    }
+
+    fun removeFieldsOfEmailOrPhoneList(idx: Int,type: InputListTypes) {
+        Log.i("fields email ${tempEmailList.size}", tempEmailList.toList().toString())
+
+        when (type) {
+            InputListTypes.Email -> {
+                _tempEmailList.removeAt(idx)
+            }
+
+            InputListTypes.Phone -> {
+                _tempPhoneList.removeAt(idx)
+            }
+        }
+
+    }
+
 
     fun checkPassword(password: String, confirmPassword: String): Boolean {
         return password == confirmPassword
@@ -216,7 +266,7 @@ class SignupViewModel @Inject constructor(
     }
 
     fun setContactsDetails() {
-        if (currentUserId!=null){
+        if (currentUserId != null) {
             val userDetails = localDBRepo.getUserDetails(userId = currentUserId.toInt())
 
             _userDetails.value.apply {
@@ -269,7 +319,7 @@ class SignupViewModel @Inject constructor(
 
     fun updateDBData() {
         viewModelScope.launch {
-            if (currentUserId!=null){
+            if (currentUserId != null) {
                 localDBRepo.updateUserDetails(
                     userDetails = _userDetails.value,
                     currentUserSID = currentUserId.toInt()
@@ -344,6 +394,10 @@ class SignupViewModel @Inject constructor(
             TextFieldType.PrimaryPhone
         )
 
+    }
+
+    fun checkUserAlreadyExisted(email: String): Boolean {
+        return !localDBRepo.checkEmailIsAlreadyUsed(email = email) //returns true if the user doesn't exist
     }
 
 

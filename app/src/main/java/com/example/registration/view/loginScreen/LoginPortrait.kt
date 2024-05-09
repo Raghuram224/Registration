@@ -26,15 +26,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.registration.R
 import com.example.registration.constants.InputsRegex
 import com.example.registration.constants.constantModals.LoginInputFields
-import com.example.registration.constants.constantModals.UserType
 import com.example.registration.ui.theme.Blue
 import com.example.registration.view.utils.CustomEmail
 import com.example.registration.view.utils.CustomHyperLink
 import com.example.registration.view.utils.CustomPassword
 import com.example.registration.viewModels.LoginViewModel
-import com.example.registration.R
 
 @Composable
 fun LoginPortrait(

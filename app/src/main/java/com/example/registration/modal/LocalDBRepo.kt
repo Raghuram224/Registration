@@ -1,6 +1,7 @@
 package com.example.registration.modal
 
 import android.content.Context
+import android.util.Log
 import com.example.registration.constants.PasswordHash
 import com.example.registration.constants.constantModals.ContactBasicDetails
 import com.example.registration.constants.constantModals.UserDetails
@@ -97,6 +98,12 @@ class LocalDBRepo @Inject constructor(mContext: Context) {
 
     fun checkIsAdmin(userId: Int): Boolean {
         return getUserDetails(userId = userId).isAdmin
+    }
+
+    fun checkEmailIsAlreadyUsed(email: String):Boolean{
+        val dbEmail = registrationDao.getEmailFromDB(email = email)
+        Log.i("check email",dbEmail.toString())
+        return dbEmail == null
     }
 
 

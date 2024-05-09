@@ -188,8 +188,8 @@ fun CustomHyperLink(
     signupNavigation:()->Unit,
 ) {
     val annotatedString = buildAnnotatedString {
-        append(fullText)
-        pushStringAnnotation(linkText, "")
+        append(fullText )
+        pushStringAnnotation(linkText , "")
         withStyle(
             style = SpanStyle(
                 Color.Blue,

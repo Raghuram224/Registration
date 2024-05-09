@@ -75,7 +75,7 @@ import kotlinx.coroutines.delay
 fun ContactDetails(
     modifier: Modifier,
     uiColor: Color,
-    contactDetails: PersonalInformation,
+    contactDetails: PersonalInformation?,
     contactViewModel: ContactViewModel,
     context: Context
 ) {
@@ -95,92 +95,94 @@ fun ContactDetails(
         }
 
 
-    Card(
-        modifier = modifier
-            .fillMaxSize(),
-        colors = CardDefaults.cardColors(
-            containerColor = White
-        ),
-        shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
-    ) {
-        Column(
-            verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier
-                .padding(
-                    horizontal = MaterialTheme.dimens.contactDimension.padding16,
-                    vertical = MaterialTheme.dimens.contactDimension.padding08
-                )
-                .verticalScroll(scrollState)
-                .fillMaxSize()
-
-
+    if (contactDetails != null) {
+        Card(
+            modifier = modifier
+                .fillMaxSize(),
+            colors = CardDefaults.cardColors(
+                containerColor = White
+            ),
+            shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
         ) {
-            Text(
+            Column(
+                verticalArrangement = Arrangement.Top,
+                horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
-                    .padding(MaterialTheme.dimens.contactDimension.padding04),
-                text = "Contact Details",
-                style = TextStyle(
-                    fontSize = MaterialTheme.typography.h5.fontSize
-                )
+                    .padding(
+                        horizontal = MaterialTheme.dimens.contactDimension.padding16,
+                        vertical = MaterialTheme.dimens.contactDimension.padding08
+                    )
+                    .verticalScroll(scrollState)
+                    .fillMaxSize()
 
-            )
 
-            ContactItem(
-                modifier = Modifier,
-                icon = Icons.Default.Phone,
-                categoryName = stringResource(id = R.string.number),
-                itemValue = contactDetails.primaryPhone,
-                itemList = contactDetails.otherPhones,
-                tintColor = uiColor,
-                swipeAction = {
-                    if (contactViewModel.hasPhonePermission() || hasPhonePermission) {
-                        openDialer(context = context, it)
-                    } else {
-                        phoneContract.launch(Manifest.permission.CALL_PHONE)
-                    }
-                },
-                context = context,
+            ) {
+                Text(
+                    modifier = Modifier
+                        .padding(MaterialTheme.dimens.contactDimension.padding04),
+                    text = "Contact Details",
+                    style = TextStyle(
+                        fontSize = MaterialTheme.typography.h5.fontSize
+                    )
 
                 )
-            ContactItem(
-                modifier = Modifier,
-                icon = Icons.Default.Email,
-                categoryName = stringResource(id = R.string.email),
-                itemValue = contactDetails.primaryEmail,
-                itemList = contactDetails.otherEmails,
-                tintColor = uiColor,
-                context = context
 
-            )
-            ContactItem(
-                modifier = Modifier,
-                icon = Icons.Default.CalendarMonth,
-                categoryName = stringResource(id = R.string.birthday),
-                itemValue = contactDetails.dob,
-                tintColor = uiColor,
-                context = context
+                ContactItem(
+                    modifier = Modifier,
+                    icon = Icons.Default.Phone,
+                    categoryName = stringResource(id = R.string.number),
+                    itemValue = contactDetails.primaryPhone,
+                    itemList = contactDetails.otherPhones,
+                    tintColor = uiColor,
+                    swipeAction = {
+                        if (contactViewModel.hasPhonePermission() || hasPhonePermission) {
+                            openDialer(context = context, it)
+                        } else {
+                            phoneContract.launch(Manifest.permission.CALL_PHONE)
+                        }
+                    },
+                    context = context,
 
-            )
-            ContactItem(
-                modifier = Modifier,
-                icon = Icons.Default.LocationOn,
-                categoryName = stringResource(id = R.string.address),
-                itemValue = contactDetails.address,
-                tintColor = uiColor,
-                context = context
+                    )
+                ContactItem(
+                    modifier = Modifier,
+                    icon = Icons.Default.Email,
+                    categoryName = stringResource(id = R.string.email),
+                    itemValue = contactDetails.primaryEmail,
+                    itemList = contactDetails.otherEmails,
+                    tintColor = uiColor,
+                    context = context
 
-            )
-            ContactItem(
-                modifier = Modifier,
-                icon = Icons.Default.Web,
-                categoryName = stringResource(id = R.string.website),
-                itemValue = contactDetails.website,
-                tintColor = uiColor,
-                context = context
+                )
+                ContactItem(
+                    modifier = Modifier,
+                    icon = Icons.Default.CalendarMonth,
+                    categoryName = stringResource(id = R.string.birthday),
+                    itemValue = contactDetails.dob,
+                    tintColor = uiColor,
+                    context = context
 
-            )
+                )
+                ContactItem(
+                    modifier = Modifier,
+                    icon = Icons.Default.LocationOn,
+                    categoryName = stringResource(id = R.string.address),
+                    itemValue = contactDetails.address,
+                    tintColor = uiColor,
+                    context = context
 
+                )
+                ContactItem(
+                    modifier = Modifier,
+                    icon = Icons.Default.Web,
+                    categoryName = stringResource(id = R.string.website),
+                    itemValue = contactDetails.website,
+                    tintColor = uiColor,
+                    context = context
+
+                )
+
+            }
         }
     }
 
@@ -195,66 +197,68 @@ fun openDialer(context: Context, phoneNumber: String) {
 @Composable
 fun ContactProfile(
     modifier: Modifier,
-    contactDetails: PersonalInformation
+    contactDetails: PersonalInformation?
 ) {
-    Column(
-        modifier = modifier
-            .fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Box(
-            modifier = Modifier
-                .background(Color.Transparent)
-                .size(130.dp)
-                .clip(RoundedCornerShape(50))
-                .border(3.dp, color = Color.White, shape = RoundedCornerShape(50)),
-            contentAlignment = Alignment.Center
-
-
-        ) {
-            ProfileImageLoader(profileImage = contactDetails.profileImage)
-            
-        }
-
+    if (contactDetails != null) {
         Column(
-            modifier = Modifier
-                .padding(MaterialTheme.dimens.contactDimension.padding04)
-                .fillMaxWidth(),
+            modifier = modifier
+                .fillMaxSize(),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
+            Box(
                 modifier = Modifier
-                    .padding(MaterialTheme.dimens.contactDimension.padding02)
-                    .fillMaxWidth(),
-                text = contactDetails.firstName,
-                style = TextStyle(
-                    fontSize = MaterialTheme.typography.h5.fontSize,
-                    color = White,
-                    textAlign = TextAlign.Center,
-                    fontWeight = FontWeight.SemiBold,
+                    .background(Color.Transparent)
+                    .size(130.dp)
+                    .clip(RoundedCornerShape(50))
+                    .border(3.dp, color = Color.White, shape = RoundedCornerShape(50)),
+                contentAlignment = Alignment.Center
 
-                    )
-            )
 
-            Text(
+            ) {
+                ProfileImageLoader(profileImage = contactDetails.profileImage)
+
+            }
+
+            Column(
                 modifier = Modifier
-                    .padding(MaterialTheme.dimens.contactDimension.padding02)
+                    .padding(MaterialTheme.dimens.contactDimension.padding04)
                     .fillMaxWidth(),
-                text = contactDetails.lastName,
-                style = TextStyle(
-                    fontSize = MaterialTheme.typography.h5.fontSize,
-                    color = White,
-                    textAlign = TextAlign.Center,
-                    fontWeight = FontWeight.Light,
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    modifier = Modifier
+                        .padding(MaterialTheme.dimens.contactDimension.padding02)
+                        .fillMaxWidth(),
+                    text = contactDetails.firstName,
+                    style = TextStyle(
+                        fontSize = MaterialTheme.typography.h5.fontSize,
+                        color = White,
+                        textAlign = TextAlign.Center,
+                        fontWeight = FontWeight.SemiBold,
+
+                        )
+                )
+
+                Text(
+                    modifier = Modifier
+                        .padding(MaterialTheme.dimens.contactDimension.padding02)
+                        .fillMaxWidth(),
+                    text = contactDetails.lastName,
+                    style = TextStyle(
+                        fontSize = MaterialTheme.typography.h5.fontSize,
+                        color = White,
+                        textAlign = TextAlign.Center,
+                        fontWeight = FontWeight.Light,
 //                fontStyle = FontStyle.Italic
 
+                    )
                 )
-            )
+            }
+
+
         }
-
-
     }
 
 }
@@ -457,8 +461,8 @@ fun CallerBackground(
 
 @Composable
 private fun ProfileImageLoader(
-    profileImage:Bitmap?,
-    modifier: Modifier =Modifier
+    profileImage: Bitmap?,
+    modifier: Modifier = Modifier
 ) {
     if (profileImage != null) {
         AsyncImage(

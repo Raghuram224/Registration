@@ -1,8 +1,9 @@
 package com.example.registration.navigation
 
-import TestScreen
-import android.util.Log
 import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -22,6 +23,7 @@ import com.example.registration.viewModels.SignupViewModel
 
 @Composable
 fun AppNavGraph() {
+
 
     val navController = rememberNavController()
 
@@ -110,27 +112,22 @@ fun AppNavGraph() {
             )
         }
 
-        composable(
-            route = Screens.TestScreen.route,
-            arguments = listOf(
-                navArgument(TEST_KEY) {
-                    type = NavType.StringType
-                    nullable = true
-                    defaultValue = null
-                },
-
-                ),
-            enterTransition = {
-                slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left)
-
-            }, exitTransition = {
-                slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right)
-            }
-        ) {
-
-            TestScreen(
-                navController = navController,
-            )
-        }
+//        composable(
+//            route = Screens.TestScreen.route,
+//            arguments = listOf(
+//                navArgument(TEST_KEY) {
+//                    type = NavType.StringType
+//                    nullable = true
+//                    defaultValue = null
+//                },
+//
+//                ),
+//
+//        ) {
+//
+//            TestScreen(
+//                navController = navController,
+//            )
+//        }
     }
 }

@@ -74,8 +74,7 @@ dependencies {
 
 
     //compose life cycle
-
-    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0") //collect as state with lifecycle
 
     //view model
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
@@ -136,6 +135,9 @@ dependencies {
     //serialization
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
     implementation( "com.google.code.gson:gson:2.10.1")
+
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.compose.animation)
 }
 
 

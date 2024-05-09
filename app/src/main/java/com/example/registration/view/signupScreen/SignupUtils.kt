@@ -75,11 +75,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.registration.R
+import com.example.registration.constants.constantModals.InputListTypes
 import com.example.registration.constants.constantModals.KeyboardStatus
 import com.example.registration.ui.theme.Blue
 import com.example.registration.ui.theme.White
 import com.example.registration.ui.theme.dimens
 import com.example.registration.ui.theme.titleStyle
+import com.example.registration.viewModels.SignupViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 
@@ -204,7 +206,7 @@ fun UserProfile(
             }
         }
     }
-    
+
 }
 
 
@@ -220,9 +222,10 @@ fun SignupEmail(
     removeField: (idx: Int) -> Unit,
     regex: String,
     emailFocusRequester: FocusRequester,
+    signupViewModel: SignupViewModel,
+    tempEmailList: List<String>
 
-
-    ) {
+) {
 
 
     emailList.forEachIndexed { index, key ->
@@ -288,20 +291,33 @@ fun SignupEmail(
         }
 
     }
-    Row(modifier = Modifier
-        .clickable {
-            emailList.add("")
-            isFieldError.add(false)
-        }
-        .padding(MaterialTheme.dimens.signupDimension.padding08),
+    Row(
+        modifier = Modifier
+            .padding(MaterialTheme.dimens.signupDimension.padding08),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center) {
-        Image(
-            modifier = Modifier.size(30.dp),
-            painter = painterResource(id = R.drawable.add_ic),
-            contentDescription = ""
-        )
-        Text(text = stringResource(id = R.string.add_an_email))
+        horizontalArrangement = Arrangement.Center
+    ) {
+
+        if (tempEmailList.size < signupViewModel.numberOfEmailAndPhonesAllowed) {
+            Image(
+                modifier = Modifier.size(30.dp),
+                painter = painterResource(id = R.drawable.add_ic),
+                contentDescription = ""
+            )
+            Text(
+                modifier = Modifier
+                    .clickable {
+                        if (tempEmailList.size < signupViewModel.numberOfEmailAndPhonesAllowed) {
+                            emailList.add("")
+                            isFieldError.add(false)
+                            signupViewModel.addFieldsOfEmailOrPhoneList(type = InputListTypes.Email)
+                        }
+                    },
+                text = stringResource(id = R.string.add_an_email)
+            )
+
+        }
+
     }
 
 
@@ -832,14 +848,14 @@ fun convertUriToBitmapBelowAndroidP(uri: Uri, activity: Activity): Bitmap {
 fun ContactsTopBar(
     modifier: Modifier,
     cancelButtonClick: () -> Unit,
-    saveButtonClick:  () -> Unit,
+    saveButtonClick: () -> Unit,
 ) {
 
     var shouldInvokeSaveButton by rememberSaveable {
         mutableStateOf(false)
     }
 
-    if(shouldInvokeSaveButton){
+    if (shouldInvokeSaveButton) {
         saveButtonClick.invoke()
         shouldInvokeSaveButton = false
     }

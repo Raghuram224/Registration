@@ -7,7 +7,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.navigation.NavController
-import com.example.registration.constants.constantModals.UserType
 import com.example.registration.navigation.Screens
 import com.example.registration.viewModels.LoginViewModel
 
@@ -32,18 +31,31 @@ fun LoginScreen(
         successNavigation = { isAdmin ->
             if (isAdmin) {
                 navController.navigate(Screens.AllContactsScreen.route) {
-                    navController.currentDestination?.id?.let { navController.popBackStack(it,inclusive = true) }
+                    navController.currentDestination?.id?.let {
+                        navController.popBackStack(
+                            it,
+                            inclusive = true
+                        )
+                    }
                 }
             } else {
 
                 navController.navigate(
                     Screens.ContactScreens.passArguments(
                         userId = loginViewModel.userId,
+                        isAdmin = false
                     )
                 ) {
 
-                    navController.currentDestination?.id?.let { navController.popBackStack(it,inclusive = true) }
+                    navController.currentDestination?.id?.let {
+                        navController.popBackStack(
+                            it,
+                            inclusive = true
+                        )
+                    }
+//                    popUpTo(navController.graph.id)
                 }
+
 
             }
 

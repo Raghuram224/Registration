@@ -188,7 +188,7 @@
 //
 //    private fun checkValidEmail(): Boolean {
 //        emailList.forEachIndexed { idx, item ->
-//            if (!item.matches(regex = Regex(InputsRegex.EMAIL_VALIDATION_REGEX))) {
+//            if (!item.matches(regex = Regex(InputsRegex.com.example.registration.EMAIL_VALIDATION_REGEX))) {
 //                emailListColor[idx] = true
 //                return false
 //            }
