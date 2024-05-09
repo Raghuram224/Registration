@@ -24,17 +24,17 @@ class LocalDBRepo @Inject constructor(mContext: Context) {
 
         registrationDao.insertSignupDetails(
             RegistrationEntity(
-                firstName = userDetails.firstName,
-                lastName = userDetails.lastName,
+                firstName = userDetails.firstName.trim(),
+                lastName = userDetails.lastName.trim(),
                 age = userDetails.age,
-                address = userDetails.address,
+                address = userDetails.address.trim(),
                 dob = userDetails.dob,
-                primaryEmail = userDetails.primaryEmail,
-                primaryPhone = userDetails.primaryPhone,
+                primaryEmail = userDetails.primaryEmail.trim(),
+                primaryPhone = userDetails.primaryPhone.trim(),
                 otherEmails = userDetails.otherEmails,
                 otherPhones = userDetails.otherPhones,
-                website = userDetails.website,
-                password = PasswordHash.generateHash(password = userDetails.password),
+                website = userDetails.website.trim(),
+                password = PasswordHash.generateHash(password = userDetails.password.trim()),
                 profileImage = if (userDetails.profileImage != null) userDetails.profileImage else null,
                 isAdmin = false
 
@@ -47,17 +47,17 @@ class LocalDBRepo @Inject constructor(mContext: Context) {
         registrationDao.updateUserDetails(
             RegistrationEntity(
                 sid = currentUserSID,
-                firstName = userDetails.firstName,
-                lastName = userDetails.lastName,
+                firstName = userDetails.firstName.trim(),
+                lastName = userDetails.lastName.trim(),
                 age = userDetails.age,
-                address = userDetails.address,
+                address = userDetails.address.trim(),
                 dob = userDetails.dob,
-                primaryEmail = userDetails.primaryEmail,
-                primaryPhone = userDetails.primaryPhone,
+                primaryEmail = userDetails.primaryEmail.trim(),
+                primaryPhone = userDetails.primaryPhone.trim(),
                 otherEmails = userDetails.otherEmails,
                 otherPhones = userDetails.otherPhones,
-                website = userDetails.website,
-                password = userDetails.password,
+                website = userDetails.website.trim(),
+                password = userDetails.password.trim(),
                 profileImage = if (userDetails.profileImage != null) userDetails.profileImage else null,
                 isAdmin = false
             )
@@ -94,7 +94,7 @@ class LocalDBRepo @Inject constructor(mContext: Context) {
             )
 
         }
-        println("values"+registrationDao.getAllContactsDetails().toString())
+
         return allContacts
 
     }

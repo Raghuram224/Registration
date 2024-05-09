@@ -7,7 +7,6 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Matrix
 import android.net.Uri
-import android.os.Build
 import android.util.Log
 import android.view.Gravity
 import android.widget.Toast
@@ -131,24 +130,12 @@ fun SignupScreen(
         contract = ActivityResultContracts.PickVisualMedia(),
         onResult = { uri: Uri? ->
             if (uri != null) {
-                signupViewModel.updateProfileImage(bitmap = null)
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                    signupViewModel.updateProfileImage(
-                        bitmap = convertUriToBitmapAboveAndroidP(
-                            uri = uri,
-                            activity = activity
-                        )
+                signupViewModel.updateProfileImage(
+                    bitmap = convertUriToBitmapAboveAndroidP(
+                        uri = uri,
+                        activity = activity
                     )
-
-                } else {
-                    signupViewModel.updateProfileImage(
-                        bitmap = convertUriToBitmapBelowAndroidP(
-                            uri = uri,
-                            activity = activity
-                        )
-                    )
-                }
-
+                )
                 isProfileSelected = true
             }
         }
@@ -165,7 +152,7 @@ fun SignupScreen(
 
 
     // UI state
-    val signupData = signupViewModel.signupData.collectAsState() //Test
+    val userDetails = signupViewModel.userDetails.collectAsState() //Test
     val profileImage by signupViewModel.profileImage.collectAsState()
 
     val focusManager = LocalFocusManager.current
@@ -225,6 +212,9 @@ fun SignupScreen(
     val confirmPasswordBringIntoView = remember {
         BringIntoViewRequester()
     }
+    val ageBringIntoView = remember {
+        BringIntoViewRequester()
+    }
 
 
     //focus requesters
@@ -246,6 +236,7 @@ fun SignupScreen(
     val confirmPasswordFocusRequester = remember {
         FocusRequester()
     }
+
     var tempImageHolder by rememberSaveable {
         mutableStateOf<Bitmap?>(null)
     }
@@ -259,7 +250,7 @@ fun SignupScreen(
     LaunchedEffect(Unit) {
         if (signupViewModel.currentUserId != null) {
             signupViewModel.setContactsDetails()
-            confirmPassword = signupData.value.password
+            confirmPassword = userDetails.value.password
         }
     }
 
@@ -288,62 +279,74 @@ fun SignupScreen(
                     if (
                         signupViewModel.checkFieldsValue(
                             primaryEmail = emailList[primaryEmailIndex],
-                            firstName = signupData.value.firstName,
-                            lastName = signupData.value.lastName,
-                            password = signupData.value.password,
+                            firstName = userDetails.value.firstName,
+                            lastName = userDetails.value.lastName,
+                            password = userDetails.value.password,
                             confirmPassword = confirmPassword
                         )
                     ) {
                         if (signupViewModel.checkPassword(
-                                password = signupData.value.password,
+                                password = userDetails.value.password,
                                 confirmPassword = confirmPassword
                             )
                         ) {
-
-                            signupViewModel.updateFieldsValuesToUserDetails(
-                                primaryEmailIndex = primaryEmailIndex,
-                                primaryPhoneIndex = primaryPhoneIndex
-                            )
-
-                            signupViewModel.updateProfileImageIntoUserDetails(bitmap = profileImage)
-
-                            if (signupViewModel.currentUserId != null) {
-                                createToast(
-                                    context = context,
-                                    message = R.string.contact_updated,
-                                    keyboardStatus = keyBoardState
+                            if (signupViewModel.isUserAgeAndDobMatch()) {
+                                signupViewModel.updateFieldsValuesToUserDetails(
+                                    primaryEmailIndex = primaryEmailIndex,
+                                    primaryPhoneIndex = primaryPhoneIndex
                                 )
 
-                                signupViewModel.updateDBData()
-                                navController.popBackStack()
-                            } else {
-                                if (!signupViewModel.isEmailAlreadyTaken(email = emailList[primaryEmailIndex])) {
-                                    createToast(context, R.string.signup_success, keyBoardState)
-                                    signupViewModel.insertData()
-//                                    navController.navigate(Screens.LoginScreens.route) {
-                                        navController.popBackStack()
-//                                    }
+                                signupViewModel.updateProfileImageIntoUserDetails(bitmap = profileImage)
+
+                                if (signupViewModel.currentUserId != null) {
+                                    createToast(
+                                        context = context,
+                                        message = R.string.contact_updated,
+                                        keyboardStatus = keyBoardState
+                                    )
+
+                                    signupViewModel.updateDBData()
+                                    navController.popBackStack()
                                 } else {
-//                                    signupViewModel.emailListColor[primaryEmailIndex] = true
+                                    if (!signupViewModel.isEmailAlreadyTaken(email = emailList[primaryEmailIndex])) {
+                                        createToast(context, R.string.signup_success, keyBoardState)
+                                        signupViewModel.insertData()
 
-                                    createToast(
-                                        context,
-                                        R.string.email_is_already_used,
-                                        keyBoardState
-                                    )
+                                        navController.popBackStack()
+                                        signupViewModel.isUserAgeAndDobMatch()
+                                    } else {
+                                        signupViewModel.emailListColor[primaryEmailIndex] = true
 
-                                    coroutineScope.launch {
-                                        emailBringIntoView.bringIntoView()
-                                        emailFocusRequester.requestFocus()
+                                        createToast(
+                                            context,
+                                            R.string.email_is_already_used,
+                                            keyBoardState
+                                        )
+
+                                        coroutineScope.launch {
+                                            emailBringIntoView.bringIntoView()
+                                            emailFocusRequester.requestFocus()
+                                        }
+                                        createToast(
+                                            context,
+                                            R.string.check_given_email_is_valid,
+                                            keyBoardState
+                                        )
                                     }
-                                    createToast(
-                                        context,
-                                        R.string.check_given_email_is_valid,
-                                        keyBoardState
-                                    )
-                                }
 
+                                }
+                            } else {
+                                createToast(
+                                    context,
+                                    R.string.your_age_dob_doesnt_match,
+                                    keyBoardState
+                                )
+                                coroutineScope.launch {
+                                    ageBringIntoView.bringIntoView()
+                                    ageFocusRequester.requestFocus()
+                                }
                             }
+
 
                         } else if (fieldsColor.confirmPasswordColor) {
                             createToast(
@@ -353,6 +356,7 @@ fun SignupScreen(
                             )
                         } else {
                             createToast(context, R.string.check_your_credentials, keyBoardState)
+
                         }
 
 
@@ -456,7 +460,7 @@ fun SignupScreen(
                         modifier = Modifier
                             .bringIntoViewRequester(namesBringIntoView)
                             .focusRequester(focusRequester = fNameFocusRequester),
-                        text = signupData.value.firstName,
+                        text = userDetails.value.firstName,
                         onTextChanged = {
 
                             signupViewModel.updateUserData(it, TextFieldType.FirstName)
@@ -471,7 +475,7 @@ fun SignupScreen(
                     CustomOutlinedInput(
                         modifier = Modifier
                             .focusRequester(focusRequester = lNameFocusRequester),
-                        text = signupData.value.lastName,
+                        text = userDetails.value.lastName,
                         onTextChanged = {
 
                             signupViewModel.updateUserData(it, TextFieldType.LastName)
@@ -507,12 +511,18 @@ fun SignupScreen(
                             if (emailList.size > 1 && it != primaryEmailIndex) {
 
                                 if (primaryEmailIndex == 1) {
-                                    signupViewModel.removeFieldsOfEmailOrPhoneList(idx = 0,InputListTypes.Email)
+                                    signupViewModel.removeFieldsOfEmailOrPhoneList(
+                                        idx = 0,
+                                        InputListTypes.Email
+                                    )
 //                                    emailList.removeAt(0)
                                     signupViewModel.emailListColor.removeAt(0)
                                     primaryEmailIndex = 0
                                 } else {
-                                    signupViewModel.removeFieldsOfEmailOrPhoneList(idx = it,InputListTypes.Email)
+                                    signupViewModel.removeFieldsOfEmailOrPhoneList(
+                                        idx = it,
+                                        InputListTypes.Email
+                                    )
 //                                    emailList.removeAt(it)
                                     signupViewModel.emailListColor.removeAt(it)
 
@@ -549,10 +559,16 @@ fun SignupScreen(
                         removeField = {
                             if (phoneList.size > 1 && it != primaryPhoneIndex) {
                                 if (primaryPhoneIndex == 1) {
-                                    signupViewModel.removeFieldsOfEmailOrPhoneList(idx = 0,InputListTypes.Phone)
+                                    signupViewModel.removeFieldsOfEmailOrPhoneList(
+                                        idx = 0,
+                                        InputListTypes.Phone
+                                    )
                                     primaryPhoneIndex = 0
                                 } else {
-                                    signupViewModel.removeFieldsOfEmailOrPhoneList(idx = it,InputListTypes.Phone)
+                                    signupViewModel.removeFieldsOfEmailOrPhoneList(
+                                        idx = it,
+                                        InputListTypes.Phone
+                                    )
 
 
                                 }
@@ -561,7 +577,7 @@ fun SignupScreen(
                         regex = InputsRegex.PHONE_NUMBER_REGEX,
                         signupViewModel = signupViewModel
 
-                        )
+                    )
                 }
             )
 
@@ -570,11 +586,11 @@ fun SignupScreen(
                 if (keyBoardState == KeyboardStatus.Closed && isAgeFocused) {
                     focusManager.clearFocus()
 
-                    if (signupData.value.age.isNotEmpty()) {
+                    if (userDetails.value.age.isNotEmpty()) {
                         signupViewModel.updateUserData(
-                            text = convertMillisToDate(
+                            text = signupViewModel.convertMillisToDate(
                                 Date().time.minus(
-                                    yearsToMillis(signupData.value.age.toLong())
+                                    signupViewModel.yearsToMillis(userDetails.value.age.toLong())
                                 )
                             ),
                             TextFieldType.DOB,
@@ -593,10 +609,10 @@ fun SignupScreen(
                         modifier = Modifier
                             .weight(0.4f)
                             .focusRequester(focusRequester = ageFocusRequester),
-                        text = signupData.value.age.ifEmpty { "" },
+                        text = userDetails.value.age.ifEmpty { "" },
                         onTextChanged = {
-
                             signupViewModel.updateUserData(it, TextFieldType.Age)
+                            Log.i("age details", userDetails.value.age)
                         },
                         label = stringResource(id = R.string.age),
                         keyBoardType = KeyboardType.Phone,
@@ -605,11 +621,11 @@ fun SignupScreen(
                         },
                         regex = InputsRegex.AGE_REGEX,
                         updateFocusChangeValue = {
-                            if (signupData.value.age.isNotEmpty()) {
+                            if (userDetails.value.age.isNotEmpty()) {
                                 signupViewModel.updateUserData(
-                                    text = convertMillisToDate(
+                                    text = signupViewModel.convertMillisToDate(
                                         Date().time.minus(
-                                            yearsToMillis(signupData.value.age.toLong())
+                                            signupViewModel.yearsToMillis(userDetails.value.age.toLong())
                                         )
                                     ),
                                     TextFieldType.DOB,
@@ -637,7 +653,7 @@ fun SignupScreen(
                             .weight(0.4f),
                         text = stringResource(id = R.string.pick_your_date_of_birth),
                         onClick = { isDatePickerSheetOpen = true },
-                        selectedDate = signupData.value.dob,
+                        selectedDate = userDetails.value.dob,
                     )
                 }
             )
@@ -647,7 +663,7 @@ fun SignupScreen(
                 modifier = Modifier,
                 anyComposable = {
                     CustomOutlinedInput(
-                        text = signupData.value.address,
+                        text = userDetails.value.address,
                         onTextChanged = {
 
                             signupViewModel.updateUserData(text = it, TextFieldType.Address)
@@ -655,15 +671,16 @@ fun SignupScreen(
                         label = stringResource(id = R.string.enter_your_address),
                         minLines = 3,
                         maxLines = 5,
-                        regex = InputsRegex.ALLOW_ANY_REGEX
+                        regex = InputsRegex.ALLOW_ANY_REGEX,
                     )
-                }
+                },
+
             )
             CustomColumnCardCreator(
                 modifier = Modifier,
                 anyComposable = {
                     CustomOutlinedInput(
-                        text = signupData.value.website,
+                        text = userDetails.value.website,
                         onTextChanged = {
                             signupViewModel.updateUserData(
                                 text = it,
@@ -683,7 +700,7 @@ fun SignupScreen(
                         CustomOutlinedPasswordInput(
                             modifier = Modifier
                                 .focusRequester(focusRequester = passwordFocusRequester),
-                            text = signupData.value.password,
+                            text = userDetails.value.password,
                             onTextChanged = {
                                 signupViewModel.updateUserData(
                                     text = it,
@@ -733,7 +750,8 @@ fun SignupScreen(
                             updateAge = {
 
                                 signupViewModel.updateUserData(it, TextFieldType.Age)
-                            }
+                            },
+                            signupViewModel = signupViewModel
                         )
                     }
 
@@ -913,13 +931,5 @@ private fun createToast(context: Context, message: Int, keyboardStatus: Keyboard
             setGravity(Gravity.CENTER, 0, 0)
         }
     }.show()
-}
-
-fun yearsToMillis(years: Long): Long {
-    val days = years * 365
-    val hours = days * 24
-    val minutes = hours * 60
-    val seconds = minutes * 60
-    return seconds * 1000
 }
 

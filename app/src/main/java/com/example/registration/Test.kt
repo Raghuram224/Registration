@@ -1,10 +1,15 @@
 package com.example.registration
 
+import android.annotation.SuppressLint
+import android.icu.util.Calendar
 import android.util.Log
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavController
 import com.example.registration.navigation.TEST_KEY
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 //@Composable
 //fun TestScreen(
@@ -31,8 +36,47 @@ import com.example.registration.navigation.TEST_KEY
 //    }
 //}
 
-fun main() {
-    val a = arrayListOf<String>("")
+//fun main() {
+//    val yearsMill = yearsToMillis(20)
+//    val res = convertMillisToDate(Date().time.minus(yearsMill))
+//    println(res)
+//}
+//
+//fun yearsToMillis(years: Long): Long {
+//    val days = years * 365
+//    val hours = days * 24
+//    val minutes = hours * 60
+//    val seconds = minutes * 60
+//    return seconds * 1000
+//}
+//
+//@SuppressLint("SimpleDateFormat")
+//fun convertMillisToDate(mill: Long?): String {
+//    val format = SimpleDateFormat("dd/MM/yyyy")
+//
+//    return if (mill != null) format.format(Date(mill)) else ""
+//}
+//
+//fun milliToYears(milliseconds: Long): String {
+//    val totalSeconds = milliseconds / 1000
+//    val minutes = totalSeconds / 60
+//    val hour = minutes / 60
+//    val day = hour / 24
+//    val year = (day / 365)
+//
+//    return year.toString()
+//}
+//
+//fun yearToMillis(years: Long): Long {
+//    val days = years * 365
+//    val hours = days * 24
+//    val minutes = hours * 60
+//    val seconds = minutes * 60
+//    return seconds * 1000
+//}
 
-    println(a.ifEmpty { null })
+fun main() {
+    val cal: Calendar = Calendar.getInstance(Locale.getDefault())
+   println( cal.get(20))
+
 }

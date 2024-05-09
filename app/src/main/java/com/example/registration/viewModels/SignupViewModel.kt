@@ -1,18 +1,19 @@
 package com.example.registration.viewModels
 
+import android.annotation.SuppressLint
 import android.graphics.Bitmap
 import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.registration.constants.constantModals.TextFieldType
-import com.example.registration.constants.constantModals.UserDetails
 import com.example.registration.constants.InputsRegex
 import com.example.registration.constants.constantModals.FieldsColor
 import com.example.registration.constants.constantModals.InputListTypes
 import com.example.registration.constants.constantModals.OtherEmailOrPhoneFields
 import com.example.registration.constants.constantModals.SignupFieldsColorType
+import com.example.registration.constants.constantModals.TextFieldType
+import com.example.registration.constants.constantModals.UserDetails
 import com.example.registration.modal.LocalDBRepo
 import com.example.registration.navigation.USER_ID_KEY
 import com.example.registration.permissionHandler.PermissionHandler
@@ -21,6 +22,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Date
 import javax.inject.Inject
 
 
@@ -66,7 +71,7 @@ class SignupViewModel @Inject constructor(
 
     private var _profileImage = MutableStateFlow<Bitmap?>(_userDetails.value.profileImage)
 
-    val signupData = _userDetails.asStateFlow()
+    val userDetails = _userDetails.asStateFlow()
     val profileImage = _profileImage.asStateFlow()
     val emailListColor = mutableStateListOf(false)
     val fieldsColor = _fieldsColor.asStateFlow()
@@ -89,7 +94,7 @@ class SignupViewModel @Inject constructor(
 
                     inputList.forEachIndexed { index, item ->
                         if (index != idx && item.isNotEmpty()) {
-                            newList.add(item)
+                            newList.add(item.trim())
                         }
                     }
                     _userDetails.value.otherEmails = newList
@@ -100,7 +105,7 @@ class SignupViewModel @Inject constructor(
 
                     inputList.forEachIndexed { index, item ->
                         if (index != idx && item.isNotEmpty()) {
-                            newList.add(item)
+                            newList.add(item.trim())
                         }
                     }
                     _userDetails.value.otherPhones = newList
@@ -272,7 +277,6 @@ class SignupViewModel @Inject constructor(
 
     }
 
-
     fun checkFieldsValue(
         primaryEmail: String,
         firstName: String,
@@ -331,11 +335,11 @@ class SignupViewModel @Inject constructor(
         )
 
         updateUserData(
-            text = emailList[primaryEmailIndex],
+            text = emailList[primaryEmailIndex].trim(),
             type = TextFieldType.PrimaryEmail
         )
         updateUserData(
-            text = phoneList[primaryPhoneIndex],
+            text = phoneList[primaryPhoneIndex].trim(),
             TextFieldType.PrimaryPhone
         )
 
@@ -345,8 +349,57 @@ class SignupViewModel @Inject constructor(
         return !localDBRepo.checkEmailIdAvailable(email = email) //returns true if the user doesn't exist
     }
 
+    @SuppressLint("SimpleDateFormat")
+    fun convertMillisToDate(mill: Long?): String {
+        val format = SimpleDateFormat("dd/MM/yyyy")
 
-    //set details if navigated from contact screen
+        return if (mill != null) format.format(Date(mill)) else ""
+    }
+
+    fun milliToYears(milliseconds: Long): String {
+        val totalSeconds = milliseconds / 1000
+        val minutes = totalSeconds / 60
+        val hour = minutes / 60
+        val day = hour / 24
+        val year = (day / 365)
+
+        return year.toString()
+    }
+
+    fun yearsToMillis(years: Long): Long {
+        val days = years * 365
+        val hours = days * 24
+        val minutes = hours * 60
+        val seconds = minutes * 60
+        return seconds * 1000
+    }
+
+    @SuppressLint("SimpleDateFormat")
+    fun isUserAgeAndDobMatch(): Boolean {
+
+        return if (userDetails.value.age.isNotEmpty()) {
+            Log.i("age is not empty",userDetails.value.age)
+            val age = _userDetails.value.age.trim().toInt()
+            val givenAgeDob =
+                convertMillisToDate(mill = Date().time.minus(yearsToMillis(years = age.toLong()))).split("/")
+
+            val selectedCalendarDob = if (_userDetails.value.dob.isNotEmpty()) {
+                _userDetails.value.dob.split("/")
+            } else {
+                SimpleDateFormat("dd//MM/yyyy").format(Date()).split("/")
+            }
+
+            givenAgeDob[2] == selectedCalendarDob[2]
+        } else {
+            Log.i("age is  empty",userDetails.value.age)
+            true
+        }
+
+
+    }
+
+
+
     fun setContactsDetails() {
         if (currentUserId != null) {
             val userDetails = localDBRepo.getUserDetails(userId = currentUserId.toInt())

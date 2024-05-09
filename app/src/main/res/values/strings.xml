@@ -53,6 +53,7 @@
     <string name="birthday">Birthday</string>
     <string name="address">Address</string>
     <string name="email_is_already_used">Email is already used</string>
+    <string name="your_age_dob_doesnt_match">Your age and dob doesn\'t match</string>
 
 
 

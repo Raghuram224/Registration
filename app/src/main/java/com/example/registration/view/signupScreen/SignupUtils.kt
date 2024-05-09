@@ -480,7 +480,7 @@ fun CustomOutlinedInput(
         onValueChange = {
             if (it.matches(regex = Regex(regex))) {
 
-                onTextChanged.invoke(it)
+                onTextChanged(it)
             }
         },
         placeholder = {
@@ -706,11 +706,13 @@ fun DatePickerBar(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CustomDatePicker(
+    modifier: Modifier = Modifier,
     datePickerState: DatePickerState,
     onDismiss: () -> Unit,
     onClick: (milli: String) -> Unit,
     updateAge: (milli: String) -> Unit,
-    modifier: Modifier = Modifier
+    signupViewModel: SignupViewModel,
+
 ) {
     val selectedDateInMillis = datePickerState.selectedDateMillis
 
@@ -735,13 +737,14 @@ fun CustomDatePicker(
             TextButton(onClick = { onDismiss() }) {
                 Text(text = stringResource(id = R.string.cancel))
             }
-            TextButton(onClick = {
+            TextButton(
+                onClick = {
 
                 if (selectedDateInMillis != null) {
-                    updateAge(milliToYears(Date().time.minus(selectedDateInMillis)))
+                    updateAge(signupViewModel.milliToYears(Date().time.minus(selectedDateInMillis)))
                 }
                 onClick(
-                    convertMillisToDate(selectedDateInMillis)
+                    signupViewModel.convertMillisToDate(selectedDateInMillis)
                 )
                 onDismiss()
 
@@ -813,22 +816,7 @@ fun CustomRowCardCreator(
 }
 
 
-@SuppressLint("SimpleDateFormat")
-fun convertMillisToDate(mill: Long?): String {
-    val format = SimpleDateFormat("dd/MM/yyyy")
 
-    return if (mill != null) format.format(Date(mill)) else ""
-}
-
-fun milliToYears(milliseconds: Long): String {
-    val totalSeconds = milliseconds / 1000
-    val minutes = totalSeconds / 60
-    val hour = minutes / 60
-    val day = hour / 24
-    val year = (day / 365)
-
-    return year.toString()
-}
 
 
 @Composable
@@ -856,15 +844,16 @@ fun keyboardAsState(): State<KeyboardStatus> {
 }
 
 
-@RequiresApi(Build.VERSION_CODES.P)
 fun convertUriToBitmapAboveAndroidP(uri: Uri, activity: Activity): Bitmap {
-    val source = ImageDecoder.createSource(activity.contentResolver, uri)
-    return ImageDecoder.decodeBitmap(source)
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+        ImageDecoder.decodeBitmap(ImageDecoder.createSource(activity.contentResolver, uri))
+
+    } else {
+        return MediaStore.Images.Media.getBitmap(activity.contentResolver, uri)
+    }
+
 }
 
-fun convertUriToBitmapBelowAndroidP(uri: Uri, activity: Activity): Bitmap {
-    return MediaStore.Images.Media.getBitmap(activity.contentResolver, uri)
-}
 
 @Composable
 fun ContactsTopBar(
