@@ -6,12 +6,12 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.registration.constants.constantModals.OtherEmailOrPhoneFields
 import com.example.registration.constants.constantModals.TextFieldType
 import com.example.registration.constants.constantModals.UserDetails
 import com.example.registration.constants.InputsRegex
 import com.example.registration.constants.constantModals.FieldsColor
 import com.example.registration.constants.constantModals.InputListTypes
+import com.example.registration.constants.constantModals.OtherEmailOrPhoneFields
 import com.example.registration.constants.constantModals.SignupFieldsColorType
 import com.example.registration.modal.LocalDBRepo
 import com.example.registration.navigation.USER_ID_KEY
@@ -34,8 +34,8 @@ class SignupViewModel @Inject constructor(
     val currentUserId = savedStateHandle.get<String>(USER_ID_KEY)
     val numberOfEmailAndPhonesAllowed = 4
 
-    private val _tempEmailList = mutableStateListOf<String>("")
-    private val _tempPhoneList = mutableStateListOf<String>("")
+    private val _emailList = mutableStateListOf<String>("")
+    private val _phoneList = mutableStateListOf<String>("")
 
     private var _userDetails = MutableStateFlow(
         UserDetails(
@@ -46,8 +46,8 @@ class SignupViewModel @Inject constructor(
             address = "",
             primaryPhone = "",
             primaryEmail = "",
-            otherPhones = null,
-            otherEmails = null,
+            otherPhones = listOf(),
+            otherEmails = listOf(),
             website = "",
             password = "",
             profileImage = null
@@ -67,25 +67,50 @@ class SignupViewModel @Inject constructor(
     private var _profileImage = MutableStateFlow<Bitmap?>(_userDetails.value.profileImage)
 
     val signupData = _userDetails.asStateFlow()
-    var emailList = mutableStateListOf("")
-    var phoneList = mutableStateListOf("")
     val profileImage = _profileImage.asStateFlow()
     val emailListColor = mutableStateListOf(false)
     val fieldsColor = _fieldsColor.asStateFlow()
 
-    val tempEmailList: List<String> = _tempEmailList
-    val tempPhoneList: List<String> = _tempPhoneList
+    val emailList: List<String> = _emailList
+    val phoneList: List<String> = _phoneList
 
 
-    private fun convertListToString(list: List<String>, idx: Int): String? {
-        var str = ""
-        list.forEachIndexed { index, item ->
-            if (index != idx && item.isNotEmpty()) {
-                str += "$item,"
+    private fun updateOtherEmailOrPhoneList(
+        inputList: List<String>,
+        idx: Int,
+        type: OtherEmailOrPhoneFields
+    ) {
+
+        if (inputList.isNotEmpty()) {
+            when (type) {
+
+                OtherEmailOrPhoneFields.OtherEmail -> {
+                    val newList = arrayListOf<String>()
+
+                    inputList.forEachIndexed { index, item ->
+                        if (index != idx && item.isNotEmpty()) {
+                            newList.add(item)
+                        }
+                    }
+                    _userDetails.value.otherEmails = newList
+                }
+
+                OtherEmailOrPhoneFields.OtherPhones -> {
+                    val newList = arrayListOf<String>()
+
+                    inputList.forEachIndexed { index, item ->
+                        if (index != idx && item.isNotEmpty()) {
+                            newList.add(item)
+                        }
+                    }
+                    _userDetails.value.otherPhones = newList
+                }
             }
 
+
         }
-        return str.ifEmpty { null }
+
+
     }
 
 
@@ -147,59 +172,41 @@ class SignupViewModel @Inject constructor(
         }
     }
 
-    private fun updateOtherEmailOrPhone(text: String?, type: OtherEmailOrPhoneFields) {
-        when (type) {
-            OtherEmailOrPhoneFields.OtherEmail -> {
-                _userDetails.update {
-                    it.copy(otherEmails = text)
-                }
-            }
-
-            OtherEmailOrPhoneFields.OtherPhones -> {
-                _userDetails.update {
-                    it.copy(otherPhones = text)
-                }
-            }
-        }
-    }
-
     fun updateEmailOrPhoneList(text: String, idx: Int, type: InputListTypes) {
         when (type) {
             InputListTypes.Email -> {
-                _tempEmailList[idx] = text
+                _emailList[idx] = text
             }
 
             InputListTypes.Phone -> {
-                _tempPhoneList[idx] = text
+                _phoneList[idx] = text
             }
         }
     }
 
-    fun addFieldsOfEmailOrPhoneList(type: InputListTypes) {
-        Log.i("fields email ${tempEmailList.size}", tempEmailList.toList().toString())
-
+    fun addFieldsOfEmailOrPhoneList(text: String = "", type: InputListTypes) {
         when (type) {
             InputListTypes.Email -> {
-                _tempEmailList.add("")
+                _emailList.add(text)
             }
 
             InputListTypes.Phone -> {
-                _tempPhoneList.add("")
+                _phoneList.add(text)
             }
         }
 
     }
 
-    fun removeFieldsOfEmailOrPhoneList(idx: Int,type: InputListTypes) {
-        Log.i("fields email ${tempEmailList.size}", tempEmailList.toList().toString())
+    fun removeFieldsOfEmailOrPhoneList(idx: Int, type: InputListTypes) {
+        Log.i("fields email ${emailList.size}", emailList.toList().toString())
 
         when (type) {
             InputListTypes.Email -> {
-                _tempEmailList.removeAt(idx)
+                _emailList.removeAt(idx)
             }
 
             InputListTypes.Phone -> {
-                _tempPhoneList.removeAt(idx)
+                _phoneList.removeAt(idx)
             }
         }
 
@@ -223,7 +230,7 @@ class SignupViewModel @Inject constructor(
     }
 
     private fun checkValidEmail(): Boolean {
-        emailList.forEachIndexed { idx, item ->
+        _emailList.forEachIndexed { idx, item ->
             if (!item.matches(regex = Regex(InputsRegex.EMAIL_VALIDATION_REGEX))) {
                 emailListColor[idx] = true
                 return false
@@ -265,68 +272,6 @@ class SignupViewModel @Inject constructor(
 
     }
 
-    fun setContactsDetails() {
-        if (currentUserId != null) {
-            val userDetails = localDBRepo.getUserDetails(userId = currentUserId.toInt())
-
-            _userDetails.value.apply {
-                dob = userDetails.dob
-                age = userDetails.age
-                lastName = userDetails.lastName
-                firstName = userDetails.firstName
-                address = userDetails.address
-                primaryPhone = userDetails.primaryPhone
-                primaryEmail = userDetails.primaryEmail
-                otherPhones = userDetails.otherPhones
-                otherEmails = userDetails.otherEmails
-                website = userDetails.website
-                profileImage = userDetails.profileImage
-                password = userDetails.password
-            }
-
-            loadEmailAndOtherPhones()
-        }
-
-
-    }
-
-    private fun loadEmailAndOtherPhones() {
-        emailList[0] = _userDetails.value.primaryEmail
-        phoneList[0] = _userDetails.value.primaryPhone
-        _profileImage.value = _userDetails.value.profileImage
-        convertStringToList(_userDetails.value.otherEmails)?.forEach {
-            if (it.isNotEmpty()) {
-                emailList.add(it)
-                emailListColor.add(false)
-
-
-            }
-
-        }
-        convertStringToList(_userDetails.value.otherPhones)?.forEach {
-            if (it.isNotEmpty()) {
-                phoneList.add(it)
-            }
-
-        }
-
-
-    }
-
-    private fun convertStringToList(text: String?): List<String>? {
-        return text?.split(",")
-    }
-
-    fun updateDBData() {
-        viewModelScope.launch {
-            if (currentUserId != null) {
-                localDBRepo.updateUserDetails(
-                    userDetails = _userDetails.value,
-                    currentUserSID = currentUserId.toInt()
-                )
-            }
-        }
-    }
 
     fun checkFieldsValue(
         primaryEmail: String,
@@ -348,7 +293,7 @@ class SignupViewModel @Inject constructor(
         confirmPassword: String
     ) {
         emailListColor[primaryEmailIndex] =
-            emailList[primaryEmailIndex].isEmpty()
+            _emailList[primaryEmailIndex].isEmpty()
 
         updateFieldsColor(
             isValid = _userDetails.value.firstName.isEmpty(),
@@ -373,16 +318,16 @@ class SignupViewModel @Inject constructor(
         primaryPhoneIndex: Int,
 
         ) {
-        val otherEmails = convertListToString(list = emailList, idx = primaryEmailIndex)
-        val otherPhones = convertListToString(list = phoneList, idx = primaryPhoneIndex)
 
-        updateOtherEmailOrPhone(
-            text = otherEmails,
-            type = OtherEmailOrPhoneFields.OtherEmail
+        updateOtherEmailOrPhoneList(
+            inputList = emailList,
+            primaryEmailIndex,
+            OtherEmailOrPhoneFields.OtherEmail
         )
-        updateOtherEmailOrPhone(
-            text = otherPhones,
-            type = OtherEmailOrPhoneFields.OtherPhones
+        updateOtherEmailOrPhoneList(
+            inputList = phoneList,
+            primaryEmailIndex,
+            OtherEmailOrPhoneFields.OtherPhones
         )
 
         updateUserData(
@@ -396,10 +341,87 @@ class SignupViewModel @Inject constructor(
 
     }
 
-    fun checkUserAlreadyExisted(email: String): Boolean {
-        return !localDBRepo.checkEmailIsAlreadyUsed(email = email) //returns true if the user doesn't exist
+    fun isEmailAlreadyTaken(email: String): Boolean {
+        return !localDBRepo.checkEmailIdAvailable(email = email) //returns true if the user doesn't exist
     }
 
+
+    //set details if navigated from contact screen
+    fun setContactsDetails() {
+        if (currentUserId != null) {
+            val userDetails = localDBRepo.getUserDetails(userId = currentUserId.toInt())
+
+            _userDetails.value.apply {
+                dob = userDetails.dob
+                age = userDetails.age
+                lastName = userDetails.lastName
+                firstName = userDetails.firstName
+                address = userDetails.address
+                primaryPhone = userDetails.primaryPhone
+                primaryEmail = userDetails.primaryEmail
+                otherPhones = userDetails.otherPhones
+                otherEmails = userDetails.otherEmails
+                website = userDetails.website
+                profileImage = userDetails.profileImage
+                password = userDetails.password
+            }
+
+            setEmailAndPhones()
+        }
+
+
+    }
+
+    private fun setEmailAndPhones() {
+        updateEmailOrPhoneList(
+            text = _userDetails.value.primaryEmail,
+            idx = 0,
+            InputListTypes.Email
+        )
+        updateEmailOrPhoneList(
+            text = _userDetails.value.primaryPhone,
+            idx = 0,
+            InputListTypes.Phone
+        )
+
+        _profileImage.value = _userDetails.value.profileImage
+
+        setOtherEmailsOrPhones(
+            list = _userDetails.value.otherEmails,
+            type = InputListTypes.Email
+        )
+        setOtherEmailsOrPhones(
+            list = _userDetails.value.otherPhones,
+            type = InputListTypes.Phone
+        )
+
+    }
+
+    private fun setOtherEmailsOrPhones(list: List<String>?, type: InputListTypes) {
+
+        if (!list.isNullOrEmpty()) {
+            list.let { item ->
+                item.forEach {
+                    addFieldsOfEmailOrPhoneList(text = it, type)
+                    emailListColor.add(false)
+                }
+            }
+
+        }
+
+    }
+
+
+    fun updateDBData() {
+        viewModelScope.launch {
+            if (currentUserId != null) {
+                localDBRepo.updateUserDetails(
+                    userDetails = _userDetails.value,
+                    currentUserSID = currentUserId.toInt()
+                )
+            }
+        }
+    }
 
 }
 

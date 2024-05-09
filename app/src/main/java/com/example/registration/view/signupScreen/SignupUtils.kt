@@ -217,13 +217,12 @@ fun SignupEmail(
     selectEmail: (idx: Int) -> Unit,
     closeButtonClick: () -> Unit,
     primaryEmailIndex: Int,
-    emailList: MutableList<String>,
     isFieldError: SnapshotStateList<Boolean>,
     removeField: (idx: Int) -> Unit,
     regex: String,
     emailFocusRequester: FocusRequester,
     signupViewModel: SignupViewModel,
-    tempEmailList: List<String>
+    emailList: List<String>
 
 ) {
 
@@ -242,7 +241,13 @@ fun SignupEmail(
                     .fillMaxWidth(),
                 itemNo = (index + 1).toString(),
                 text = emailList[index],
-                onTextChanged = { emailList[index] = it },
+                onTextChanged = {
+                    signupViewModel.updateEmailOrPhoneList(
+                        text = it,
+                        type = InputListTypes.Email,
+                        idx = index
+                    )
+                },
                 keyBoardType = KeyboardType.Email,
                 label = stringResource(id = R.string.email),
                 isError = isFieldError[index],
@@ -298,7 +303,7 @@ fun SignupEmail(
         horizontalArrangement = Arrangement.Center
     ) {
 
-        if (tempEmailList.size < signupViewModel.numberOfEmailAndPhonesAllowed) {
+        if (emailList.size < signupViewModel.numberOfEmailAndPhonesAllowed) {
             Image(
                 modifier = Modifier.size(30.dp),
                 painter = painterResource(id = R.drawable.add_ic),
@@ -307,8 +312,8 @@ fun SignupEmail(
             Text(
                 modifier = Modifier
                     .clickable {
-                        if (tempEmailList.size < signupViewModel.numberOfEmailAndPhonesAllowed) {
-                            emailList.add("")
+                        if (emailList.size < signupViewModel.numberOfEmailAndPhonesAllowed) {
+
                             isFieldError.add(false)
                             signupViewModel.addFieldsOfEmailOrPhoneList(type = InputListTypes.Email)
                         }
@@ -330,9 +335,10 @@ fun SignupPhone(
     selectPhone: (idx: Int) -> Unit,
     closeButtonClick: () -> Unit,
     primaryPhoneIndex: Int,
-    phoneList: MutableList<String>,
+    phoneList: List<String>,
     removeField: (idx: Int) -> Unit,
     regex: String,
+    signupViewModel: SignupViewModel,
 
     ) {
 
@@ -348,7 +354,14 @@ fun SignupPhone(
                     .fillMaxWidth(),
                 itemNo = (index + 1).toString(),
                 text = phoneList[index],
-                onTextChanged = { phoneList[index] = it },
+                onTextChanged = {
+                    signupViewModel.updateEmailOrPhoneList(
+                        text = it,
+                        idx = index,
+                        type = InputListTypes.Phone
+                    )
+
+                },
                 keyBoardType = KeyboardType.Phone,
                 label = stringResource(id = R.string.phone_number),
                 regex = regex
@@ -399,19 +412,28 @@ fun SignupPhone(
 
     }
 
-    Row(modifier = Modifier
-        .clickable {
-            phoneList.add("")
-        }
-        .padding(MaterialTheme.dimens.signupDimension.padding08),
+    Row(
+        modifier = Modifier
+            .padding(MaterialTheme.dimens.signupDimension.padding08),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center) {
-        Image(
-            modifier = Modifier.size(30.dp),
-            painter = painterResource(id = R.drawable.add_ic),
-            contentDescription = ""
-        )
-        Text(text = stringResource(id = R.string.add_phone))
+        horizontalArrangement = Arrangement.Center
+    ) {
+
+        if (phoneList.size < signupViewModel.numberOfEmailAndPhonesAllowed) {
+            Image(
+                modifier = Modifier.size(30.dp),
+                painter = painterResource(id = R.drawable.add_ic),
+                contentDescription = ""
+            )
+            Text(
+                modifier = Modifier
+                    .clickable {
+                        signupViewModel.addFieldsOfEmailOrPhoneList(type = InputListTypes.Phone)
+                    },
+                text = stringResource(id = R.string.add_phone)
+            )
+        }
+
     }
 
 }

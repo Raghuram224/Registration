@@ -7,7 +7,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 
-@Database(entities = [RegistrationEntity::class], version = 8)
+@Database(entities = [RegistrationEntity::class], version = 11)
 @TypeConverters(Converter::class)
 abstract class LocalDB:RoomDatabase() {
     abstract val registrationDao:RegistrationDao

@@ -37,8 +37,8 @@ class ContactViewModel @Inject constructor(
                 address = it.address,
                 primaryPhone = it.primaryPhone,
                 primaryEmail = it.primaryEmail,
-                otherPhones = convertStringToList(text = it.otherPhones),
-                otherEmails = convertStringToList(text = it.otherEmails),
+                otherPhones =  it.otherPhones,
+                otherEmails =  it.otherEmails,
                 website = it.website,
                 profileImage = it.profileImage
             )

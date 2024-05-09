@@ -74,7 +74,6 @@ import com.example.registration.R
 import com.example.registration.constants.InputsRegex
 import com.example.registration.constants.constantModals.InputListTypes
 import com.example.registration.constants.constantModals.KeyboardStatus
-import com.example.registration.constants.constantModals.SignupFieldsColorType
 import com.example.registration.constants.constantModals.TextFieldType
 import com.example.registration.navigation.Screens
 import com.example.registration.ui.theme.LightGray
@@ -210,10 +209,6 @@ fun SignupScreen(
         }
 
 
-    //list
-    val emailList = signupViewModel.emailList
-    val phoneList = signupViewModel.phoneList
-
     val coroutineScope = rememberCoroutineScope()
 
     // bring intoView View Requester
@@ -255,10 +250,11 @@ fun SignupScreen(
         mutableStateOf<Bitmap?>(null)
     }
 
-    val tempEmailList = signupViewModel.tempEmailList
-    val tempPhoneList = signupViewModel.tempPhoneList
+    //list
+    val emailList = signupViewModel.emailList
+    val phoneList = signupViewModel.phoneList
 
-    Log.i("signup back user", signupViewModel.currentUserId.toString())
+
 
     LaunchedEffect(Unit) {
         if (signupViewModel.currentUserId != null) {
@@ -308,6 +304,7 @@ fun SignupScreen(
                                 primaryEmailIndex = primaryEmailIndex,
                                 primaryPhoneIndex = primaryPhoneIndex
                             )
+
                             signupViewModel.updateProfileImageIntoUserDetails(bitmap = profileImage)
 
                             if (signupViewModel.currentUserId != null) {
@@ -320,7 +317,7 @@ fun SignupScreen(
                                 signupViewModel.updateDBData()
                                 navController.popBackStack()
                             } else {
-                                if (!signupViewModel.checkUserAlreadyExisted(email = emailList[primaryEmailIndex])) {
+                                if (!signupViewModel.isEmailAlreadyTaken(email = emailList[primaryEmailIndex])) {
                                     createToast(context, R.string.signup_success, keyBoardState)
                                     signupViewModel.insertData()
 //                                    navController.navigate(Screens.LoginScreens.route) {
@@ -510,12 +507,13 @@ fun SignupScreen(
                             if (emailList.size > 1 && it != primaryEmailIndex) {
 
                                 if (primaryEmailIndex == 1) {
-                                    emailList.removeAt(0)
+                                    signupViewModel.removeFieldsOfEmailOrPhoneList(idx = 0,InputListTypes.Email)
+//                                    emailList.removeAt(0)
                                     signupViewModel.emailListColor.removeAt(0)
                                     primaryEmailIndex = 0
                                 } else {
                                     signupViewModel.removeFieldsOfEmailOrPhoneList(idx = it,InputListTypes.Email)
-                                    emailList.removeAt(it)
+//                                    emailList.removeAt(it)
                                     signupViewModel.emailListColor.removeAt(it)
 
                                 }
@@ -526,7 +524,7 @@ fun SignupScreen(
                         regex = InputsRegex.EMAIL_ALLOWED_REGEX,
                         emailFocusRequester = emailFocusRequester,
                         signupViewModel = signupViewModel,
-                        tempEmailList = tempEmailList
+
 
                         )
                 }
@@ -551,17 +549,17 @@ fun SignupScreen(
                         removeField = {
                             if (phoneList.size > 1 && it != primaryPhoneIndex) {
                                 if (primaryPhoneIndex == 1) {
-                                    phoneList.removeAt(0)
+                                    signupViewModel.removeFieldsOfEmailOrPhoneList(idx = 0,InputListTypes.Phone)
                                     primaryPhoneIndex = 0
                                 } else {
-                                    phoneList.removeAt(it)
+                                    signupViewModel.removeFieldsOfEmailOrPhoneList(idx = it,InputListTypes.Phone)
 
 
                                 }
                             }
                         },
                         regex = InputsRegex.PHONE_NUMBER_REGEX,
-
+                        signupViewModel = signupViewModel
 
                         )
                 }

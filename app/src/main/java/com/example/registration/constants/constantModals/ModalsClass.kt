@@ -55,8 +55,8 @@ data class UserDetails(
     var dob: String,
     var primaryEmail: String,
     var primaryPhone: String,
-    var otherEmails: String?,
-    var otherPhones: String?,
+    var otherEmails: List<String>?,
+    var otherPhones: List<String>?,
     var website: String,
     var password: String,
     var profileImage: Bitmap?

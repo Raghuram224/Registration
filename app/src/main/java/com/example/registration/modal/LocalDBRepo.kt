@@ -19,6 +19,9 @@ class LocalDBRepo @Inject constructor(mContext: Context) {
 
 
     suspend fun insetIntoDb(userDetails: UserDetails) {
+
+        Log.i("result repo",userDetails.otherEmails.toString()+"phone"+userDetails.otherPhones.toString())
+
         registrationDao.insertSignupDetails(
             RegistrationEntity(
                 firstName = userDetails.firstName,
@@ -100,9 +103,8 @@ class LocalDBRepo @Inject constructor(mContext: Context) {
         return getUserDetails(userId = userId).isAdmin
     }
 
-    fun checkEmailIsAlreadyUsed(email: String):Boolean{
+    fun checkEmailIdAvailable(email: String):Boolean{
         val dbEmail = registrationDao.getEmailFromDB(email = email)
-        Log.i("check email",dbEmail.toString())
         return dbEmail == null
     }
 

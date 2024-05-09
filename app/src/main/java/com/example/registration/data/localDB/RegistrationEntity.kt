@@ -35,10 +35,10 @@ data class RegistrationEntity(
     val website: String,
 
     @ColumnInfo(name = "otherPhones")
-    val otherPhones: String?,
+    val otherPhones: List<String>?,
 
     @ColumnInfo(name = "otherEmails")
-    val otherEmails: String?,
+    val otherEmails:List<String>?,
 
     @ColumnInfo(name = "password")
     val password: String,
