@@ -9,8 +9,10 @@
         android:name="android.hardware.telephony"
         android:required="false" />
 
-    <uses-permission android:name="android.permission.CAMERA"/>
-    <uses-permission android:name="android.permission.CALL_PHONE"/>
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.CALL_PHONE" />
+    <uses-permission android:name="android.permission.READ_CALENDAR" />
+    <uses-permission android:name="android.permission.WRITE_CALENDAR" />
 
 
     <application
@@ -28,14 +30,25 @@
             android:name=".MainActivity"
             android:exported="true"
             android:label="@string/app_name"
-            android:windowSoftInputMode="adjustResize"
-            android:theme="@style/Theme.Registration">
+            android:theme="@style/Theme.Registration"
+            android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
+
+
             </intent-filter>
+
         </activity>
+
     </application>
 
 </manifest>
+
+
+<!--<intent-filter>-->
+<!--<action android:name="android.intent.action.SENDTO" />-->
+<!--<data android:scheme="mailto" />-->
+<!--<category android:name="android.intent.category.DEFAULT" />-->
+<!--</intent-filter>-->

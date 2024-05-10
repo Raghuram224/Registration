@@ -20,6 +20,12 @@ sealed class Screens(val route: String) {
         }
     }
 
+    data object ViewProfileScreen:Screens(route = "ViewProfileScreen/{$USER_ID_KEY}"){
+        fun passArgument(userId:String):String{
+            return "ViewProfileScreen/$userId"
+        }
+    }
+
     data object AllContactsScreen : Screens(route = "AllContactsScreen")
 
 //optional args

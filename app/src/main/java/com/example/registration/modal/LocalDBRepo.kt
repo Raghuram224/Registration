@@ -1,6 +1,7 @@
 package com.example.registration.modal
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.util.Log
 import com.example.registration.constants.PasswordHash
 import com.example.registration.constants.constantModals.ContactBasicDetails
@@ -106,6 +107,11 @@ class LocalDBRepo @Inject constructor(mContext: Context) {
     fun checkEmailIdAvailable(email: String):Boolean{
         val dbEmail = registrationDao.getEmailFromDB(email = email)
         return dbEmail == null
+    }
+
+    fun getProfileImage(userId: Int): Bitmap? {
+        val userDetails =getUserDetails(userId = userId)
+        return  userDetails.profileImage
     }
 
 

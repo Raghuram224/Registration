@@ -1,6 +1,5 @@
 package com.example.registration.view.signupScreen
 
-import android.annotation.SuppressLint
 import android.app.Activity
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
@@ -9,7 +8,6 @@ import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
 import android.view.ViewTreeObserver
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -82,7 +80,6 @@ import com.example.registration.ui.theme.White
 import com.example.registration.ui.theme.dimens
 import com.example.registration.ui.theme.titleStyle
 import com.example.registration.viewModels.SignupViewModel
-import java.text.SimpleDateFormat
 import java.util.Date
 
 

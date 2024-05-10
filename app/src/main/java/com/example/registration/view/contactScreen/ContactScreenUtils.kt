@@ -1,13 +1,9 @@
 package com.example.registration.view.contactScreen
 
-import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
-import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -28,6 +24,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.ExpandLess
@@ -35,6 +32,7 @@ import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Web
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DismissDirection
@@ -43,6 +41,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.SwipeToDismiss
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDismissState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -56,6 +55,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -64,11 +64,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.registration.R
+import com.example.registration.constants.InputsRegex
 import com.example.registration.constants.constantModals.PersonalInformation
 import com.example.registration.ui.theme.DarkGreen
+import com.example.registration.ui.theme.LightGray
 import com.example.registration.ui.theme.White
 import com.example.registration.ui.theme.dimens
-import com.example.registration.viewModels.ContactViewModel
 import kotlinx.coroutines.delay
 
 @Composable
@@ -76,23 +77,10 @@ fun ContactDetails(
     modifier: Modifier,
     uiColor: Color,
     contactDetails: PersonalInformation?,
-    contactViewModel: ContactViewModel,
     context: Context
 ) {
     val scrollState = rememberScrollState()
-
-    var hasPhonePermission by remember {
-        mutableStateOf(false)
-    }
-    val phoneContract =
-        rememberLauncherForActivityResult(contract = ActivityResultContracts.RequestPermission()) {
-            if (it) {
-                hasPhonePermission = true
-
-            } else {
-                Toast.makeText(context, "phone permission denied", Toast.LENGTH_SHORT).show()
-            }
-        }
+    val uriHandler = LocalUriHandler.current
 
 
     if (contactDetails != null) {
@@ -100,7 +88,7 @@ fun ContactDetails(
             modifier = modifier
                 .fillMaxSize(),
             colors = CardDefaults.cardColors(
-                containerColor = White
+                containerColor = LightGray
             ),
             shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
         ) {
@@ -122,65 +110,125 @@ fun ContactDetails(
                         .padding(MaterialTheme.dimens.contactDimension.padding04),
                     text = "Contact Details",
                     style = TextStyle(
-                        fontSize = MaterialTheme.typography.h5.fontSize
+                        fontSize = MaterialTheme.typography.h5.fontSize,
+                        color = uiColor
                     )
 
                 )
 
-                ContactItem(
-                    modifier = Modifier,
-                    icon = Icons.Default.Phone,
-                    categoryName = stringResource(id = R.string.number),
-                    itemValue = contactDetails.primaryPhone,
-                    itemList = contactDetails.otherPhones,
-                    tintColor = uiColor,
-                    swipeAction = {
-                        if (contactViewModel.hasPhonePermission() || hasPhonePermission) {
-                            openDialer(context = context, it)
-                        } else {
-                            phoneContract.launch(Manifest.permission.CALL_PHONE)
+                if (contactDetails.primaryPhone.isNotEmpty()) {
+                    CustomCardCreator(
+                        modifier = Modifier,
+                        anyComposable = {
+                            ContactItem(
+                                modifier = Modifier,
+                                icon = Icons.Default.Phone,
+                                categoryName = stringResource(id = R.string.number),
+                                itemValue = contactDetails.primaryPhone,
+                                itemList = contactDetails.otherPhones,
+                                tintColor = uiColor,
+                                intentAction = {
+                                    openDialer(context = context, it)
+                                },
+                            )
+
                         }
-                    },
-                    context = context,
-
                     )
-                ContactItem(
-                    modifier = Modifier,
-                    icon = Icons.Default.Email,
-                    categoryName = stringResource(id = R.string.email),
-                    itemValue = contactDetails.primaryEmail,
-                    itemList = contactDetails.otherEmails,
-                    tintColor = uiColor,
-                    context = context
+                }
+                if (contactDetails.primaryEmail.isNotEmpty()) {
+                    CustomCardCreator(
+                        modifier = Modifier,
+                        anyComposable = {
+                            ContactItem(
+                                modifier = Modifier,
+                                icon = Icons.Default.Email,
+                                categoryName = stringResource(id = R.string.email),
+                                itemValue = contactDetails.primaryEmail,
+                                itemList = contactDetails.otherEmails,
+                                tintColor = uiColor,
+                                intentAction = { email ->
+                                    launchEmailIntent(
+                                        context = context,
+                                        emailId = email,
+                                        subject = "This is subject",
+                                        body = "This is body"
+                                    )
+                                }
+                            )
 
-                )
-                ContactItem(
-                    modifier = Modifier,
-                    icon = Icons.Default.CalendarMonth,
-                    categoryName = stringResource(id = R.string.birthday),
-                    itemValue = contactDetails.dob,
-                    tintColor = uiColor,
-                    context = context
+                        }
+                    )
+                } else {
+                    Text(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        text = stringResource(id = R.string.this_contact_is_empty),
+                        style = TextStyle(
+                            color = uiColor,
+                            fontSize = MaterialTheme.typography.h6.fontSize,
+                            textAlign = TextAlign.Center
+                        )
+                    )
+                }
+                if (contactDetails.dob.isNotEmpty()) {
+                    CustomCardCreator(
+                        modifier = Modifier,
+                        anyComposable = {
 
-                )
-                ContactItem(
-                    modifier = Modifier,
-                    icon = Icons.Default.LocationOn,
-                    categoryName = stringResource(id = R.string.address),
-                    itemValue = contactDetails.address,
-                    tintColor = uiColor,
-                    context = context
+                            ContactItem(
+                                modifier = Modifier,
+                                icon = Icons.Default.CalendarMonth,
+                                categoryName = stringResource(id = R.string.birthday),
+                                itemValue = contactDetails.dob,
+                                tintColor = uiColor,
+                            )
 
-                )
-                ContactItem(
-                    modifier = Modifier,
-                    icon = Icons.Default.Web,
-                    categoryName = stringResource(id = R.string.website),
-                    itemValue = contactDetails.website,
-                    tintColor = uiColor,
-                    context = context
+                        }
+                    )
+                }
 
-                )
+                if (contactDetails.address.isNotEmpty()) {
+                    CustomCardCreator(
+                        modifier = Modifier,
+                        anyComposable = {
+
+
+                            ContactItem(
+                                modifier = Modifier,
+                                icon = Icons.Default.LocationOn,
+                                categoryName = stringResource(id = R.string.address),
+                                itemValue = contactDetails.address,
+                                tintColor = uiColor,
+                                intentAction = { address ->
+                                    launchMapsIntent(context = context, address = address)
+                                }
+                            )
+
+                        }
+                    )
+                }
+                if (contactDetails.website.isNotEmpty()) {
+                    CustomCardCreator(
+                        modifier = Modifier,
+                        anyComposable = {
+
+                            ContactItem(
+                                modifier = Modifier,
+                                icon = Icons.Default.Web,
+                                categoryName = stringResource(id = R.string.website),
+                                itemValue = contactDetails.website,
+                                tintColor = uiColor,
+                                intentAction = { website ->
+                                    val url =
+                                        if (website.matches(regex = Regex(InputsRegex.WEBSITE_REGEX))) website else "$website.com"
+                                    uriHandler.openUri("https://$url")
+                                }
+
+                            )
+
+                        }
+                    )
+                }
 
             }
         }
@@ -197,7 +245,8 @@ fun openDialer(context: Context, phoneNumber: String) {
 @Composable
 fun ContactProfile(
     modifier: Modifier,
-    contactDetails: PersonalInformation?
+    contactDetails: PersonalInformation?,
+    viewProfileImage: () -> Unit,
 ) {
     if (contactDetails != null) {
         Column(
@@ -216,7 +265,10 @@ fun ContactProfile(
 
 
             ) {
-                ProfileImageLoader(profileImage = contactDetails.profileImage)
+                ProfileImageLoader(
+                    profileImage = contactDetails.profileImage,
+                    viewProfileImage = viewProfileImage
+                )
 
             }
 
@@ -271,8 +323,8 @@ fun ContactItem(
     itemValue: String,
     itemList: List<String>? = emptyList(),
     tintColor: Color,
-    context: Context,
-    swipeAction: (String) -> Unit = {},
+    intentAction: (String) -> Unit = {},
+
 
     ) {
     var isExpanded by remember {
@@ -311,7 +363,8 @@ fun ContactItem(
                 text = categoryName,
                 style = TextStyle(
                     fontSize = MaterialTheme.typography.h6.fontSize,
-                    fontWeight = FontWeight.Normal
+                    fontWeight = FontWeight.Normal,
+                    color = tintColor
                 )
             )
 
@@ -319,19 +372,19 @@ fun ContactItem(
                 SwipeToCallContainer(
                     modifier = Modifier,
                     item = itemValue,
-                    onCall = { swipeAction(itemValue) }
+                    onCall = { intentAction(itemValue) }
                 ) {
                     Text(
                         modifier = Modifier
                             .heightIn(40.dp)
                             .padding(MaterialTheme.dimens.contactDimension.padding02)
                             .clickable {
-                                openDialer(context = context, itemValue)
+                                intentAction(itemValue)
                             },
                         text = itemValue,
                         style = TextStyle(
                             fontSize = MaterialTheme.typography.h6.fontSize,
-                            fontWeight = FontWeight.W300
+                            fontWeight = FontWeight.W300,
                         )
                     )
                 }
@@ -339,26 +392,34 @@ fun ContactItem(
                 Text(
                     modifier = Modifier
                         .heightIn(40.dp)
+                        .clickable {
+                            intentAction(itemValue)
+                        }
                         .padding(MaterialTheme.dimens.contactDimension.padding02),
                     text = itemValue,
                     style = TextStyle(
                         fontSize = MaterialTheme.typography.h6.fontSize,
-                        fontWeight = FontWeight.W300
+                        fontWeight = FontWeight.W300,
+//                        color = tintColor
                     )
                 )
             }
             if (!itemList.isNullOrEmpty()) {
                 if (isExpanded) {
 
-                    itemList.forEach {
+                    itemList.forEach { item ->
                         Text(
                             modifier = Modifier
+                                .clickable {
+                                    intentAction(item)
+                                }
                                 .heightIn(40.dp)
                                 .padding(MaterialTheme.dimens.contactDimension.padding02),
-                            text = it,
+                            text = item,
                             style = TextStyle(
                                 fontSize = MaterialTheme.typography.h6.fontSize,
-                                fontWeight = FontWeight.W300
+                                fontWeight = FontWeight.W300,
+//                                color = tintColor
                             )
                         )
                     }
@@ -446,7 +507,7 @@ fun CallerBackground(
 
     Box(
         modifier = Modifier
-            .fillMaxSize()
+            .fillMaxWidth(1f)
             .background(bgColor),
         contentAlignment = Alignment.CenterStart
 
@@ -462,6 +523,7 @@ fun CallerBackground(
 @Composable
 private fun ProfileImageLoader(
     profileImage: Bitmap?,
+    viewProfileImage: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     if (profileImage != null) {
@@ -469,7 +531,10 @@ private fun ProfileImageLoader(
             modifier = modifier
                 .padding(MaterialTheme.dimens.contactDimension.padding08)
                 .size(120.dp)
-                .clip(RoundedCornerShape(50)),
+                .clip(RoundedCornerShape(50))
+                .clickable {
+                    viewProfileImage()
+                },
             model = profileImage,
             contentDescription = stringResource(id = R.string.profile),
             contentScale = ContentScale.FillBounds,
@@ -483,4 +548,90 @@ private fun ProfileImageLoader(
             contentDescription = stringResource(id = R.string.profile)
         )
     }
+}
+
+fun launchEmailIntent(context: Context, emailId: String, subject: String, body: String) {
+//    val emailIntent = context.packageManager.getLaunchIntentForPackage("com.android.email")
+//    intent.putExtra(Intent.EXTRA_TEXT, "body")
+//    context.startActivity(Intent.createChooser(intent, "Email"))
+//    intent.addCategory(Intent.CATEGORY_APP_EMAIL)
+
+//    intent.setData(Uri.parse("Subject:this is sub"))
+    context.startActivity(
+//        Intent.createChooser(
+        Intent(
+            Intent.ACTION_SENDTO,
+//        Uri.fromParts("mailto","a@a.com" , null)
+        ).apply {
+            data = Uri.fromParts("mailto", emailId, null)
+            putExtra(Intent.EXTRA_SUBJECT, "sample subject")
+        },
+//        "Email via..")
+    )
+
+}
+
+fun launchMapsIntent(context: Context, address: String) {
+    val url = "http://maps.google.com/maps?daddr=$address"
+
+    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+    context.startActivity(intent)
+}
+
+@Composable
+fun CustomCardCreator(
+    modifier: Modifier,
+    anyComposable: @Composable () -> Unit,
+) {
+    Card(
+        modifier = modifier
+            .padding(
+                vertical = MaterialTheme.dimens.signupDimension.padding08,
+                horizontal = MaterialTheme.dimens.signupDimension.padding04
+            ),
+        colors = CardDefaults.cardColors(
+            containerColor = White
+        )
+    ) {
+
+        anyComposable()
+
+    }
+}
+
+
+@Composable
+fun ExitPopup(
+    onDisMiss: () -> Unit,
+    onConfirm: () -> Unit,
+) {
+
+    AlertDialog(
+        icon = {
+            Icon(
+                imageVector = Icons.AutoMirrored.Default.ExitToApp,
+                contentDescription = stringResource(id = R.string.exit)
+            )
+        },
+        title = {
+            Text(text = stringResource(id = R.string.logout_the_app))
+        },
+        text = {
+            Text(text = stringResource(id = R.string.do_you_want_to_logout_the_app))
+        },
+        onDismissRequest = { onDisMiss() },
+        confirmButton = {
+            TextButton(onClick = { onConfirm() }) {
+                Text(text = stringResource(id = R.string.confirm))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = { onDisMiss() }) {
+                Text(text = stringResource(id = R.string.cancel))
+            }
+        }
+
+    )
+
+
 }

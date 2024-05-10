@@ -75,8 +75,3 @@ import java.util.Locale
 //    return seconds * 1000
 //}
 
-fun main() {
-    val cal: Calendar = Calendar.getInstance(Locale.getDefault())
-   println( cal.get(20))
-
-}

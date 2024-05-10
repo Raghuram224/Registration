@@ -73,6 +73,7 @@ import com.example.registration.R
 import com.example.registration.constants.InputsRegex
 import com.example.registration.constants.constantModals.InputListTypes
 import com.example.registration.constants.constantModals.KeyboardStatus
+import com.example.registration.constants.constantModals.SignupFieldsColorType
 import com.example.registration.constants.constantModals.TextFieldType
 import com.example.registration.navigation.Screens
 import com.example.registration.ui.theme.LightGray
@@ -290,62 +291,76 @@ fun SignupScreen(
                                 confirmPassword = confirmPassword
                             )
                         ) {
-                            if (signupViewModel.isUserAgeAndDobMatch()) {
-                                signupViewModel.updateFieldsValuesToUserDetails(
-                                    primaryEmailIndex = primaryEmailIndex,
-                                    primaryPhoneIndex = primaryPhoneIndex
-                                )
-
-                                signupViewModel.updateProfileImageIntoUserDetails(bitmap = profileImage)
-
-                                if (signupViewModel.currentUserId != null) {
-                                    createToast(
-                                        context = context,
-                                        message = R.string.contact_updated,
-                                        keyboardStatus = keyBoardState
+                            if (userDetails.value.password.length>=8){
+                                if (signupViewModel.isUserAgeAndDobMatch()) {
+                                    signupViewModel.updateFieldsValuesToUserDetails(
+                                        primaryEmailIndex = primaryEmailIndex,
+                                        primaryPhoneIndex = primaryPhoneIndex
                                     )
 
-                                    signupViewModel.updateDBData()
-                                    navController.popBackStack()
-                                } else {
-                                    if (!signupViewModel.isEmailAlreadyTaken(email = emailList[primaryEmailIndex])) {
-                                        createToast(context, R.string.signup_success, keyBoardState)
-                                        signupViewModel.insertData()
+                                    signupViewModel.updateProfileImageIntoUserDetails(bitmap = profileImage)
 
+                                    if (signupViewModel.currentUserId != null) {
+                                        createToast(
+                                            context = context,
+                                            message = R.string.contact_updated,
+                                            keyboardStatus = keyBoardState
+                                        )
+
+                                        signupViewModel.updateDBData()
                                         navController.popBackStack()
-                                        signupViewModel.isUserAgeAndDobMatch()
                                     } else {
-                                        signupViewModel.emailListColor[primaryEmailIndex] = true
+                                        if (!signupViewModel.isEmailAlreadyTaken(email = emailList[primaryEmailIndex])
+                                            && signupViewModel.isUserAgeAndDobMatch()
+                                        ) {
+                                            createToast(context, R.string.signup_success, keyBoardState)
+                                            signupViewModel.insertData()
 
-                                        createToast(
-                                            context,
-                                            R.string.email_is_already_used,
-                                            keyBoardState
-                                        )
+                                            navController.popBackStack()
 
-                                        coroutineScope.launch {
-                                            emailBringIntoView.bringIntoView()
-                                            emailFocusRequester.requestFocus()
+                                        } else {
+                                            signupViewModel.emailListColor[primaryEmailIndex] = true
+
+                                            createToast(
+                                                context,
+                                                R.string.email_is_already_used,
+                                                keyBoardState
+                                            )
+
+                                            coroutineScope.launch {
+                                                emailBringIntoView.bringIntoView()
+                                                emailFocusRequester.requestFocus()
+                                            }
+                                            createToast(
+                                                context,
+                                                R.string.check_given_email_is_valid,
+                                                keyBoardState
+                                            )
                                         }
-                                        createToast(
-                                            context,
-                                            R.string.check_given_email_is_valid,
-                                            keyBoardState
-                                        )
-                                    }
 
+                                    }
+                                } else {
+                                    createToast(
+                                        context,
+                                        R.string.your_age_dob_doesnt_match,
+                                        keyBoardState
+                                    )
+                                    coroutineScope.launch {
+                                        ageBringIntoView.bringIntoView()
+                                        ageFocusRequester.requestFocus()
+                                    }
                                 }
-                            } else {
-                                createToast(
-                                    context,
-                                    R.string.your_age_dob_doesnt_match,
-                                    keyBoardState
-                                )
+                            }else{
+                                createToast(context,R.string.password_is_too_short,keyBoardState)
                                 coroutineScope.launch {
-                                    ageBringIntoView.bringIntoView()
-                                    ageFocusRequester.requestFocus()
+                                    passwordBringIntoView.bringIntoView()
+                                    passwordFocusRequester.requestFocus()
+                                    signupViewModel.updateFieldsColor(isValid = true,type =  SignupFieldsColorType.Password)
+                                    signupViewModel.updateFieldsColor(isValid = true,type = SignupFieldsColorType.ConfirmPassword)
+
                                 }
                             }
+
 
 
                         } else if (fieldsColor.confirmPasswordColor) {
@@ -388,7 +403,7 @@ fun SignupScreen(
                                 passwordFocusRequester.requestFocus()
                             }
                             createToast(context, R.string.check_password_value, keyBoardState)
-                        } else {
+                        } else if (fieldsColor.confirmPasswordColor) {
                             if (signupViewModel.currentUserId == null) {
                                 coroutineScope.launch {
                                     confirmPasswordBringIntoView.bringIntoView()
@@ -400,6 +415,12 @@ fun SignupScreen(
                                     keyBoardState
                                 )
                             }
+                        }else{
+                            coroutineScope.launch {
+                                emailBringIntoView.bringIntoView()
+                                emailFocusRequester.requestFocus()
+                            }
+                            createToast(context,R.string.check_all_input_fields_were_entered_correctly,keyBoardState)
                         }
 
                     }
@@ -515,7 +536,6 @@ fun SignupScreen(
                                         idx = 0,
                                         InputListTypes.Email
                                     )
-//                                    emailList.removeAt(0)
                                     signupViewModel.emailListColor.removeAt(0)
                                     primaryEmailIndex = 0
                                 } else {
@@ -523,7 +543,6 @@ fun SignupScreen(
                                         idx = it,
                                         InputListTypes.Email
                                     )
-//                                    emailList.removeAt(it)
                                     signupViewModel.emailListColor.removeAt(it)
 
                                 }
@@ -675,7 +694,7 @@ fun SignupScreen(
                     )
                 },
 
-            )
+                )
             CustomColumnCardCreator(
                 modifier = Modifier,
                 anyComposable = {

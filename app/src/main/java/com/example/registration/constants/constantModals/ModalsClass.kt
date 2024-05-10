@@ -23,7 +23,7 @@ enum class LoginInputFields {
     Password,
 }
 
-enum class InputListTypes{
+enum class InputListTypes {
     Email,
     Phone
 }
@@ -69,11 +69,19 @@ enum class KeyboardStatus {
 }
 
 
-enum class SignupFieldsColorType{
+enum class SignupFieldsColorType {
     FName,
     LName,
     Password,
     ConfirmPassword
+}
+
+enum class PermissionsList {
+    Phone,
+    Website,
+    Calendar,
+    Maps,
+    Mail
 }
 
 data class ContactBasicDetails(
@@ -90,3 +98,11 @@ data class FieldsColor(
     var confirmPasswordColor: Boolean,
 
     )
+
+data class AppPermissions(
+    var phone: Boolean,
+    var website: Boolean,
+    var calendar: Boolean,
+    var maps: Boolean,
+    var mail: Boolean,
+)

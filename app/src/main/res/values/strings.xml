@@ -54,9 +54,18 @@
     <string name="address">Address</string>
     <string name="email_is_already_used">Email is already used</string>
     <string name="your_age_dob_doesnt_match">Your age and dob doesn\'t match</string>
-
-
-
+    <string name="check_all_input_fields_were_entered_correctly">Check all input fields were entered correctly</string>
+    <string name="phone_permission_denied">phone permission denied</string>
+    <string name="contact_details">Contact Details</string>
+    <string name="subject">This is subject</string>
+    <string name="body">This is body</string>
+    <string name="this_contact_is_empty">This contact is empty</string>
+    <string name="logout">Logout</string>
+    <string name="logout_the_app">Logout the app?</string>
+    <string name="exit">Exit</string>
+    <string name="do_you_want_to_logout_the_app">Do you want to logout the app?</string>
+    <string name="logout_successfully">Logged out successfully</string>
+    <string name="password_is_too_short">Password is too short</string>
 
 
 

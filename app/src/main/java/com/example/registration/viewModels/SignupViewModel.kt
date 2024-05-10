@@ -23,8 +23,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import java.util.Date
 import javax.inject.Inject
 
@@ -37,7 +35,7 @@ class SignupViewModel @Inject constructor(
 ) : ViewModel() {
 
     val currentUserId = savedStateHandle.get<String>(USER_ID_KEY)
-    val numberOfEmailAndPhonesAllowed = 4
+    val numberOfEmailAndPhonesAllowed = 5
 
     private val _emailList = mutableStateListOf<String>("")
     private val _phoneList = mutableStateListOf<String>("")
@@ -219,7 +217,11 @@ class SignupViewModel @Inject constructor(
 
 
     fun checkPassword(password: String, confirmPassword: String): Boolean {
-        return password == confirmPassword
+        val isValidPassword = password == confirmPassword
+        Log.i("is valid",isValidPassword.toString())
+        updateFieldsColor(isValid = !isValidPassword, SignupFieldsColorType.ConfirmPassword)
+        updateFieldsColor(isValid = !isValidPassword, SignupFieldsColorType.Password)
+        return isValidPassword
     }
 
 
@@ -252,7 +254,7 @@ class SignupViewModel @Inject constructor(
         _userDetails.value.profileImage = bitmap
     }
 
-    private fun updateFieldsColor(isValid: Boolean, type: SignupFieldsColorType) {
+    fun updateFieldsColor(isValid: Boolean, type: SignupFieldsColorType) {
         when (type) {
             SignupFieldsColorType.FName -> {
                 _fieldsColor.value.fNameColor = isValid
@@ -378,26 +380,30 @@ class SignupViewModel @Inject constructor(
     fun isUserAgeAndDobMatch(): Boolean {
 
         return if (userDetails.value.age.isNotEmpty()) {
-            Log.i("age is not empty",userDetails.value.age)
-            val age = _userDetails.value.age.trim().toInt()
-            val givenAgeDob =
-                convertMillisToDate(mill = Date().time.minus(yearsToMillis(years = age.toLong()))).split("/")
 
-            val selectedCalendarDob = if (_userDetails.value.dob.isNotEmpty()) {
-                _userDetails.value.dob.split("/")
-            } else {
-                SimpleDateFormat("dd//MM/yyyy").format(Date()).split("/")
+            val age = _userDetails.value.age.trim().toInt()
+            return if (age <= 0) false else {
+                val givenAgeDob =
+                    convertMillisToDate(mill = Date().time.minus(yearsToMillis(years = age.toLong()))).split(
+                        "/"
+                    )
+
+                val selectedCalendarDob = if (_userDetails.value.dob.isNotEmpty()) {
+                    _userDetails.value.dob.split("/")
+                } else {
+                    SimpleDateFormat("dd//MM/yyyy").format(Date()).split("/")
+                }
+
+                givenAgeDob[2] == selectedCalendarDob[2]
             }
 
-            givenAgeDob[2] == selectedCalendarDob[2]
         } else {
-            Log.i("age is  empty",userDetails.value.age)
-            true
+            userDetails.value.dob.isEmpty()
+
         }
 
 
     }
-
 
 
     fun setContactsDetails() {

@@ -13,6 +13,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.registration.view.contactScreen.ContactScreen
+import com.example.registration.view.contactScreen.ViewProfileScreen
 import com.example.registration.view.contactScreen.allContacts.AllContactsScreen
 import com.example.registration.view.loginScreen.LoginScreen
 import com.example.registration.view.signupScreen.SignupScreen
@@ -20,6 +21,7 @@ import com.example.registration.viewModels.AllContactsViewModel
 import com.example.registration.viewModels.ContactViewModel
 import com.example.registration.viewModels.LoginViewModel
 import com.example.registration.viewModels.SignupViewModel
+import com.example.registration.viewModels.ViewProfileScreenViewModel
 
 @Composable
 fun AppNavGraph() {
@@ -44,8 +46,8 @@ fun AppNavGraph() {
             arguments = listOf(
                 navArgument(USER_ID_KEY) {
                     type = NavType.StringType
-                    defaultValue =null
-                    nullable =true
+                    defaultValue = null
+                    nullable = true
                 },
 
                 ),
@@ -92,6 +94,30 @@ fun AppNavGraph() {
                 contactViewModel = contactViewModel,
 
                 )
+        }
+
+        composable(
+            route = Screens.ViewProfileScreen.route,
+            arguments = listOf(
+                navArgument(USER_ID_KEY) {
+                    type = NavType.StringType
+                    defaultValue = null
+                    nullable = true
+
+                },
+            ),
+            enterTransition = {
+                slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left)
+
+            }, exitTransition = {
+                slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right)
+            }
+        ) {
+            val viewProfileScreenViewModel = hiltViewModel<ViewProfileScreenViewModel>()
+            ViewProfileScreen(
+                navController = navController,
+                viewProfileScreenViewModel = viewProfileScreenViewModel
+            )
         }
         composable(
             route = Screens.AllContactsScreen.route,
