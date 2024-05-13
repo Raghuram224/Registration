@@ -160,6 +160,7 @@ fun LoginPortrait(
                 } else {
                     emailFocusRequester.requestFocus()
                     isEmailError = true
+                    isPasswordError =true
                     createToast(context, message = R.string.check_your_credentials)
                 }
 

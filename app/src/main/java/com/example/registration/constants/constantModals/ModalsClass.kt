@@ -73,7 +73,8 @@ enum class SignupFieldsColorType {
     FName,
     LName,
     Password,
-    ConfirmPassword
+    ConfirmPassword,
+    PrimaryPhone,
 }
 
 enum class PermissionsList {
@@ -96,6 +97,7 @@ data class FieldsColor(
     var lNameColor: Boolean,
     var passwordColor: Boolean,
     var confirmPasswordColor: Boolean,
+    var primaryPhoneColor:Boolean
 
     )
 

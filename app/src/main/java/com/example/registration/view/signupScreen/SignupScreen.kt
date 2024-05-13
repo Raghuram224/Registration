@@ -7,9 +7,11 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Matrix
 import android.net.Uri
+import android.os.Build
 import android.util.Log
 import android.view.Gravity
 import android.widget.Toast
+import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -114,6 +116,9 @@ fun SignupScreen(
     var isPhotoTaken by remember {
         mutableStateOf(false)
     }
+    var isGalleryOpen by remember {
+        mutableStateOf(false)
+    }
 
     //state
     val datePickerSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -131,13 +136,15 @@ fun SignupScreen(
         contract = ActivityResultContracts.PickVisualMedia(),
         onResult = { uri: Uri? ->
             if (uri != null) {
+
                 signupViewModel.updateProfileImage(
                     bitmap = convertUriToBitmapAboveAndroidP(
                         uri = uri,
-                        activity = activity
+                        contentResolver = activity.contentResolver
                     )
                 )
                 isProfileSelected = true
+//                isGalleryOpen = false
             }
         }
     )
@@ -191,7 +198,21 @@ fun SignupScreen(
                 isCameraSheetOpen = true
 
             } else {
-                Toast.makeText(context, "camera permission denied", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, R.string.camera_permission_denied, Toast.LENGTH_SHORT)
+                    .show()
+
+            }
+        }
+
+    val galleryContract =
+        rememberLauncherForActivityResult(contract = ActivityResultContracts.RequestPermission()) {
+            if(it) {
+                  photoPickerLauncher.launch(
+                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                        )
+            } else {
+                Toast.makeText(context, R.string.gallery_permision_denied, Toast.LENGTH_SHORT)
+                    .show()
 
             }
         }
@@ -204,7 +225,6 @@ fun SignupScreen(
         BringIntoViewRequester()
     }
     val emailBringIntoView = remember {
-
         BringIntoViewRequester()
     }
     val passwordBringIntoView = remember {
@@ -214,6 +234,9 @@ fun SignupScreen(
         BringIntoViewRequester()
     }
     val ageBringIntoView = remember {
+        BringIntoViewRequester()
+    }
+    val phoneBringIntoView = remember {
         BringIntoViewRequester()
     }
 
@@ -235,6 +258,9 @@ fun SignupScreen(
         FocusRequester()
     }
     val confirmPasswordFocusRequester = remember {
+        FocusRequester()
+    }
+    val phoneFocusRequester = remember {
         FocusRequester()
     }
 
@@ -283,7 +309,8 @@ fun SignupScreen(
                             firstName = userDetails.value.firstName,
                             lastName = userDetails.value.lastName,
                             password = userDetails.value.password,
-                            confirmPassword = confirmPassword
+                            confirmPassword = confirmPassword,
+                            primaryPhoneIndex = primaryPhoneIndex
                         )
                     ) {
                         if (signupViewModel.checkPassword(
@@ -291,7 +318,7 @@ fun SignupScreen(
                                 confirmPassword = confirmPassword
                             )
                         ) {
-                            if (userDetails.value.password.length>=8){
+                            if (userDetails.value.password.length >= 8) {
                                 if (signupViewModel.isUserAgeAndDobMatch()) {
                                     signupViewModel.updateFieldsValuesToUserDetails(
                                         primaryEmailIndex = primaryEmailIndex,
@@ -313,7 +340,11 @@ fun SignupScreen(
                                         if (!signupViewModel.isEmailAlreadyTaken(email = emailList[primaryEmailIndex])
                                             && signupViewModel.isUserAgeAndDobMatch()
                                         ) {
-                                            createToast(context, R.string.signup_success, keyBoardState)
+                                            createToast(
+                                                context,
+                                                R.string.signup_success,
+                                                keyBoardState
+                                            )
                                             signupViewModel.insertData()
 
                                             navController.popBackStack()
@@ -331,11 +362,7 @@ fun SignupScreen(
                                                 emailBringIntoView.bringIntoView()
                                                 emailFocusRequester.requestFocus()
                                             }
-                                            createToast(
-                                                context,
-                                                R.string.check_given_email_is_valid,
-                                                keyBoardState
-                                            )
+
                                         }
 
                                     }
@@ -350,17 +377,22 @@ fun SignupScreen(
                                         ageFocusRequester.requestFocus()
                                     }
                                 }
-                            }else{
-                                createToast(context,R.string.password_is_too_short,keyBoardState)
+                            } else {
+                                createToast(context, R.string.password_is_too_short, keyBoardState)
                                 coroutineScope.launch {
                                     passwordBringIntoView.bringIntoView()
                                     passwordFocusRequester.requestFocus()
-                                    signupViewModel.updateFieldsColor(isValid = true,type =  SignupFieldsColorType.Password)
-                                    signupViewModel.updateFieldsColor(isValid = true,type = SignupFieldsColorType.ConfirmPassword)
+                                    signupViewModel.updateFieldsColor(
+                                        isError = true,
+                                        type = SignupFieldsColorType.Password
+                                    )
+                                    signupViewModel.updateFieldsColor(
+                                        isError = true,
+                                        type = SignupFieldsColorType.ConfirmPassword
+                                    )
 
                                 }
                             }
-
 
 
                         } else if (fieldsColor.confirmPasswordColor) {
@@ -415,13 +447,30 @@ fun SignupScreen(
                                     keyBoardState
                                 )
                             }
-                        }else{
+                        } else if (fieldsColor.primaryPhoneColor) {
+
+                            coroutineScope.launch {
+                                phoneBringIntoView.bringIntoView()
+                                phoneFocusRequester.requestFocus()
+                            }
+
+                            createToast(
+                                context,
+                                R.string.check_primary_phone,
+                                keyBoardState
+                            )
+                        } else {
                             coroutineScope.launch {
                                 emailBringIntoView.bringIntoView()
                                 emailFocusRequester.requestFocus()
                             }
-                            createToast(context,R.string.check_all_input_fields_were_entered_correctly,keyBoardState)
+                            createToast(
+                                context,
+                                R.string.check_all_input_fields_were_entered_correctly,
+                                keyBoardState
+                            )
                         }
+
 
                     }
 
@@ -453,7 +502,7 @@ fun SignupScreen(
                         Manifest.permission.CAMERA
                     )
 
-                    if (signupViewModel.checkRequiredPermission()) {
+                    if (signupViewModel.checkRequiredCameraPermission()) {
                         isCameraSheetOpen = true
 
                     }
@@ -461,9 +510,8 @@ fun SignupScreen(
                 },
                 openGallery = {
 
-                    photoPickerLauncher.launch(
-                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                    )
+                    requestGalleryPermission(galleryContract)
+
 
                 },
                 removeProfile = {
@@ -528,27 +576,17 @@ fun SignupScreen(
                         primaryEmailIndex = primaryEmailIndex,
                         emailList = emailList,
                         isFieldError = signupViewModel.emailListColor,
-                        removeField = {
-                            if (emailList.size > 1 && it != primaryEmailIndex) {
+                        removeField = { idx ->
 
-                                if (primaryEmailIndex == 1) {
-                                    signupViewModel.removeFieldsOfEmailOrPhoneList(
-                                        idx = 0,
-                                        InputListTypes.Email
-                                    )
-                                    signupViewModel.emailListColor.removeAt(0)
-                                    primaryEmailIndex = 0
-                                } else {
-                                    signupViewModel.removeFieldsOfEmailOrPhoneList(
-                                        idx = it,
-                                        InputListTypes.Email
-                                    )
-                                    signupViewModel.emailListColor.removeAt(it)
-
-                                }
+                            if (emailList.size > 1 && idx != primaryEmailIndex) {
+                                signupViewModel.removeFieldsOfEmailOrPhoneList(
+                                    idx = idx,
+                                    InputListTypes.Email
+                                )
+                                signupViewModel.emailListColor.removeAt(idx)
+                                if (primaryEmailIndex != 0 && idx < primaryEmailIndex) primaryEmailIndex--
 
                             }
-
                         },
                         regex = InputsRegex.EMAIL_ALLOWED_REGEX,
                         emailFocusRequester = emailFocusRequester,
@@ -563,7 +601,9 @@ fun SignupScreen(
                 modifier = Modifier,
                 anyComposable = {
                     SignupPhone(
-                        modifier = Modifier,
+                        modifier = Modifier
+                            .bringIntoViewRequester(phoneBringIntoView)
+                            .focusRequester(focusRequester = phoneFocusRequester),
                         selectPhone = {
                             primaryPhoneIndex = it
                             isPrimaryPhoneSelected = true
@@ -575,26 +615,21 @@ fun SignupScreen(
                         },
                         primaryPhoneIndex = primaryPhoneIndex,
                         phoneList = phoneList,
-                        removeField = {
-                            if (phoneList.size > 1 && it != primaryPhoneIndex) {
-                                if (primaryPhoneIndex == 1) {
-                                    signupViewModel.removeFieldsOfEmailOrPhoneList(
-                                        idx = 0,
-                                        InputListTypes.Phone
-                                    )
-                                    primaryPhoneIndex = 0
-                                } else {
-                                    signupViewModel.removeFieldsOfEmailOrPhoneList(
-                                        idx = it,
-                                        InputListTypes.Phone
-                                    )
+                        removeField = { idx ->
 
+                            if (phoneList.size > 1 && idx != primaryPhoneIndex) {
+                                signupViewModel.removeFieldsOfEmailOrPhoneList(
+                                    idx = idx,
+                                    InputListTypes.Phone
+                                )
 
-                                }
+                                if (primaryPhoneIndex != 0 && idx < primaryPhoneIndex) primaryPhoneIndex--
+
                             }
                         },
                         regex = InputsRegex.PHONE_NUMBER_REGEX,
-                        signupViewModel = signupViewModel
+                        signupViewModel = signupViewModel,
+                        isFieldError = fieldsColor.primaryPhoneColor
 
                     )
                 }
@@ -631,7 +666,6 @@ fun SignupScreen(
                         text = userDetails.value.age.ifEmpty { "" },
                         onTextChanged = {
                             signupViewModel.updateUserData(it, TextFieldType.Age)
-                            Log.i("age details", userDetails.value.age)
                         },
                         label = stringResource(id = R.string.age),
                         keyBoardType = KeyboardType.Phone,
@@ -746,6 +780,7 @@ fun SignupScreen(
                 )
             }
 
+
             if (isDatePickerSheetOpen) {
                 ModalBottomSheet(
                     modifier = Modifier
@@ -781,7 +816,6 @@ fun SignupScreen(
 
 
             if (isCameraSheetOpen) {
-
 
                 ModalBottomSheet(
                     onDismissRequest = { isCameraSheetOpen = false },
@@ -942,6 +976,22 @@ fun takePhoto(
 
         }
     )
+}
+
+private fun requestGalleryPermission(
+    galleryContract: ManagedActivityResultLauncher<String,Boolean>
+) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        galleryContract.launch(
+            Manifest.permission.READ_MEDIA_IMAGES
+        )
+    } else {
+        galleryContract.launch(
+           Manifest.permission.READ_EXTERNAL_STORAGE
+        )
+    }
+
+
 }
 
 private fun createToast(context: Context, message: Int, keyboardStatus: KeyboardStatus) {

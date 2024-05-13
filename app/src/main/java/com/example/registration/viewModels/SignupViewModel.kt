@@ -63,7 +63,8 @@ class SignupViewModel @Inject constructor(
             fNameColor = false,
             lNameColor = false,
             passwordColor = false,
-            confirmPasswordColor = false
+            confirmPasswordColor = false,
+            primaryPhoneColor = false
         )
     )
 
@@ -109,7 +110,6 @@ class SignupViewModel @Inject constructor(
                     _userDetails.value.otherPhones = newList
                 }
             }
-
 
         }
 
@@ -215,12 +215,11 @@ class SignupViewModel @Inject constructor(
 
     }
 
-
     fun checkPassword(password: String, confirmPassword: String): Boolean {
         val isValidPassword = password == confirmPassword
-        Log.i("is valid",isValidPassword.toString())
-        updateFieldsColor(isValid = !isValidPassword, SignupFieldsColorType.ConfirmPassword)
-        updateFieldsColor(isValid = !isValidPassword, SignupFieldsColorType.Password)
+
+        updateFieldsColor(isError = !isValidPassword, SignupFieldsColorType.ConfirmPassword)
+        updateFieldsColor(isError = !isValidPassword, SignupFieldsColorType.Password)
         return isValidPassword
     }
 
@@ -246,7 +245,7 @@ class SignupViewModel @Inject constructor(
         return true
     }
 
-    fun checkRequiredPermission(): Boolean {
+    fun checkRequiredCameraPermission(): Boolean {
         return permissionHandler.hasRequiredPermission(permissionHandler.cameraPermissions)
     }
 
@@ -254,26 +253,30 @@ class SignupViewModel @Inject constructor(
         _userDetails.value.profileImage = bitmap
     }
 
-    fun updateFieldsColor(isValid: Boolean, type: SignupFieldsColorType) {
+    fun updateFieldsColor(isError: Boolean, type: SignupFieldsColorType) {
         when (type) {
             SignupFieldsColorType.FName -> {
-                _fieldsColor.value.fNameColor = isValid
+                _fieldsColor.value.fNameColor = isError
 
             }
 
             SignupFieldsColorType.LName -> {
-                _fieldsColor.value.lNameColor = isValid
+                _fieldsColor.value.lNameColor = isError
 
             }
 
             SignupFieldsColorType.Password -> {
-                _fieldsColor.value.passwordColor = isValid
+                _fieldsColor.value.passwordColor = isError
 
             }
 
             SignupFieldsColorType.ConfirmPassword -> {
-                _fieldsColor.value.confirmPasswordColor = isValid
+                _fieldsColor.value.confirmPasswordColor = isError
 
+            }
+
+            SignupFieldsColorType.PrimaryPhone -> {
+                _fieldsColor.value.primaryPhoneColor = isError
             }
         }
 
@@ -281,6 +284,7 @@ class SignupViewModel @Inject constructor(
 
     fun checkFieldsValue(
         primaryEmail: String,
+        primaryPhoneIndex: Int,
         firstName: String,
         lastName: String,
         password: String,
@@ -291,6 +295,23 @@ class SignupViewModel @Inject constructor(
         return primaryEmail.isNotEmpty() &&
                 firstName.isNotEmpty() && lastName.isNotEmpty()
                 && password.isNotEmpty() && confirmPassword.isNotEmpty() && checkValidEmail()
+                && checkPrimaryPhoneValue(primaryPhoneIndex = primaryPhoneIndex)
+
+    }
+
+    private fun checkPrimaryPhoneValue(primaryPhoneIndex: Int): Boolean {
+        return if (phoneList.size>1) {
+            if (phoneList[primaryPhoneIndex].isEmpty()) {
+                updateFieldsColor(isError = true, SignupFieldsColorType.PrimaryPhone)
+                false
+            } else {
+                updateFieldsColor(isError = false, SignupFieldsColorType.PrimaryPhone)
+                true
+            }
+        } else {
+            true
+        }
+
 
     }
 
@@ -302,19 +323,19 @@ class SignupViewModel @Inject constructor(
             _emailList[primaryEmailIndex].isEmpty()
 
         updateFieldsColor(
-            isValid = _userDetails.value.firstName.isEmpty(),
+            isError = _userDetails.value.firstName.isEmpty(),
             SignupFieldsColorType.FName
         )
         updateFieldsColor(
-            isValid = _userDetails.value.lastName.isEmpty(),
+            isError = _userDetails.value.lastName.isEmpty(),
             SignupFieldsColorType.LName
         )
         updateFieldsColor(
-            isValid = _userDetails.value.password.isEmpty(),
+            isError = _userDetails.value.password.isEmpty(),
             SignupFieldsColorType.Password
         )
         updateFieldsColor(
-            isValid = confirmPassword.isEmpty(),
+            isError = confirmPassword.isEmpty(),
             SignupFieldsColorType.ConfirmPassword
         )
     }
@@ -332,7 +353,7 @@ class SignupViewModel @Inject constructor(
         )
         updateOtherEmailOrPhoneList(
             inputList = phoneList,
-            primaryEmailIndex,
+            primaryPhoneIndex,
             OtherEmailOrPhoneFields.OtherPhones
         )
 
@@ -474,10 +495,12 @@ class SignupViewModel @Inject constructor(
     fun updateDBData() {
         viewModelScope.launch {
             if (currentUserId != null) {
+
                 localDBRepo.updateUserDetails(
                     userDetails = _userDetails.value,
                     currentUserSID = currentUserId.toInt()
                 )
+
             }
         }
     }

@@ -66,6 +66,9 @@
     <string name="do_you_want_to_logout_the_app">Do you want to logout the app?</string>
     <string name="logout_successfully">Logged out successfully</string>
     <string name="password_is_too_short">Password is too short</string>
+    <string name="camera_permission_denied">Camera permission denied</string>
+    <string name="check_primary_phone">Check primary phone</string>
+    <string name="gallery_permision_denied">Gallery permision denied</string>
 
 
 

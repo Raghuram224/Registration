@@ -1,6 +1,6 @@
 package com.example.registration.view.signupScreen
 
-import android.app.Activity
+import android.content.ContentResolver
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
 import android.graphics.Rect
@@ -226,7 +226,7 @@ fun SignupEmail(
 
     emailList.forEachIndexed { index, key ->
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = modifier,
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center,
 
@@ -247,7 +247,7 @@ fun SignupEmail(
                 },
                 keyBoardType = KeyboardType.Email,
                 label = stringResource(id = R.string.email),
-                isError = isFieldError[index],
+                isError = if (index == primaryEmailIndex) isFieldError[index] else false,
                 regex = regex,
             )
 
@@ -332,21 +332,23 @@ fun SignupPhone(
     selectPhone: (idx: Int) -> Unit,
     closeButtonClick: () -> Unit,
     primaryPhoneIndex: Int,
-    phoneList: List<String>,
     removeField: (idx: Int) -> Unit,
     regex: String,
     signupViewModel: SignupViewModel,
+    phoneList: List<String>,
+    isFieldError: Boolean,
 
     ) {
 
-    phoneList.forEachIndexed { index, key ->
+    phoneList.forEachIndexed { index, _ ->
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center,
-        ) {
+
+            ) {
             CustomTextField(
-                modifier = Modifier
+                modifier = modifier
                     .weight(0.9f)
                     .fillMaxWidth(),
                 itemNo = (index + 1).toString(),
@@ -354,16 +356,16 @@ fun SignupPhone(
                 onTextChanged = {
                     signupViewModel.updateEmailOrPhoneList(
                         text = it,
-                        idx = index,
-                        type = InputListTypes.Phone
+                        type = InputListTypes.Phone,
+                        idx = index
                     )
-
                 },
                 keyBoardType = KeyboardType.Phone,
                 label = stringResource(id = R.string.phone_number),
-                regex = regex
-
+                regex = regex,
+                isError = if (index == primaryPhoneIndex) isFieldError else false
             )
+
             if (!isPrimaryPhoneSelected) {
                 IconButton(onClick = { selectPhone(index) }) {
                     Image(
@@ -371,13 +373,11 @@ fun SignupPhone(
                             .weight(0.1f)
                             .size(20.dp),
                         painter = painterResource(id = R.drawable.primary_ic),
-                        contentDescription = stringResource(id = R.string.phone_number),
-                        colorFilter = ColorFilter.tint(Blue)
+                        contentDescription = stringResource(id = R.string.primary_email),
                     )
                 }
 
             }
-
             if (isPrimaryPhoneSelected && index == primaryPhoneIndex) {
 
                 Image(
@@ -388,8 +388,7 @@ fun SignupPhone(
                             closeButtonClick()
                         },
                     painter = painterResource(id = R.drawable.close_ic),
-                    contentDescription = stringResource(id = R.string.close),
-                    colorFilter = ColorFilter.tint(Blue)
+                    contentDescription = stringResource(id = R.string.primary_email)
                 )
 
             }
@@ -405,10 +404,10 @@ fun SignupPhone(
                     )
                 }
             }
+
         }
 
     }
-
     Row(
         modifier = Modifier
             .padding(MaterialTheme.dimens.signupDimension.padding08),
@@ -425,13 +424,18 @@ fun SignupPhone(
             Text(
                 modifier = Modifier
                     .clickable {
-                        signupViewModel.addFieldsOfEmailOrPhoneList(type = InputListTypes.Phone)
+                        if (phoneList.size < signupViewModel.numberOfEmailAndPhonesAllowed) {
+
+                            signupViewModel.addFieldsOfEmailOrPhoneList(type = InputListTypes.Phone)
+                        }
                     },
                 text = stringResource(id = R.string.add_phone)
             )
+
         }
 
     }
+
 
 }
 
@@ -710,7 +714,7 @@ fun CustomDatePicker(
     updateAge: (milli: String) -> Unit,
     signupViewModel: SignupViewModel,
 
-) {
+    ) {
     val selectedDateInMillis = datePickerState.selectedDateMillis
 
 
@@ -737,15 +741,21 @@ fun CustomDatePicker(
             TextButton(
                 onClick = {
 
-                if (selectedDateInMillis != null) {
-                    updateAge(signupViewModel.milliToYears(Date().time.minus(selectedDateInMillis)))
-                }
-                onClick(
-                    signupViewModel.convertMillisToDate(selectedDateInMillis)
-                )
-                onDismiss()
+                    if (selectedDateInMillis != null) {
+                        updateAge(
+                            signupViewModel.milliToYears(
+                                Date().time.minus(
+                                    selectedDateInMillis
+                                )
+                            )
+                        )
+                    }
+                    onClick(
+                        signupViewModel.convertMillisToDate(selectedDateInMillis)
+                    )
+                    onDismiss()
 
-            }) {
+                }) {
                 Text(text = stringResource(id = R.string.confirm))
             }
         }
@@ -813,9 +823,6 @@ fun CustomRowCardCreator(
 }
 
 
-
-
-
 @Composable
 fun keyboardAsState(): State<KeyboardStatus> {
     val keyboardStatusState = remember { mutableStateOf(KeyboardStatus.Closed) }
@@ -841,12 +848,12 @@ fun keyboardAsState(): State<KeyboardStatus> {
 }
 
 
-fun convertUriToBitmapAboveAndroidP(uri: Uri, activity: Activity): Bitmap {
+fun convertUriToBitmapAboveAndroidP(uri: Uri, contentResolver: ContentResolver): Bitmap {
     return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-        ImageDecoder.decodeBitmap(ImageDecoder.createSource(activity.contentResolver, uri))
+        ImageDecoder.decodeBitmap(ImageDecoder.createSource(contentResolver, uri))
 
     } else {
-        return MediaStore.Images.Media.getBitmap(activity.contentResolver, uri)
+        return MediaStore.Images.Media.getBitmap(contentResolver, uri)
     }
 
 }
@@ -859,14 +866,6 @@ fun ContactsTopBar(
     saveButtonClick: () -> Unit,
 ) {
 
-    var shouldInvokeSaveButton by rememberSaveable {
-        mutableStateOf(false)
-    }
-
-    if (shouldInvokeSaveButton) {
-        saveButtonClick.invoke()
-        shouldInvokeSaveButton = false
-    }
 
     Row(
         modifier = Modifier
