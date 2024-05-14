@@ -71,7 +71,6 @@ fun LoginPortrait(
             .fillMaxSize()
     ) {
 
-
         Text(
             text = stringResource(id = R.string.login),
             fontWeight = FontWeight.Bold,
@@ -152,6 +151,13 @@ fun LoginPortrait(
                         if (password.isEmpty()) {
                             isPasswordError = true
                         }
+                        createToast(context,R.string.check_given_email_is_valid)
+
+
+                    } else if (password.isEmpty()) {
+                        passwordFocusRequester.requestFocus()
+                        isPasswordError = true
+                        createToast(context,R.string.check_password_value)
                     } else {
                         passwordFocusRequester.requestFocus()
                         isPasswordError = true
@@ -160,7 +166,7 @@ fun LoginPortrait(
                 } else {
                     emailFocusRequester.requestFocus()
                     isEmailError = true
-                    isPasswordError =true
+                    isPasswordError = true
                     createToast(context, message = R.string.check_your_credentials)
                 }
 

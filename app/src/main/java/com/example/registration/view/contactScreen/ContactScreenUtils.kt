@@ -610,7 +610,8 @@ fun ExitPopup(
         icon = {
             Icon(
                 imageVector = Icons.AutoMirrored.Default.ExitToApp,
-                contentDescription = stringResource(id = R.string.exit)
+                contentDescription = stringResource(id = R.string.exit),
+
             )
         },
         title = {
