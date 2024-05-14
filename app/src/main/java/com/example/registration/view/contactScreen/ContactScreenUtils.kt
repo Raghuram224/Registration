@@ -551,22 +551,17 @@ private fun ProfileImageLoader(
 }
 
 fun launchEmailIntent(context: Context, emailId: String, subject: String, body: String) {
-//    val emailIntent = context.packageManager.getLaunchIntentForPackage("com.android.email")
-//    intent.putExtra(Intent.EXTRA_TEXT, "body")
-//    context.startActivity(Intent.createChooser(intent, "Email"))
-//    intent.addCategory(Intent.CATEGORY_APP_EMAIL)
 
-//    intent.setData(Uri.parse("Subject:this is sub"))
     context.startActivity(
-//        Intent.createChooser(
+
         Intent(
-            Intent.ACTION_SENDTO,
-//        Uri.fromParts("mailto","a@a.com" , null)
+            Intent.ACTION_SEND,
         ).apply {
-            data = Uri.fromParts("mailto", emailId, null)
-            putExtra(Intent.EXTRA_SUBJECT, "sample subject")
+            type = "text/plain"
+            putExtra(Intent.EXTRA_EMAIL, arrayOf(emailId))
+            putExtra(Intent.EXTRA_SUBJECT, subject)
+            putExtra(Intent.EXTRA_TEXT, body)
         },
-//        "Email via..")
     )
 
 }
@@ -612,7 +607,7 @@ fun ExitPopup(
                 imageVector = Icons.AutoMirrored.Default.ExitToApp,
                 contentDescription = stringResource(id = R.string.exit),
 
-            )
+                )
         },
         title = {
             Text(text = stringResource(id = R.string.logout_the_app))
