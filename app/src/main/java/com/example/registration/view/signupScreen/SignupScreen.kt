@@ -116,9 +116,7 @@ fun SignupScreen(
     var isPhotoTaken by remember {
         mutableStateOf(false)
     }
-    var isGalleryOpen by remember {
-        mutableStateOf(false)
-    }
+
 
     //state
     val datePickerSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -136,7 +134,6 @@ fun SignupScreen(
         contract = ActivityResultContracts.PickVisualMedia(),
         onResult = { uri: Uri? ->
             if (uri != null) {
-
                 signupViewModel.updateProfileImage(
                     bitmap = convertUriToBitmapAboveAndroidP(
                         uri = uri,
@@ -144,7 +141,6 @@ fun SignupScreen(
                     )
                 )
                 isProfileSelected = true
-//                isGalleryOpen = false
             }
         }
     )
