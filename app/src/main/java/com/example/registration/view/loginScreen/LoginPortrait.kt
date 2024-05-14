@@ -26,15 +26,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.registration.R
 import com.example.registration.constants.InputsRegex
 import com.example.registration.constants.constantModals.LoginInputFields
-import com.example.registration.constants.constantModals.UserType
 import com.example.registration.ui.theme.Blue
 import com.example.registration.view.utils.CustomEmail
 import com.example.registration.view.utils.CustomHyperLink
 import com.example.registration.view.utils.CustomPassword
 import com.example.registration.viewModels.LoginViewModel
-import com.example.registration.R
 
 @Composable
 fun LoginPortrait(
@@ -71,7 +70,6 @@ fun LoginPortrait(
             .padding(horizontal = 16.dp)
             .fillMaxSize()
     ) {
-
 
         Text(
             text = stringResource(id = R.string.login),
@@ -153,6 +151,13 @@ fun LoginPortrait(
                         if (password.isEmpty()) {
                             isPasswordError = true
                         }
+                        createToast(context,R.string.check_given_email_is_valid)
+
+
+                    } else if (password.isEmpty()) {
+                        passwordFocusRequester.requestFocus()
+                        isPasswordError = true
+                        createToast(context,R.string.check_password_value)
                     } else {
                         passwordFocusRequester.requestFocus()
                         isPasswordError = true
@@ -161,6 +166,7 @@ fun LoginPortrait(
                 } else {
                     emailFocusRequester.requestFocus()
                     isEmailError = true
+                    isPasswordError = true
                     createToast(context, message = R.string.check_your_credentials)
                 }
 

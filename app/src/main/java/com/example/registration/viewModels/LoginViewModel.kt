@@ -4,7 +4,6 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.example.registration.constants.PasswordHash
 import com.example.registration.constants.constantModals.LoginInputFields
-import com.example.registration.constants.constantModals.UserType
 import com.example.registration.modal.LocalDBRepo
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow

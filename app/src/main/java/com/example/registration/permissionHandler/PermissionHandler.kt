@@ -13,9 +13,20 @@ class PermissionHandler @Inject constructor(
     val cameraPermissions = arrayOf(
         Manifest.permission.CAMERA
     )
-    val phonePermissions = arrayOf(
-        Manifest.permission.CALL_PHONE
+    val galleryPermissionBelow13 = arrayOf(
+        Manifest.permission.READ_EXTERNAL_STORAGE,
+
     )
+
+    val galleryPermissionAbove13 = arrayOf(
+        Manifest.permission.READ_MEDIA_IMAGES,
+
+    )
+
+//    val phonePermissions = arrayOf(
+//        Manifest.permission.CALL_PHONE
+//    )
+
     fun hasRequiredPermission(permissions:Array<String>): Boolean {
 
         return permissions.all {

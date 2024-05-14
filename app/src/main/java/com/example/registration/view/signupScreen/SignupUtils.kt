@@ -1,7 +1,6 @@
 package com.example.registration.view.signupScreen
 
-import android.annotation.SuppressLint
-import android.app.Activity
+import android.content.ContentResolver
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
 import android.graphics.Rect
@@ -9,7 +8,6 @@ import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
 import android.view.ViewTreeObserver
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -75,12 +73,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.registration.R
+import com.example.registration.constants.constantModals.InputListTypes
 import com.example.registration.constants.constantModals.KeyboardStatus
 import com.example.registration.ui.theme.Blue
 import com.example.registration.ui.theme.White
 import com.example.registration.ui.theme.dimens
 import com.example.registration.ui.theme.titleStyle
-import java.text.SimpleDateFormat
+import com.example.registration.viewModels.SignupViewModel
 import java.util.Date
 
 
@@ -204,7 +203,7 @@ fun UserProfile(
             }
         }
     }
-    
+
 }
 
 
@@ -215,19 +214,19 @@ fun SignupEmail(
     selectEmail: (idx: Int) -> Unit,
     closeButtonClick: () -> Unit,
     primaryEmailIndex: Int,
-    emailList: MutableList<String>,
     isFieldError: SnapshotStateList<Boolean>,
     removeField: (idx: Int) -> Unit,
     regex: String,
     emailFocusRequester: FocusRequester,
+    signupViewModel: SignupViewModel,
+    emailList: List<String>
 
-
-    ) {
+) {
 
 
     emailList.forEachIndexed { index, key ->
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = modifier,
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center,
 
@@ -239,10 +238,16 @@ fun SignupEmail(
                     .fillMaxWidth(),
                 itemNo = (index + 1).toString(),
                 text = emailList[index],
-                onTextChanged = { emailList[index] = it },
+                onTextChanged = {
+                    signupViewModel.updateEmailOrPhoneList(
+                        text = it,
+                        type = InputListTypes.Email,
+                        idx = index
+                    )
+                },
                 keyBoardType = KeyboardType.Email,
                 label = stringResource(id = R.string.email),
-                isError = isFieldError[index],
+                isError = if (index == primaryEmailIndex) isFieldError[index] else false,
                 regex = regex,
             )
 
@@ -288,20 +293,33 @@ fun SignupEmail(
         }
 
     }
-    Row(modifier = Modifier
-        .clickable {
-            emailList.add("")
-            isFieldError.add(false)
-        }
-        .padding(MaterialTheme.dimens.signupDimension.padding08),
+    Row(
+        modifier = Modifier
+            .padding(MaterialTheme.dimens.signupDimension.padding08),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center) {
-        Image(
-            modifier = Modifier.size(30.dp),
-            painter = painterResource(id = R.drawable.add_ic),
-            contentDescription = ""
-        )
-        Text(text = stringResource(id = R.string.add_an_email))
+        horizontalArrangement = Arrangement.Center
+    ) {
+
+        if (emailList.size < signupViewModel.numberOfEmailAndPhonesAllowed) {
+            Image(
+                modifier = Modifier.size(30.dp),
+                painter = painterResource(id = R.drawable.add_ic),
+                contentDescription = ""
+            )
+            Text(
+                modifier = Modifier
+                    .clickable {
+                        if (emailList.size < signupViewModel.numberOfEmailAndPhonesAllowed) {
+
+                            isFieldError.add(false)
+                            signupViewModel.addFieldsOfEmailOrPhoneList(type = InputListTypes.Email)
+                        }
+                    },
+                text = stringResource(id = R.string.add_an_email)
+            )
+
+        }
+
     }
 
 
@@ -314,30 +332,40 @@ fun SignupPhone(
     selectPhone: (idx: Int) -> Unit,
     closeButtonClick: () -> Unit,
     primaryPhoneIndex: Int,
-    phoneList: MutableList<String>,
     removeField: (idx: Int) -> Unit,
     regex: String,
+    signupViewModel: SignupViewModel,
+    phoneList: List<String>,
+    isFieldError: Boolean,
 
     ) {
 
-    phoneList.forEachIndexed { index, key ->
+    phoneList.forEachIndexed { index, _ ->
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center,
-        ) {
+
+            ) {
             CustomTextField(
-                modifier = Modifier
+                modifier = modifier
                     .weight(0.9f)
                     .fillMaxWidth(),
                 itemNo = (index + 1).toString(),
                 text = phoneList[index],
-                onTextChanged = { phoneList[index] = it },
+                onTextChanged = {
+                    signupViewModel.updateEmailOrPhoneList(
+                        text = it,
+                        type = InputListTypes.Phone,
+                        idx = index
+                    )
+                },
                 keyBoardType = KeyboardType.Phone,
                 label = stringResource(id = R.string.phone_number),
-                regex = regex
-
+                regex = regex,
+                isError = if (index == primaryPhoneIndex) isFieldError else false
             )
+
             if (!isPrimaryPhoneSelected) {
                 IconButton(onClick = { selectPhone(index) }) {
                     Image(
@@ -345,13 +373,11 @@ fun SignupPhone(
                             .weight(0.1f)
                             .size(20.dp),
                         painter = painterResource(id = R.drawable.primary_ic),
-                        contentDescription = stringResource(id = R.string.phone_number),
-                        colorFilter = ColorFilter.tint(Blue)
+                        contentDescription = stringResource(id = R.string.primary_email),
                     )
                 }
 
             }
-
             if (isPrimaryPhoneSelected && index == primaryPhoneIndex) {
 
                 Image(
@@ -362,8 +388,7 @@ fun SignupPhone(
                             closeButtonClick()
                         },
                     painter = painterResource(id = R.drawable.close_ic),
-                    contentDescription = stringResource(id = R.string.close),
-                    colorFilter = ColorFilter.tint(Blue)
+                    contentDescription = stringResource(id = R.string.primary_email)
                 )
 
             }
@@ -379,24 +404,38 @@ fun SignupPhone(
                     )
                 }
             }
+
         }
 
     }
-
-    Row(modifier = Modifier
-        .clickable {
-            phoneList.add("")
-        }
-        .padding(MaterialTheme.dimens.signupDimension.padding08),
+    Row(
+        modifier = Modifier
+            .padding(MaterialTheme.dimens.signupDimension.padding08),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center) {
-        Image(
-            modifier = Modifier.size(30.dp),
-            painter = painterResource(id = R.drawable.add_ic),
-            contentDescription = ""
-        )
-        Text(text = stringResource(id = R.string.add_phone))
+        horizontalArrangement = Arrangement.Center
+    ) {
+
+        if (phoneList.size < signupViewModel.numberOfEmailAndPhonesAllowed) {
+            Image(
+                modifier = Modifier.size(30.dp),
+                painter = painterResource(id = R.drawable.add_ic),
+                contentDescription = ""
+            )
+            Text(
+                modifier = Modifier
+                    .clickable {
+                        if (phoneList.size < signupViewModel.numberOfEmailAndPhonesAllowed) {
+
+                            signupViewModel.addFieldsOfEmailOrPhoneList(type = InputListTypes.Phone)
+                        }
+                    },
+                text = stringResource(id = R.string.add_phone)
+            )
+
+        }
+
     }
+
 
 }
 
@@ -442,7 +481,7 @@ fun CustomOutlinedInput(
         onValueChange = {
             if (it.matches(regex = Regex(regex))) {
 
-                onTextChanged.invoke(it)
+                onTextChanged(it)
             }
         },
         placeholder = {
@@ -668,12 +707,14 @@ fun DatePickerBar(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CustomDatePicker(
+    modifier: Modifier = Modifier,
     datePickerState: DatePickerState,
     onDismiss: () -> Unit,
     onClick: (milli: String) -> Unit,
     updateAge: (milli: String) -> Unit,
-    modifier: Modifier = Modifier
-) {
+    signupViewModel: SignupViewModel,
+
+    ) {
     val selectedDateInMillis = datePickerState.selectedDateMillis
 
 
@@ -697,17 +738,24 @@ fun CustomDatePicker(
             TextButton(onClick = { onDismiss() }) {
                 Text(text = stringResource(id = R.string.cancel))
             }
-            TextButton(onClick = {
+            TextButton(
+                onClick = {
 
-                if (selectedDateInMillis != null) {
-                    updateAge(milliToYears(Date().time.minus(selectedDateInMillis)))
-                }
-                onClick(
-                    convertMillisToDate(selectedDateInMillis)
-                )
-                onDismiss()
+                    if (selectedDateInMillis != null) {
+                        updateAge(
+                            signupViewModel.milliToYears(
+                                Date().time.minus(
+                                    selectedDateInMillis
+                                )
+                            )
+                        )
+                    }
+                    onClick(
+                        signupViewModel.convertMillisToDate(selectedDateInMillis)
+                    )
+                    onDismiss()
 
-            }) {
+                }) {
                 Text(text = stringResource(id = R.string.confirm))
             }
         }
@@ -775,24 +823,6 @@ fun CustomRowCardCreator(
 }
 
 
-@SuppressLint("SimpleDateFormat")
-fun convertMillisToDate(mill: Long?): String {
-    val format = SimpleDateFormat("dd/MM/yyyy")
-
-    return if (mill != null) format.format(Date(mill)) else ""
-}
-
-fun milliToYears(milliseconds: Long): String {
-    val totalSeconds = milliseconds / 1000
-    val minutes = totalSeconds / 60
-    val hour = minutes / 60
-    val day = hour / 24
-    val year = (day / 365)
-
-    return year.toString()
-}
-
-
 @Composable
 fun keyboardAsState(): State<KeyboardStatus> {
     val keyboardStatusState = remember { mutableStateOf(KeyboardStatus.Closed) }
@@ -818,31 +848,24 @@ fun keyboardAsState(): State<KeyboardStatus> {
 }
 
 
-@RequiresApi(Build.VERSION_CODES.P)
-fun convertUriToBitmapAboveAndroidP(uri: Uri, activity: Activity): Bitmap {
-    val source = ImageDecoder.createSource(activity.contentResolver, uri)
-    return ImageDecoder.decodeBitmap(source)
+fun convertUriToBitmapAboveAndroidP(uri: Uri, contentResolver: ContentResolver): Bitmap {
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+        ImageDecoder.decodeBitmap(ImageDecoder.createSource(contentResolver, uri))
+
+    } else {
+        return MediaStore.Images.Media.getBitmap(contentResolver, uri)
+    }
+
 }
 
-fun convertUriToBitmapBelowAndroidP(uri: Uri, activity: Activity): Bitmap {
-    return MediaStore.Images.Media.getBitmap(activity.contentResolver, uri)
-}
 
 @Composable
 fun ContactsTopBar(
     modifier: Modifier,
     cancelButtonClick: () -> Unit,
-    saveButtonClick:  () -> Unit,
+    saveButtonClick: () -> Unit,
 ) {
 
-    var shouldInvokeSaveButton by rememberSaveable {
-        mutableStateOf(false)
-    }
-
-    if(shouldInvokeSaveButton){
-        saveButtonClick.invoke()
-        shouldInvokeSaveButton = false
-    }
 
     Row(
         modifier = Modifier

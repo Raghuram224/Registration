@@ -11,6 +11,7 @@ import android.os.Build
 import android.util.Log
 import android.view.Gravity
 import android.widget.Toast
+import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -72,7 +73,9 @@ import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import com.example.registration.R
 import com.example.registration.constants.InputsRegex
+import com.example.registration.constants.constantModals.InputListTypes
 import com.example.registration.constants.constantModals.KeyboardStatus
+import com.example.registration.constants.constantModals.SignupFieldsColorType
 import com.example.registration.constants.constantModals.TextFieldType
 import com.example.registration.navigation.Screens
 import com.example.registration.ui.theme.LightGray
@@ -84,7 +87,8 @@ import java.util.Date
 
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
-@SuppressLint("MutableCollectionMutableState", "StateFlowValueCalledInComposition",
+@SuppressLint(
+    "MutableCollectionMutableState", "StateFlowValueCalledInComposition",
     "CoroutineCreationDuringComposition"
 )
 @Composable
@@ -93,6 +97,7 @@ fun SignupScreen(
     signupViewModel: SignupViewModel,
     navController: NavController,
 ) {
+
     val activity = LocalContext.current as Activity
     val scrollState = rememberScrollState()
     val context = LocalContext.current
@@ -109,6 +114,9 @@ fun SignupScreen(
     }
 
     var isPhotoTaken by remember {
+        mutableStateOf(false)
+    }
+    var isGalleryOpen by remember {
         mutableStateOf(false)
     }
 
@@ -128,25 +136,15 @@ fun SignupScreen(
         contract = ActivityResultContracts.PickVisualMedia(),
         onResult = { uri: Uri? ->
             if (uri != null) {
-                signupViewModel.updateProfileImage(bitmap = null)
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                    signupViewModel.updateProfileImage(
-                        bitmap = convertUriToBitmapAboveAndroidP(
-                            uri = uri,
-                            activity = activity
-                        )
-                    )
 
-                } else {
-                    signupViewModel.updateProfileImage(
-                        bitmap = convertUriToBitmapBelowAndroidP(
-                            uri = uri,
-                            activity = activity
-                        )
+                signupViewModel.updateProfileImage(
+                    bitmap = convertUriToBitmapAboveAndroidP(
+                        uri = uri,
+                        contentResolver = activity.contentResolver
                     )
-                }
-
+                )
                 isProfileSelected = true
+//                isGalleryOpen = false
             }
         }
     )
@@ -162,7 +160,7 @@ fun SignupScreen(
 
 
     // UI state
-    val signupData = signupViewModel.signupData.collectAsState() //Test
+    val userDetails = signupViewModel.userDetails.collectAsState() //Test
     val profileImage by signupViewModel.profileImage.collectAsState()
 
     val focusManager = LocalFocusManager.current
@@ -200,15 +198,25 @@ fun SignupScreen(
                 isCameraSheetOpen = true
 
             } else {
-                Toast.makeText(context, "camera permission denied", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, R.string.camera_permission_denied, Toast.LENGTH_SHORT)
+                    .show()
 
             }
         }
 
+    val galleryContract =
+        rememberLauncherForActivityResult(contract = ActivityResultContracts.RequestPermission()) {
+            if(it) {
+                  photoPickerLauncher.launch(
+                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                        )
+            } else {
+                Toast.makeText(context, R.string.gallery_permision_denied, Toast.LENGTH_SHORT)
+                    .show()
 
-    //list
-    val emailList = signupViewModel.emailList
-    val phoneList = signupViewModel.phoneList
+            }
+        }
+
 
     val coroutineScope = rememberCoroutineScope()
 
@@ -217,15 +225,18 @@ fun SignupScreen(
         BringIntoViewRequester()
     }
     val emailBringIntoView = remember {
-
         BringIntoViewRequester()
     }
-
     val passwordBringIntoView = remember {
         BringIntoViewRequester()
     }
     val confirmPasswordBringIntoView = remember {
-
+        BringIntoViewRequester()
+    }
+    val ageBringIntoView = remember {
+        BringIntoViewRequester()
+    }
+    val phoneBringIntoView = remember {
         BringIntoViewRequester()
     }
 
@@ -243,25 +254,33 @@ fun SignupScreen(
     val emailFocusRequester = remember {
         FocusRequester()
     }
-
     val passwordFocusRequester = remember {
         FocusRequester()
     }
     val confirmPasswordFocusRequester = remember {
         FocusRequester()
     }
+    val phoneFocusRequester = remember {
+        FocusRequester()
+    }
+
     var tempImageHolder by rememberSaveable {
         mutableStateOf<Bitmap?>(null)
     }
 
-    Log.i("signup back user",signupViewModel.currentUserId.toString())
+    //list
+    val emailList = signupViewModel.emailList
+    val phoneList = signupViewModel.phoneList
+
+
 
     LaunchedEffect(Unit) {
         if (signupViewModel.currentUserId != null) {
             signupViewModel.setContactsDetails()
-            confirmPassword = signupData.value.password
+            confirmPassword = userDetails.value.password
         }
     }
+
 
     Scaffold(
         topBar = {
@@ -287,42 +306,104 @@ fun SignupScreen(
                     if (
                         signupViewModel.checkFieldsValue(
                             primaryEmail = emailList[primaryEmailIndex],
-                            firstName = signupData.value.firstName,
-                            lastName = signupData.value.lastName,
-                            password = signupData.value.password,
-                            confirmPassword = confirmPassword
+                            firstName = userDetails.value.firstName,
+                            lastName = userDetails.value.lastName,
+                            password = userDetails.value.password,
+                            confirmPassword = confirmPassword,
+                            primaryPhoneIndex = primaryPhoneIndex
                         )
                     ) {
                         if (signupViewModel.checkPassword(
-                                password = signupData.value.password,
+                                password = userDetails.value.password,
                                 confirmPassword = confirmPassword
                             )
                         ) {
+                            if (userDetails.value.password.length >= 8) {
+                                if (signupViewModel.isUserAgeAndDobMatch()) {
+                                    signupViewModel.updateFieldsValuesToUserDetails(
+                                        primaryEmailIndex = primaryEmailIndex,
+                                        primaryPhoneIndex = primaryPhoneIndex
+                                    )
 
-                            signupViewModel.updateFieldsValuesToUserDetails(
-                                primaryEmailIndex = primaryEmailIndex,
-                                primaryPhoneIndex = primaryPhoneIndex
-                            )
-                            signupViewModel.updateProfileImageIntoUserDetails(bitmap = profileImage)
+                                    signupViewModel.updateProfileImageIntoUserDetails(bitmap = profileImage)
 
-                            if (signupViewModel.currentUserId !=null) {
-                                createToast(context=context, message = R.string.contact_saved, keyboardStatus =keyBoardState)
+                                    if (signupViewModel.currentUserId != null) {
+                                        createToast(
+                                            context = context,
+                                            message = R.string.contact_updated,
+                                            keyboardStatus = keyBoardState
+                                        )
 
-                                signupViewModel.updateDBData()
-                                navController.navigateUp()
+                                        signupViewModel.updateDBData()
+                                        navController.popBackStack()
+                                    } else {
+                                        if (!signupViewModel.isEmailAlreadyTaken(email = emailList[primaryEmailIndex])
+                                            && signupViewModel.isUserAgeAndDobMatch()
+                                        ) {
+                                            createToast(
+                                                context,
+                                                R.string.signup_success,
+                                                keyBoardState
+                                            )
+                                            signupViewModel.insertData()
 
-                            } else {
-                               createToast(context,R.string.signup_success,keyBoardState)
-                                signupViewModel.insertData()
-                                navController.navigate(Screens.LoginScreens.route) {
-                                    navController.popBackStack()
+                                            navController.popBackStack()
+
+                                        } else {
+                                            signupViewModel.emailListColor[primaryEmailIndex] = true
+
+                                            createToast(
+                                                context,
+                                                R.string.email_is_already_used,
+                                                keyBoardState
+                                            )
+
+                                            coroutineScope.launch {
+                                                emailBringIntoView.bringIntoView()
+                                                emailFocusRequester.requestFocus()
+                                            }
+
+                                        }
+
+                                    }
+                                } else {
+                                    createToast(
+                                        context,
+                                        R.string.your_age_dob_doesnt_match,
+                                        keyBoardState
+                                    )
+                                    coroutineScope.launch {
+                                        ageBringIntoView.bringIntoView()
+                                        ageFocusRequester.requestFocus()
+                                    }
                                 }
+                            } else {
+                                createToast(context, R.string.password_is_too_short, keyBoardState)
+                                coroutineScope.launch {
+                                    passwordBringIntoView.bringIntoView()
+                                    passwordFocusRequester.requestFocus()
+                                    signupViewModel.updateFieldsColor(
+                                        isError = true,
+                                        type = SignupFieldsColorType.Password
+                                    )
+                                    signupViewModel.updateFieldsColor(
+                                        isError = true,
+                                        type = SignupFieldsColorType.ConfirmPassword
+                                    )
 
+                                }
                             }
+
+
                         } else if (fieldsColor.confirmPasswordColor) {
-                            createToast(context,R.string.check_your_password_is_same,keyBoardState)
+                            createToast(
+                                context,
+                                R.string.check_your_password_is_same,
+                                keyBoardState
+                            )
                         } else {
-                            createToast(context,R.string.check_your_credentials,keyBoardState)
+                            createToast(context, R.string.check_your_credentials, keyBoardState)
+
                         }
 
 
@@ -334,36 +415,62 @@ fun SignupScreen(
                                 fNameFocusRequester.requestFocus()
                             }
 
-                           createToast(context,R.string.check_first_name_value,keyBoardState)
+                            createToast(context, R.string.check_first_name_value, keyBoardState)
 
                         } else if (fieldsColor.lNameColor) {
                             coroutineScope.launch {
                                 lNameFocusRequester.requestFocus()
                             }
-                            createToast(context,R.string.check_last_name_value,keyBoardState)
+                            createToast(context, R.string.check_last_name_value, keyBoardState)
                         } else if (signupViewModel.emailListColor[primaryEmailIndex]) {
                             coroutineScope.launch {
                                 emailBringIntoView.bringIntoView()
                                 emailFocusRequester.requestFocus()
                             }
-                            createToast(context,R.string.check_given_email_is_valid,keyBoardState)
+                            createToast(context, R.string.check_given_email_is_valid, keyBoardState)
 
-                        }
-                        else if (fieldsColor.passwordColor) {
+                        } else if (fieldsColor.passwordColor) {
                             coroutineScope.launch {
                                 passwordBringIntoView.bringIntoView()
                                 passwordFocusRequester.requestFocus()
                             }
-                            createToast(context,R.string.check_password_value,keyBoardState)
+                            createToast(context, R.string.check_password_value, keyBoardState)
+                        } else if (fieldsColor.confirmPasswordColor) {
+                            if (signupViewModel.currentUserId == null) {
+                                coroutineScope.launch {
+                                    confirmPasswordBringIntoView.bringIntoView()
+                                    confirmPasswordFocusRequester.requestFocus()
+                                }
+                                createToast(
+                                    context,
+                                    R.string.check_confirm_password_value,
+                                    keyBoardState
+                                )
+                            }
+                        } else if (fieldsColor.primaryPhoneColor) {
+
+                            coroutineScope.launch {
+                                phoneBringIntoView.bringIntoView()
+                                phoneFocusRequester.requestFocus()
+                            }
+
+                            createToast(
+                                context,
+                                R.string.check_primary_phone,
+                                keyBoardState
+                            )
                         } else {
-                           if (signupViewModel.currentUserId!=null){
-                               coroutineScope.launch {
-                                   confirmPasswordBringIntoView.bringIntoView()
-                                   confirmPasswordFocusRequester.requestFocus()
-                               }
-                               createToast(context,R.string.check_confirm_password_value,keyBoardState)
-                           }
+                            coroutineScope.launch {
+                                emailBringIntoView.bringIntoView()
+                                emailFocusRequester.requestFocus()
+                            }
+                            createToast(
+                                context,
+                                R.string.check_all_input_fields_were_entered_correctly,
+                                keyBoardState
+                            )
                         }
+
 
                     }
 
@@ -395,7 +502,7 @@ fun SignupScreen(
                         Manifest.permission.CAMERA
                     )
 
-                    if (signupViewModel.checkRequiredPermission()) {
+                    if (signupViewModel.checkRequiredCameraPermission()) {
                         isCameraSheetOpen = true
 
                     }
@@ -403,9 +510,8 @@ fun SignupScreen(
                 },
                 openGallery = {
 
-                    photoPickerLauncher.launch(
-                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                    )
+                    requestGalleryPermission(galleryContract)
+
 
                 },
                 removeProfile = {
@@ -423,7 +529,7 @@ fun SignupScreen(
                         modifier = Modifier
                             .bringIntoViewRequester(namesBringIntoView)
                             .focusRequester(focusRequester = fNameFocusRequester),
-                        text = signupData.value.firstName,
+                        text = userDetails.value.firstName,
                         onTextChanged = {
 
                             signupViewModel.updateUserData(it, TextFieldType.FirstName)
@@ -438,7 +544,7 @@ fun SignupScreen(
                     CustomOutlinedInput(
                         modifier = Modifier
                             .focusRequester(focusRequester = lNameFocusRequester),
-                        text = signupData.value.lastName,
+                        text = userDetails.value.lastName,
                         onTextChanged = {
 
                             signupViewModel.updateUserData(it, TextFieldType.LastName)
@@ -470,25 +576,21 @@ fun SignupScreen(
                         primaryEmailIndex = primaryEmailIndex,
                         emailList = emailList,
                         isFieldError = signupViewModel.emailListColor,
-                        removeField = {
-                            if (emailList.size > 1 && it != primaryEmailIndex) {
+                        removeField = { idx ->
 
-                                if (primaryEmailIndex == 1) {
-                                    emailList.removeAt(0)
-                                    signupViewModel.emailListColor.removeAt(0)
-                                    primaryEmailIndex = 0
-                                } else {
-
-                                    emailList.removeAt(it)
-                                    signupViewModel.emailListColor.removeAt(it)
-
-                                }
+                            if (emailList.size > 1 && idx != primaryEmailIndex) {
+                                signupViewModel.removeFieldsOfEmailOrPhoneList(
+                                    idx = idx,
+                                    InputListTypes.Email
+                                )
+                                signupViewModel.emailListColor.removeAt(idx)
+                                if (primaryEmailIndex != 0 && idx < primaryEmailIndex) primaryEmailIndex--
 
                             }
-
                         },
                         regex = InputsRegex.EMAIL_ALLOWED_REGEX,
                         emailFocusRequester = emailFocusRequester,
+                        signupViewModel = signupViewModel,
 
 
                         )
@@ -499,7 +601,9 @@ fun SignupScreen(
                 modifier = Modifier,
                 anyComposable = {
                     SignupPhone(
-                        modifier = Modifier,
+                        modifier = Modifier
+                            .bringIntoViewRequester(phoneBringIntoView)
+                            .focusRequester(focusRequester = phoneFocusRequester),
                         selectPhone = {
                             primaryPhoneIndex = it
                             isPrimaryPhoneSelected = true
@@ -511,19 +615,23 @@ fun SignupScreen(
                         },
                         primaryPhoneIndex = primaryPhoneIndex,
                         phoneList = phoneList,
-                        removeField = {
-                            if (phoneList.size > 1 && it != primaryPhoneIndex) {
-                                if (primaryPhoneIndex == 1) {
-                                    phoneList.removeAt(0)
-                                    primaryPhoneIndex = 0
-                                }
+                        removeField = { idx ->
+
+                            if (phoneList.size > 1 && idx != primaryPhoneIndex) {
+                                signupViewModel.removeFieldsOfEmailOrPhoneList(
+                                    idx = idx,
+                                    InputListTypes.Phone
+                                )
+
+                                if (primaryPhoneIndex != 0 && idx < primaryPhoneIndex) primaryPhoneIndex--
 
                             }
                         },
                         regex = InputsRegex.PHONE_NUMBER_REGEX,
+                        signupViewModel = signupViewModel,
+                        isFieldError = fieldsColor.primaryPhoneColor
 
-
-                        )
+                    )
                 }
             )
 
@@ -532,11 +640,11 @@ fun SignupScreen(
                 if (keyBoardState == KeyboardStatus.Closed && isAgeFocused) {
                     focusManager.clearFocus()
 
-                    if (signupData.value.age.isNotEmpty()) {
+                    if (userDetails.value.age.isNotEmpty()) {
                         signupViewModel.updateUserData(
-                            text = convertMillisToDate(
+                            text = signupViewModel.convertMillisToDate(
                                 Date().time.minus(
-                                    yearsToMillis(signupData.value.age.toLong())
+                                    signupViewModel.yearsToMillis(userDetails.value.age.toLong())
                                 )
                             ),
                             TextFieldType.DOB,
@@ -555,9 +663,8 @@ fun SignupScreen(
                         modifier = Modifier
                             .weight(0.4f)
                             .focusRequester(focusRequester = ageFocusRequester),
-                        text = signupData.value.age.ifEmpty { "0" },
+                        text = userDetails.value.age.ifEmpty { "" },
                         onTextChanged = {
-
                             signupViewModel.updateUserData(it, TextFieldType.Age)
                         },
                         label = stringResource(id = R.string.age),
@@ -567,17 +674,17 @@ fun SignupScreen(
                         },
                         regex = InputsRegex.AGE_REGEX,
                         updateFocusChangeValue = {
-                            if (signupData.value.age.isNotEmpty()) {
+                            if (userDetails.value.age.isNotEmpty()) {
                                 signupViewModel.updateUserData(
-                                    text = convertMillisToDate(
+                                    text = signupViewModel.convertMillisToDate(
                                         Date().time.minus(
-                                            yearsToMillis(signupData.value.age.toLong())
+                                            signupViewModel.yearsToMillis(userDetails.value.age.toLong())
                                         )
                                     ),
                                     TextFieldType.DOB,
                                 )
                             } else {
-                                signupViewModel.updateUserData("0", TextFieldType.Age)
+                                signupViewModel.updateUserData("", TextFieldType.Age)
                             }
                         }
 
@@ -599,7 +706,7 @@ fun SignupScreen(
                             .weight(0.4f),
                         text = stringResource(id = R.string.pick_your_date_of_birth),
                         onClick = { isDatePickerSheetOpen = true },
-                        selectedDate = signupData.value.dob,
+                        selectedDate = userDetails.value.dob,
                     )
                 }
             )
@@ -609,23 +716,24 @@ fun SignupScreen(
                 modifier = Modifier,
                 anyComposable = {
                     CustomOutlinedInput(
-                        text = signupData.value.address,
+                        text = userDetails.value.address,
                         onTextChanged = {
 
                             signupViewModel.updateUserData(text = it, TextFieldType.Address)
                         },
-                        label = stringResource(id =  R.string.enter_your_address),
+                        label = stringResource(id = R.string.enter_your_address),
                         minLines = 3,
                         maxLines = 5,
-                        regex = InputsRegex.ALLOW_ANY_REGEX
+                        regex = InputsRegex.ALLOW_ANY_REGEX,
                     )
-                }
-            )
+                },
+
+                )
             CustomColumnCardCreator(
                 modifier = Modifier,
                 anyComposable = {
                     CustomOutlinedInput(
-                        text = signupData.value.website,
+                        text = userDetails.value.website,
                         onTextChanged = {
                             signupViewModel.updateUserData(
                                 text = it,
@@ -645,7 +753,7 @@ fun SignupScreen(
                         CustomOutlinedPasswordInput(
                             modifier = Modifier
                                 .focusRequester(focusRequester = passwordFocusRequester),
-                            text = signupData.value.password,
+                            text = userDetails.value.password,
                             onTextChanged = {
                                 signupViewModel.updateUserData(
                                     text = it,
@@ -672,6 +780,7 @@ fun SignupScreen(
                 )
             }
 
+
             if (isDatePickerSheetOpen) {
                 ModalBottomSheet(
                     modifier = Modifier
@@ -695,7 +804,8 @@ fun SignupScreen(
                             updateAge = {
 
                                 signupViewModel.updateUserData(it, TextFieldType.Age)
-                            }
+                            },
+                            signupViewModel = signupViewModel
                         )
                     }
 
@@ -706,7 +816,6 @@ fun SignupScreen(
 
 
             if (isCameraSheetOpen) {
-
 
                 ModalBottomSheet(
                     onDismissRequest = { isCameraSheetOpen = false },
@@ -869,19 +978,27 @@ fun takePhoto(
     )
 }
 
-private fun createToast(context: Context, message:Int,keyboardStatus: KeyboardStatus){
+private fun requestGalleryPermission(
+    galleryContract: ManagedActivityResultLauncher<String,Boolean>
+) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        galleryContract.launch(
+            Manifest.permission.READ_MEDIA_IMAGES
+        )
+    } else {
+        galleryContract.launch(
+           Manifest.permission.READ_EXTERNAL_STORAGE
+        )
+    }
+
+
+}
+
+private fun createToast(context: Context, message: Int, keyboardStatus: KeyboardStatus) {
     Toast.makeText(context, message, Toast.LENGTH_SHORT).apply {
         if (keyboardStatus == KeyboardStatus.Opened) {
             setGravity(Gravity.CENTER, 0, 0)
         }
     }.show()
-}
-
-fun yearsToMillis(years: Long): Long {
-    val days = years * 365
-    val hours = days * 24
-    val minutes = hours * 60
-    val seconds = minutes * 60
-    return seconds * 1000
 }
 

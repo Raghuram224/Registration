@@ -1,16 +1,19 @@
 package com.example.registration.viewModels
 
+import android.annotation.SuppressLint
 import android.graphics.Bitmap
+import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.registration.constants.constantModals.OtherEmailOrPhoneFields
-import com.example.registration.constants.constantModals.TextFieldType
-import com.example.registration.constants.constantModals.UserDetails
 import com.example.registration.constants.InputsRegex
 import com.example.registration.constants.constantModals.FieldsColor
+import com.example.registration.constants.constantModals.InputListTypes
+import com.example.registration.constants.constantModals.OtherEmailOrPhoneFields
 import com.example.registration.constants.constantModals.SignupFieldsColorType
+import com.example.registration.constants.constantModals.TextFieldType
+import com.example.registration.constants.constantModals.UserDetails
 import com.example.registration.modal.LocalDBRepo
 import com.example.registration.navigation.USER_ID_KEY
 import com.example.registration.permissionHandler.PermissionHandler
@@ -19,6 +22,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
 import javax.inject.Inject
 
 
@@ -30,6 +35,10 @@ class SignupViewModel @Inject constructor(
 ) : ViewModel() {
 
     val currentUserId = savedStateHandle.get<String>(USER_ID_KEY)
+    val numberOfEmailAndPhonesAllowed = 5
+
+    private val _emailList = mutableStateListOf<String>("")
+    private val _phoneList = mutableStateListOf<String>("")
 
     private var _userDetails = MutableStateFlow(
         UserDetails(
@@ -40,8 +49,8 @@ class SignupViewModel @Inject constructor(
             address = "",
             primaryPhone = "",
             primaryEmail = "",
-            otherPhones = null,
-            otherEmails = null,
+            otherPhones = listOf(),
+            otherEmails = listOf(),
             website = "",
             password = "",
             profileImage = null
@@ -54,30 +63,57 @@ class SignupViewModel @Inject constructor(
             fNameColor = false,
             lNameColor = false,
             passwordColor = false,
-            confirmPasswordColor = false
+            confirmPasswordColor = false,
+            primaryPhoneColor = false
         )
     )
 
     private var _profileImage = MutableStateFlow<Bitmap?>(_userDetails.value.profileImage)
 
-    val signupData = _userDetails.asStateFlow()
-    var emailList = mutableStateListOf("")
-    var phoneList = mutableStateListOf("")
+    val userDetails = _userDetails.asStateFlow()
     val profileImage = _profileImage.asStateFlow()
     val emailListColor = mutableStateListOf(false)
     val fieldsColor = _fieldsColor.asStateFlow()
 
+    val emailList: List<String> = _emailList
+    val phoneList: List<String> = _phoneList
 
 
-    private fun convertListToString(list: List<String>, idx: Int): String? {
-        var str = ""
-        list.forEachIndexed { index, item ->
-            if (index != idx && item.isNotEmpty()) {
-                str += "$item,"
+    private fun updateOtherEmailOrPhoneList(
+        inputList: List<String>,
+        idx: Int,
+        type: OtherEmailOrPhoneFields
+    ) {
+
+        if (inputList.isNotEmpty()) {
+            when (type) {
+
+                OtherEmailOrPhoneFields.OtherEmail -> {
+                    val newList = arrayListOf<String>()
+
+                    inputList.forEachIndexed { index, item ->
+                        if (index != idx && item.isNotEmpty()) {
+                            newList.add(item.trim())
+                        }
+                    }
+                    _userDetails.value.otherEmails = newList
+                }
+
+                OtherEmailOrPhoneFields.OtherPhones -> {
+                    val newList = arrayListOf<String>()
+
+                    inputList.forEachIndexed { index, item ->
+                        if (index != idx && item.isNotEmpty()) {
+                            newList.add(item.trim())
+                        }
+                    }
+                    _userDetails.value.otherPhones = newList
+                }
             }
 
         }
-        return if (str.isNotEmpty()) str else null
+
+
     }
 
 
@@ -139,25 +175,52 @@ class SignupViewModel @Inject constructor(
         }
     }
 
-    private fun updateOtherEmailOrPhone(text: String?, type: OtherEmailOrPhoneFields) {
+    fun updateEmailOrPhoneList(text: String, idx: Int, type: InputListTypes) {
         when (type) {
-            OtherEmailOrPhoneFields.OtherEmail -> {
-                _userDetails.update {
-                    it.copy(otherEmails = text)
-                }
+            InputListTypes.Email -> {
+                _emailList[idx] = text
             }
 
-            OtherEmailOrPhoneFields.OtherPhones -> {
-                _userDetails.update {
-                    it.copy(otherPhones = text)
-                }
+            InputListTypes.Phone -> {
+                _phoneList[idx] = text
             }
         }
     }
 
+    fun addFieldsOfEmailOrPhoneList(text: String = "", type: InputListTypes) {
+        when (type) {
+            InputListTypes.Email -> {
+                _emailList.add(text)
+            }
+
+            InputListTypes.Phone -> {
+                _phoneList.add(text)
+            }
+        }
+
+    }
+
+    fun removeFieldsOfEmailOrPhoneList(idx: Int, type: InputListTypes) {
+        Log.i("fields email ${emailList.size}", emailList.toList().toString())
+
+        when (type) {
+            InputListTypes.Email -> {
+                _emailList.removeAt(idx)
+            }
+
+            InputListTypes.Phone -> {
+                _phoneList.removeAt(idx)
+            }
+        }
+
+    }
 
     fun checkPassword(password: String, confirmPassword: String): Boolean {
-        return password == confirmPassword
+        val isValidPassword = password == confirmPassword
+
+        updateFieldsColor(isError = !isValidPassword, SignupFieldsColorType.ConfirmPassword)
+        updateFieldsColor(isError = !isValidPassword, SignupFieldsColorType.Password)
+        return isValidPassword
     }
 
 
@@ -173,7 +236,7 @@ class SignupViewModel @Inject constructor(
     }
 
     private fun checkValidEmail(): Boolean {
-        emailList.forEachIndexed { idx, item ->
+        _emailList.forEachIndexed { idx, item ->
             if (!item.matches(regex = Regex(InputsRegex.EMAIL_VALIDATION_REGEX))) {
                 emailListColor[idx] = true
                 return false
@@ -182,7 +245,7 @@ class SignupViewModel @Inject constructor(
         return true
     }
 
-    fun checkRequiredPermission(): Boolean {
+    fun checkRequiredCameraPermission(): Boolean {
         return permissionHandler.hasRequiredPermission(permissionHandler.cameraPermissions)
     }
 
@@ -190,33 +253,182 @@ class SignupViewModel @Inject constructor(
         _userDetails.value.profileImage = bitmap
     }
 
-    private fun updateFieldsColor(isValid: Boolean, type: SignupFieldsColorType) {
+    fun updateFieldsColor(isError: Boolean, type: SignupFieldsColorType) {
         when (type) {
             SignupFieldsColorType.FName -> {
-                _fieldsColor.value.fNameColor = isValid
+                _fieldsColor.value.fNameColor = isError
 
             }
 
             SignupFieldsColorType.LName -> {
-                _fieldsColor.value.lNameColor = isValid
+                _fieldsColor.value.lNameColor = isError
 
             }
 
             SignupFieldsColorType.Password -> {
-                _fieldsColor.value.passwordColor = isValid
+                _fieldsColor.value.passwordColor = isError
 
             }
 
             SignupFieldsColorType.ConfirmPassword -> {
-                _fieldsColor.value.confirmPasswordColor = isValid
+                _fieldsColor.value.confirmPasswordColor = isError
 
+            }
+
+            SignupFieldsColorType.PrimaryPhone -> {
+                _fieldsColor.value.primaryPhoneColor = isError
             }
         }
 
     }
 
+    fun checkFieldsValue(
+        primaryEmail: String,
+        primaryPhoneIndex: Int,
+        firstName: String,
+        lastName: String,
+        password: String,
+        confirmPassword: String,
+
+        ): Boolean {
+
+        return primaryEmail.isNotEmpty() &&
+                firstName.isNotEmpty() && lastName.isNotEmpty()
+                && password.isNotEmpty() && confirmPassword.isNotEmpty() && checkValidEmail()
+                && checkPrimaryPhoneValue(primaryPhoneIndex = primaryPhoneIndex)
+
+    }
+
+    private fun checkPrimaryPhoneValue(primaryPhoneIndex: Int): Boolean {
+        return if (phoneList.size>1) {
+            if (phoneList[primaryPhoneIndex].isEmpty()) {
+                updateFieldsColor(isError = true, SignupFieldsColorType.PrimaryPhone)
+                false
+            } else {
+                updateFieldsColor(isError = false, SignupFieldsColorType.PrimaryPhone)
+                true
+            }
+        } else {
+            true
+        }
+
+
+    }
+
+    fun updateRequiredFieldsColor(
+        primaryEmailIndex: Int,
+        confirmPassword: String
+    ) {
+        emailListColor[primaryEmailIndex] =
+            _emailList[primaryEmailIndex].isEmpty()
+
+        updateFieldsColor(
+            isError = _userDetails.value.firstName.isEmpty(),
+            SignupFieldsColorType.FName
+        )
+        updateFieldsColor(
+            isError = _userDetails.value.lastName.isEmpty(),
+            SignupFieldsColorType.LName
+        )
+        updateFieldsColor(
+            isError = _userDetails.value.password.isEmpty(),
+            SignupFieldsColorType.Password
+        )
+        updateFieldsColor(
+            isError = confirmPassword.isEmpty(),
+            SignupFieldsColorType.ConfirmPassword
+        )
+    }
+
+    fun updateFieldsValuesToUserDetails(
+        primaryEmailIndex: Int,
+        primaryPhoneIndex: Int,
+
+        ) {
+
+        updateOtherEmailOrPhoneList(
+            inputList = emailList,
+            primaryEmailIndex,
+            OtherEmailOrPhoneFields.OtherEmail
+        )
+        updateOtherEmailOrPhoneList(
+            inputList = phoneList,
+            primaryPhoneIndex,
+            OtherEmailOrPhoneFields.OtherPhones
+        )
+
+        updateUserData(
+            text = emailList[primaryEmailIndex].trim(),
+            type = TextFieldType.PrimaryEmail
+        )
+        updateUserData(
+            text = phoneList[primaryPhoneIndex].trim(),
+            TextFieldType.PrimaryPhone
+        )
+
+    }
+
+    fun isEmailAlreadyTaken(email: String): Boolean {
+        return !localDBRepo.checkEmailIdAvailable(email = email) //returns true if the user doesn't exist
+    }
+
+    @SuppressLint("SimpleDateFormat")
+    fun convertMillisToDate(mill: Long?): String {
+        val format = SimpleDateFormat("dd/MM/yyyy")
+
+        return if (mill != null) format.format(Date(mill)) else ""
+    }
+
+    fun milliToYears(milliseconds: Long): String {
+        val totalSeconds = milliseconds / 1000
+        val minutes = totalSeconds / 60
+        val hour = minutes / 60
+        val day = hour / 24
+        val year = (day / 365)
+
+        return year.toString()
+    }
+
+    fun yearsToMillis(years: Long): Long {
+        val days = years * 365
+        val hours = days * 24
+        val minutes = hours * 60
+        val seconds = minutes * 60
+        return seconds * 1000
+    }
+
+    @SuppressLint("SimpleDateFormat")
+    fun isUserAgeAndDobMatch(): Boolean {
+
+        return if (userDetails.value.age.isNotEmpty()) {
+
+            val age = _userDetails.value.age.trim().toInt()
+            return if (age <= 0) false else {
+                val givenAgeDob =
+                    convertMillisToDate(mill = Date().time.minus(yearsToMillis(years = age.toLong()))).split(
+                        "/"
+                    )
+
+                val selectedCalendarDob = if (_userDetails.value.dob.isNotEmpty()) {
+                    _userDetails.value.dob.split("/")
+                } else {
+                    SimpleDateFormat("dd//MM/yyyy").format(Date()).split("/")
+                }
+
+                givenAgeDob[2] == selectedCalendarDob[2]
+            }
+
+        } else {
+            userDetails.value.dob.isEmpty()
+
+        }
+
+
+    }
+
+
     fun setContactsDetails() {
-        if (currentUserId!=null){
+        if (currentUserId != null) {
             val userDetails = localDBRepo.getUserDetails(userId = currentUserId.toInt())
 
             _userDetails.value.apply {
@@ -234,118 +446,64 @@ class SignupViewModel @Inject constructor(
                 password = userDetails.password
             }
 
-            loadEmailAndOtherPhones()
+            setEmailAndPhones()
         }
 
 
     }
 
-    private fun loadEmailAndOtherPhones() {
-        emailList[0] = _userDetails.value.primaryEmail
-        phoneList[0] = _userDetails.value.primaryPhone
+    private fun setEmailAndPhones() {
+        updateEmailOrPhoneList(
+            text = _userDetails.value.primaryEmail,
+            idx = 0,
+            InputListTypes.Email
+        )
+        updateEmailOrPhoneList(
+            text = _userDetails.value.primaryPhone,
+            idx = 0,
+            InputListTypes.Phone
+        )
+
         _profileImage.value = _userDetails.value.profileImage
-        convertStringToList(_userDetails.value.otherEmails)?.forEach {
-            if (it.isNotEmpty()) {
-                emailList.add(it)
-                emailListColor.add(false)
 
-
-            }
-
-        }
-        convertStringToList(_userDetails.value.otherPhones)?.forEach {
-            if (it.isNotEmpty()) {
-                phoneList.add(it)
-            }
-
-        }
-
+        setOtherEmailsOrPhones(
+            list = _userDetails.value.otherEmails,
+            type = InputListTypes.Email
+        )
+        setOtherEmailsOrPhones(
+            list = _userDetails.value.otherPhones,
+            type = InputListTypes.Phone
+        )
 
     }
 
-    private fun convertStringToList(text: String?): List<String>? {
-        return text?.split(",")
+    private fun setOtherEmailsOrPhones(list: List<String>?, type: InputListTypes) {
+
+        if (!list.isNullOrEmpty()) {
+            list.let { item ->
+                item.forEach {
+                    addFieldsOfEmailOrPhoneList(text = it, type)
+                    emailListColor.add(false)
+                }
+            }
+
+        }
+
     }
+
 
     fun updateDBData() {
         viewModelScope.launch {
-            if (currentUserId!=null){
+            if (currentUserId != null) {
+
                 localDBRepo.updateUserDetails(
                     userDetails = _userDetails.value,
                     currentUserSID = currentUserId.toInt()
                 )
+
             }
         }
     }
-
-    fun checkFieldsValue(
-        primaryEmail: String,
-        firstName: String,
-        lastName: String,
-        password: String,
-        confirmPassword: String,
-
-        ): Boolean {
-
-        return primaryEmail.isNotEmpty() &&
-                firstName.isNotEmpty() && lastName.isNotEmpty()
-                && password.isNotEmpty() && confirmPassword.isNotEmpty() && checkValidEmail()
-
-    }
-
-    fun updateRequiredFieldsColor(
-        primaryEmailIndex: Int,
-        confirmPassword: String
-    ) {
-        emailListColor[primaryEmailIndex] =
-            emailList[primaryEmailIndex].isEmpty()
-
-        updateFieldsColor(
-            isValid = _userDetails.value.firstName.isEmpty(),
-            SignupFieldsColorType.FName
-        )
-        updateFieldsColor(
-            isValid = _userDetails.value.lastName.isEmpty(),
-            SignupFieldsColorType.LName
-        )
-        updateFieldsColor(
-            isValid = _userDetails.value.password.isEmpty(),
-            SignupFieldsColorType.Password
-        )
-        updateFieldsColor(
-            isValid = confirmPassword.isEmpty(),
-            SignupFieldsColorType.ConfirmPassword
-        )
-    }
-
-    fun updateFieldsValuesToUserDetails(
-        primaryEmailIndex: Int,
-        primaryPhoneIndex: Int,
-
-        ) {
-        val otherEmails = convertListToString(list = emailList, idx = primaryEmailIndex)
-        val otherPhones = convertListToString(list = phoneList, idx = primaryPhoneIndex)
-
-        updateOtherEmailOrPhone(
-            text = otherEmails,
-            type = OtherEmailOrPhoneFields.OtherEmail
-        )
-        updateOtherEmailOrPhone(
-            text = otherPhones,
-            type = OtherEmailOrPhoneFields.OtherPhones
-        )
-
-        updateUserData(
-            text = emailList[primaryEmailIndex],
-            type = TextFieldType.PrimaryEmail
-        )
-        updateUserData(
-            text = phoneList[primaryPhoneIndex],
-            TextFieldType.PrimaryPhone
-        )
-
-    }
-
 
 }
 

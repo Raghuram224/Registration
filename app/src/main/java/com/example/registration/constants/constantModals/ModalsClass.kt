@@ -23,6 +23,11 @@ enum class LoginInputFields {
     Password,
 }
 
+enum class InputListTypes {
+    Email,
+    Phone
+}
+
 enum class TextFieldType {
     FirstName,
     LastName,
@@ -50,8 +55,8 @@ data class UserDetails(
     var dob: String,
     var primaryEmail: String,
     var primaryPhone: String,
-    var otherEmails: String?,
-    var otherPhones: String?,
+    var otherEmails: List<String>?,
+    var otherPhones: List<String>?,
     var website: String,
     var password: String,
     var profileImage: Bitmap?
@@ -63,27 +68,23 @@ enum class KeyboardStatus {
     Opened, Closed
 }
 
-enum class CredentialsValidationStatus {
-    EmailError,
-    PasswordError,
-    ValidCredentials,
 
-}
-
-enum class UserType {
-    Admin,
-    Client
-}
-enum class SignupFieldsColorType{
+enum class SignupFieldsColorType {
     FName,
     LName,
     Password,
-    ConfirmPassword
+    ConfirmPassword,
+    PrimaryPhone,
 }
-enum class EditFieldsColorType{
-    FName,
-    LName,
+
+enum class PermissionsList {
+    Phone,
+    Website,
+    Calendar,
+    Maps,
+    Mail
 }
+
 data class ContactBasicDetails(
     val fName: String,
     val lName: String,
@@ -96,5 +97,14 @@ data class FieldsColor(
     var lNameColor: Boolean,
     var passwordColor: Boolean,
     var confirmPasswordColor: Boolean,
+    var primaryPhoneColor:Boolean
 
     )
+
+data class AppPermissions(
+    var phone: Boolean,
+    var website: Boolean,
+    var calendar: Boolean,
+    var maps: Boolean,
+    var mail: Boolean,
+)

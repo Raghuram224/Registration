@@ -30,4 +30,7 @@ interface RegistrationDao {
 
     @Query("select * from registration_table where sid =:userId")
     fun getUserDetails(userId: Int): RegistrationEntity
+
+    @Query("select * from registration_table where primaryEmail =:email")
+    fun getEmailFromDB(email: String):RegistrationEntity?
 }

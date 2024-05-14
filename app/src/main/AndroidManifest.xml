@@ -9,8 +9,15 @@
         android:name="android.hardware.telephony"
         android:required="false" />
 
-    <uses-permission android:name="android.permission.CAMERA"/>
-    <uses-permission android:name="android.permission.CALL_PHONE"/>
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.CALL_PHONE" />
+    <!-- Devices running Android 12L (API level 32) or lower  -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
+
+    <!-- Devices running Android 13 (API level 33) or higher -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED" />
 
 
     <application
@@ -28,14 +35,19 @@
             android:name=".MainActivity"
             android:exported="true"
             android:label="@string/app_name"
-            android:windowSoftInputMode="adjustResize"
-            android:theme="@style/Theme.Registration">
+            android:theme="@style/Theme.Registration"
+            android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
+
+
             </intent-filter>
+
         </activity>
+
     </application>
 
 </manifest>
+
