@@ -1,5 +1,7 @@
 package com.example.registration.navigation
 
+import kotlinx.serialization.Serializable
+
 
 const val IS_ADMIN_KEY = "isAdmin"
 const val USER_ID_KEY = "userId"
@@ -47,4 +49,11 @@ sealed class Screens(val route: String) {
 //            return "TestScreen?test=$userId"
 //        }
 //    }
+}
+
+
+@Serializable
+sealed class FeaturesScreens{
+    @Serializable
+    data object AllToDos:FeaturesScreens()
 }

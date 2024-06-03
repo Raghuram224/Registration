@@ -271,6 +271,7 @@ fun SignupScreen(
 
 
     LaunchedEffect(Unit) {
+
         if (signupViewModel.currentUserId != null) {
             signupViewModel.setContactsDetails()
             confirmPassword = userDetails.value.password

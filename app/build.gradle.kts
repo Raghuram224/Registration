@@ -5,7 +5,8 @@ plugins {
     //dagger
     kotlin("kapt")
     id("com.google.dagger.hilt.android")
-
+    //compose navigation and serialization
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -138,6 +139,9 @@ dependencies {
 
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.compose.animation)
+
+    //Serialization
+    implementation(libs.kotlinx.serialization.json)
 }
 
 
