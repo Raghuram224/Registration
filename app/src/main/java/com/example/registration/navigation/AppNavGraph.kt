@@ -12,6 +12,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.registration.TestScreen
 import com.example.registration.view.contactScreen.ContactScreen
 import com.example.registration.view.contactScreen.ViewProfileScreen
 import com.example.registration.view.contactScreen.allContacts.AllContactsScreen
@@ -138,26 +139,24 @@ fun AppNavGraph() {
             )
         }
 
-        composable<FeaturesScreens.AllToDos>{
 
+
+        composable(
+            route = Screens.TestScreen.route,
+            arguments = listOf(
+                navArgument(TEST_KEY) {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                },
+
+                ),
+
+        ) {
+
+            TestScreen(
+
+            )
         }
-
-//        composable(
-//            route = Screens.TestScreen.route,
-//            arguments = listOf(
-//                navArgument(TEST_KEY) {
-//                    type = NavType.StringType
-//                    nullable = true
-//                    defaultValue = null
-//                },
-//
-//                ),
-//
-//        ) {
-//
-//            TestScreen(
-//                navController = navController,
-//            )
-//        }
     }
 }

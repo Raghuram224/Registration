@@ -44,11 +44,11 @@ sealed class Screens(val route: String) {
 //        }
 //    }
 
-//    data object TestScreen : Screens(route = "TestScreen?${TEST_KEY}={${TEST_KEY}}") {
-//        fun passArguments(userId: String): String {
-//            return "TestScreen?test=$userId"
-//        }
-//    }
+    data object TestScreen : Screens(route = "TestScreen?${TEST_KEY}={${TEST_KEY}}") {
+        fun passArguments(userId: String): String {
+            return "TestScreen?test=$userId"
+        }
+    }
 }
 
 

@@ -5,6 +5,7 @@ import android.icu.util.Calendar
 import android.util.Log
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 import com.example.registration.navigation.TEST_KEY
 import java.text.SimpleDateFormat
@@ -75,3 +76,7 @@ import java.util.Locale
 //    return seconds * 1000
 //}
 
+@Composable
+fun TestScreen(modifier: Modifier = Modifier) {
+    
+}
